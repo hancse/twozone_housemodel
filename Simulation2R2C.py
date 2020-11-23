@@ -21,7 +21,12 @@ def main():
     house_param = load_config("config2R2C.yml")
     days_sim = house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
-    Rair_wall, Cwall, Rair_outdoor, Cair = calculateRC(house_param)
+    
+    [Rair_wall_z1, Rair_wall_z2, Rair_cc, 
+    Rair_outdoor_z1, Rair_outdoor_z2, Rair_z12, 
+    Rair_z21, Cair_z1, Cair_z2, Cwall_z1, 
+    Cwall_z2, Cwall_cc, Rair_wall] = calculateRC(house_param)
+    
     print('Simulation days:', days_sim)
 
     df_nen = nen5060_to_dataframe()
@@ -31,15 +36,16 @@ def main():
 
     time_sim = df_irr.iloc[0:days_sim*24, 0].values
 
-    Qsolar = (df_irr.total_E * house_param['glass']['E'] +
-              df_irr.total_SE * house_param['glass']['SE'] +
-              df_irr.total_S * house_param['glass']['S'] +
-              df_irr.total_SW * house_param['glass']['SW'] +
-              df_irr.total_W * house_param['glass']['W'] +
-              df_irr.total_NW * house_param['glass']['NW'] +
-              df_irr.total_N * house_param['glass']['N'] +
-              df_irr.total_NE * house_param['glass']['NE']).values
-    Qsolar *= house_param['glass']['g_value']
+    Qsolar = (df_irr.total_E * house_param['glass_z1']['E'] +
+              df_irr.total_SE * house_param['glass_z1']['SE'] +
+              df_irr.total_S * house_param['glass_z1']['S'] +
+              df_irr.total_SW * house_param['glass_z1']['SW'] +
+              df_irr.total_W * house_param['glass_z1']['W'] +
+              df_irr.total_NW * house_param['glass_z1']['NW'] +
+              df_irr.total_N * house_param['glass_z1']['N'] +
+              df_irr.total_NE * house_param['glass_z1']['NE']).values
+    Qsolar *= house_param['glass_z1']['g_value']
+    Qsolar *= 2
     Qsolar_sim = Qsolar[0:days_sim*24]
     #print(len(Qsolar_sim))
 
@@ -87,13 +93,15 @@ def main():
     kp = house_param['controller']['kp']
 
     # solve ODE
-    data = house(T_outdoor_sim, Qinternal_sim, Qsolar_sim, SP_sim, time_sim,
-                 CF, Rair_outdoor, Rair_wall, Cair, Cwall,kp)
+    data = house(T_outdoor_sim,Qinternal_sim,Qsolar_sim,SP_sim,time_sim,
+                 CF,Rair_outdoor_z1,Rair_wall_z1,Cair_z1,
+                 Cwall_z1,Rair_z12,Rair_z21,Rair_cc,Cwall_cc,kp)
 
     # plot the results
     plt.figure(figsize=(15, 5))         # key-value pair: no spaces
-    plt.plot(data[0], label='Tair')
+    plt.plot(data[0], label='Tair_zone1')
     plt.plot(data[1], label='Twall')
+    plt.plot(data[2], label='Tair_zone2')
     plt.plot(SP_sim, label='SP_Temperature')
     # plt.plot(T_outdoor_sim,label='Toutdoor')
     plt.legend(loc='best')
