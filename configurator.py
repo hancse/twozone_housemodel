@@ -146,8 +146,9 @@ def calculateRC(hp: dict):
     Rair_cc      = 1/(A_cc*alpha_internal_mass)  # Resistance indoor air-wall
     
     #Rc_facade_c = Rc_facade - 0.4 # Correct Rc_value 
-
-    Rair_wall= (Rair_wall_z1*Rair_cc)/(Rair_cc+Rair_wall_z1)
+    
+    Rair_wall  = Rair_wall_z1 + Rair_wall_z2
+    #Rair_wall = (Rair_wall_z1*Rair_cc)/(Rair_cc+Rair_wall_z1)
 
     #Rair_wall = 1.0 / (A_internal_mass * alpha_internal_mass)  # Resistance indoor air-wall
 

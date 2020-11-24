@@ -45,7 +45,7 @@ def main():
               df_irr.total_N * house_param['glass_z1']['N'] +
               df_irr.total_NE * house_param['glass_z1']['NE']).values
     Qsolar *= house_param['glass_z1']['g_value']
-    Qsolar *= 2
+    #Qsolar *= 2
     Qsolar_sim = Qsolar[0:days_sim*24]
     #print(len(Qsolar_sim))
 
@@ -91,19 +91,23 @@ def main():
     # Controller value
     
     kp = house_param['controller']['kp']
+    zone_1 =  house_param['controller']['z1_on_off']
+    zone_2 =  house_param['controller']['z2_on_off']
+
 
     # solve ODE
     data = house(T_outdoor_sim,Qinternal_sim,Qsolar_sim,SP_sim,time_sim,
                  CF,Rair_outdoor_z1,Rair_wall_z1,Cair_z1,
-                 Cwall_z1,Rair_z12,Rair_z21,Rair_cc,Cwall_cc,kp)
+                 Cwall_z1,Rair_z12,Rair_z21,Rair_cc,Cwall_cc,kp,zone_1,zone_2)
 
     # plot the results
     plt.figure(figsize=(15, 5))         # key-value pair: no spaces
     plt.plot(data[0], label='Tair_zone1')
     plt.plot(data[1], label='Twall')
     plt.plot(data[2], label='Tair_zone2')
+    plt.plot(data[3], label='Twall_cc')
     plt.plot(SP_sim, label='SP_Temperature')
-    # plt.plot(T_outdoor_sim,label='Toutdoor')
+    #plt.plot(T_outdoor_sim,label='Toutdoor')
     plt.legend(loc='best')
     plt.show()
     

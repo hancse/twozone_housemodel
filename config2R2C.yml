@@ -26,7 +26,7 @@ glass_z2:
     g_value : 0.7
 
 timing:
-    days_sim : 20
+    days_sim : 10
     interval : NEN5060
     unit : ss
 
@@ -41,8 +41,8 @@ thermal:
 
 dimensions:
     #Envelope surface (facade + roof + ground) [m2] (A_facade)
-    A_facade_z1 : 160.2
-    A_facade_z2 : 160.2
+    A_facade_z1 : 80.1
+    A_facade_z2 : 80.1
     #Floor and internal walls surface [m2]
     A_internal_mass_z1: 59.5           #(106+64)/2 - A_cc/2 
     A_internal_mass_z2: 59.5
@@ -120,11 +120,15 @@ setpoint:
 
 controller:
     # propotional gain
-    kp : 7000
+    kp : 4000
     # intergal
     ki : 0
     # derivative
     kd : 0
+    # z1 controller on off On =1, off =0
+    z1_on_off : 1
+    #  z2 controller on off On =1, off =0
+    z2_on_off: 0
    
 
    

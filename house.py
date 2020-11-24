@@ -93,7 +93,7 @@ def house_m_zone(x,t,T_outdoor,Q_internal,Q_solar,SP_T,
 # Initial Conditions for the States
 def house(T_outdoor,Q_internal,Q_solar,SP_T,time_sim,
           CF,Rair_outdoor,Rair_wall,Cair,
-          Cwall,Rair_z12,Rair_z21,Rair_cc,Cwall_cc,controller):
+          Cwall,Rair_z12,Rair_z21,Rair_cc,Cwall_cc,controller_value,z1_on_off,z2_on_off):
     
     """Compute air and wall tempearature inside the house.
 
@@ -126,7 +126,7 @@ def house(T_outdoor,Q_internal,Q_solar,SP_T,time_sim,
     Tair_z10    = 20   
     Twall_z10   = 20
     Tair_z20    = 20
-    Twall_cc0  = 20
+    Twall_cc0   = 20
     #Twall_z20   = 15
     
     y0 = [Tair_z10,Twall_z10,Tair_z20,Twall_cc0]
@@ -146,14 +146,14 @@ def house(T_outdoor,Q_internal,Q_solar,SP_T,time_sim,
     Consumption_z1 = np.ones(len(t))
     Consumption_z2 = np.ones(len(t))
 
-    kp = controller
+    kp = controller_value
     for i in range(len(t)-1):
         
         err=SP_T[i+1] - Tair_z1[i]
         err_1=SP_T[i+1] - Tair_z2[i]
-        Qinst=err*0
+        Qinst=err*kp*z1_on_off
         Qinst=np.clip(Qinst,0,4000)
-        Qinst_1=err_1*kp
+        Qinst_1=err_1*kp*z2_on_off
         Qinst_1=np.clip(Qinst_1,0,4000)
         
         if (T_outdoor[i]>= 15):
