@@ -84,7 +84,7 @@ def temp_sp(t1, t2, Night_T_SP, Day_T_SP, Wu_time, duty_wu,
 
     # Plot 48 hours
     # plt.plot(time_t[0:48], SP[0:48])
-    plt.plot(SP[0:48])
+    #plt.plot(SP[0:48])
     # plt.plot(time_t[0:48])
 
     # plt.ylabel('Temperature_SP (degC)')

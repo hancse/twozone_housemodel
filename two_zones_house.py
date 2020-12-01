@@ -1,5 +1,5 @@
 """
-house model base on 2R2C model
+house model base on 7R4C network
 """
 
 from scipy.integrate import odeint       # ODE solver
@@ -9,7 +9,7 @@ import numpy as np                       # linear algebra
 # Define model
 def house_m_zone(x,t,T_outdoor,Q_internal,Q_solar,SP_T,
                  Qinst,Qinst_1,CF,Rair_outdoor,Rair_wall,
-                 Cair,Cwall,Rair_z12,Rair_z21,Rair_cc,Cwall_cc):
+                 Cair,Cwall,Rair_z12,Rair_z21,Rair_cc,Cwall_cc,Tc):
     
     """model function for scipy.integrate.odeint.
 
@@ -80,7 +80,7 @@ def house_m_zone(x,t,T_outdoor,Q_internal,Q_solar,SP_T,
     
     #________Air temperature zone 2 equation
     
-    Tair_z2dt   = ((Twall-Tair_z2)/Rair_wall_z2 + ((T_outdoor-Tair_z2)/Rair_outdoor_z2 + (Tair_z1-Tair_z2)/Rair_z12) 
+    Tair_z2dt   = ((Twall-Tair_z2)/Rair_wall_z2 + ((T_outdoor-Tair_z2)/Rair_outdoor_z2 + (Tair_z1-Tair_z2)/Rair_z12 - Tc) 
                    + (Twall_cc-Tair_z2)/Rair_cc + 0  + Qinst_1 + Q_internal + CF*Q_solar_z2)/Cair_z2
     
     #________temperature of the concrete between Zone 1 and Zone 2____
@@ -112,6 +112,8 @@ def house(T_outdoor,Q_internal,Q_solar,SP_T,time_sim,
     :param Rair_z21:
     :param Rair_cc:
     :param Cwall_cc:
+    :param Tc:                      Correction values for the heat flow from top to bottom 
+                                    in degree C
     :return:             tuple :  Tuple containing (Tair, Twall, conrumption):
 
                 - Tair (float):   air temperature inside the house in degree C.
@@ -156,6 +158,12 @@ def house(T_outdoor,Q_internal,Q_solar,SP_T,time_sim,
         Qinst_1=err_1*kp*z2_on_off
         Qinst_1=np.clip(Qinst_1,0,4000)
         
+        # add correction values for heat flow from top to bottom
+        if (Tair_z1[i] - Tair_z2[i])>=0:
+            Tc=0
+        else:
+            Tc= (Tair_z1[i] - Tair_z2[i])/Rair_z12
+        
         if (T_outdoor[i]>= 15):
             Qinst=0
             Qinst_1=0
@@ -165,7 +173,7 @@ def house(T_outdoor,Q_internal,Q_solar,SP_T,time_sim,
         
         inputs = (T_outdoor[i],Q_internal[i],Q_solar[i],SP_T[i],
                   Qinst,Qinst_1,CF,Rair_outdoor,Rair_wall,Cair,
-                  Cwall,Rair_z12,Rair_z21,Rair_cc,Cwall_cc)
+                  Cwall,Rair_z12,Rair_z21,Rair_cc,Cwall_cc,Tc)
     
         ts = [t[i],t[i+1]]
         y = odeint(house_m_zone,y0,ts,args=inputs)

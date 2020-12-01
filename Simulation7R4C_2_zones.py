@@ -4,7 +4,7 @@ Created on Tue Nov 10 12:05:19 2020
 
 @author: TrungNguyen, PvK
 """
-from house import house  # exposed function "house" in house module
+from two_zones_house import house  # exposed function "house" in house module
 # function "model" in module house is private
 
 from configurator import load_config, calculateRC
@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    house_param = load_config("config2R2C.yml")
+    house_param = load_config("config7R4C.yml")
     days_sim = house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
     

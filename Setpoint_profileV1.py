@@ -134,9 +134,9 @@ def SP_profile(SP_weekday,SP_dayoff):
             print(i)
             temp  = SP_dayoff[0:24]
             
-        if i == 359:
+        #if i == 359:
             #plt.plot(SP_weekday[0:23])
-            plt.plot(temp[7:24])
+            #plt.plot(temp[7:24])
 
         temp2 = np.concatenate((temp2, temp))
  

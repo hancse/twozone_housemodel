@@ -26,7 +26,7 @@ glass_z2:
     g_value : 0.7
 
 timing:
-    days_sim : 10
+    days_sim : 5
     interval : NEN5060
     unit : ss
 
@@ -126,9 +126,9 @@ controller:
     # derivative
     kd : 0
     # z1 controller on off On =1, off =0
-    z1_on_off : 1
+    z1_on_off : 0
     #  z2 controller on off On =1, off =0
-    z2_on_off: 0
+    z2_on_off: 1
    
 
    
