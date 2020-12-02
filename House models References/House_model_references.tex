@@ -92,7 +92,69 @@ The values used for different types of houses such as: row house, detached house
 	\caption[Short title]{Rc Values for row house buit in 1975-1991 \href{Voorbeeldwoningen 2011 bestaande bouw.pdf}{[7].}}
 	\label{row house}
 	\end{figure} 
+\newpage	
+% ---------------------------------------------------------------------
+\section{Envelop house model 2R2C network}
 
+The 2R2C structure implemented model.
+	
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.0\columnwidth]{Pictures/envelopRC.jpg}
+	\caption[Short title]{Shematic of envelop model}
+	\label{row house}
+	\end{figure} 
+	
+An equivalent RC network of the house.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.0\columnwidth]{Pictures/2R2C_Model.png}
+	\caption[Short title]{2R2C house model}
+	\label{row house}
+	\end{figure}
+	
+There are two capacities Cair and Cwall and two resistances \texttt{R\_wall} and \texttt{Rair\_outdoor}. The incident solar heat is divided between Cwall and Cair by the convection factor CF. It is assumed that both internal heat (lighting, occupancy and electric devices) and supplied heat (installation) are fully released at the air node. 
+
+
+%----------------------------------------------------------------------
+
+\section{2 Zones house model 7R4C network}
+
+The 7R3C structure implemented is shown in Figure 4.
+	
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.0\columnwidth]{Pictures/House_electrical_cricuits overview.png}
+	\caption[Short title]{Shematic of 2 zones house model}
+	\label{row house}
+	\end{figure} 
+	
+An equivalent RC network of the house.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=1.0\columnwidth]{Pictures/2_Zones_house_circuits.png}
+	\caption[Short title]{R-C circuits of 2 zones house model}
+	\label{row house}
+	\end{figure}
+
+with:\\
+\begin{itemize}
+    \item \texttt{T\_outdoor} : outdoor temperature [$^oC$]
+    \item \texttt{T\_air\_1}  : zone 1 air temperature [$^oC$]
+    \item \texttt{T\_walls}   : walls temperature [$^oC$]
+    \item \texttt{T\_air\_2}  : zone 2 air temperature [$^oC$]
+    \item \texttt{T\_cc}      : temperature of the concrete layer between zone 1 and zone 2 [$^oC$]
+    \item \texttt{R\_air\_1\_outdoor} : outdoor resistance values.
+    \item \texttt{R\_wall\_1} : walls resistance values.
+    \item \texttt{R\_wall\_2} : walls resistance values.
+    \item \texttt{R\_cc}      : concrete resistance values.
+    \item \texttt{R\_air\_12} : resistance value of air flow from zone 1 to zone 2.
+    \item \texttt{R\_air\_21} : resistance value of air flow from zone 2 to zone 1.
+
+\end{itemize}
+\newpage
 %----------------------------------------------------------------------
 
 \section{NEN and ISO}
@@ -106,7 +168,7 @@ The list of NEN and ISO standard used in the calculation:
     \item SO 10077-2
     \item NEN 7120
 \end{itemize}
-
+\newpage
 %----------------------------------------------------------------
 
 %Bibliographic references
