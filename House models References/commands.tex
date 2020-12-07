@@ -1,0 +1,83 @@
+
+\usepackage{fancybox}  % Use \ovalbox for key strokes
+
+\newcommand{\ldf}{\usefont{OT1}{cmr}{m}{n}}     % Select default LaTeX font - Computer Modern Roman
+%\newcommand{\ldf}{\usefont{OT1}{cmss}{m}{n}}     % Select default LaTeX font - Computer Modern Sans
+%\newcommand{\ldf}{\usefont{OT1}{phv}{m}{n}}     % Select default LaTeX font - Helvetica
+\newcommand{\ttbf}{\usefont{OT1}{lmtt}{bx}{n}}  % Select bold typewriter font
+
+%\usepackage[font=sf]{caption}  % Use sans-serif font for float captions - not exactly Helvetica
+
+
+
+\newcommand{\note}[1]{\color{red}\textbf{#1}\color{black}\xspace}
+\newcommand{\marc}[1]{\color{red}\textbf{Marc: #1}\color{black}\xspace}
+
+\newcommand{\myChapter}[1]{
+  \chapter{#1}
+  \minitoc  % Create a ToC of this chapter
+}
+
+
+% General expressions:
+\newcommand{\eg}{\emph{e.g.}\xspace}
+\newcommand{\ie}{\emph{i.e.}\xspace}
+\newcommand{\etc}{\emph{et cetera}\xspace}
+\newcommand{\ff}{\emph{ff}\xspace}
+
+% CLI symbols:
+\newcommand{\pipe}{$|$}      % Needed to avoid | in \index{}
+\newcommand{\logor}{$|\,|$}  % Needed to avoid | in \index{}
+\newcommand{\home}{\url{~}}  % Home directory
+
+
+% Often used code names:
+\newcommand{\NULL}{\code{NULL}}
+\newcommand{\void}{\code{void}}
+\newcommand{\stdout}{\code{stdout}}
+\newcommand{\stderr}{\code{stderr}}
+
+% Man pages:
+\newcommand{\man}[2]{\texttt{man #1 #2}\xspace}
+\newcommand{\mancmd}[1]{\texttt{man #1}\xspace}
+
+% Code:
+\newcommand{\prototype}[3]{\hspace*{2em}\texttt{#1} {\ttbf #2\ldf}(\texttt{#3});\xspace}  % function prototype
+\newcommand{\var}[2]{\hspace*{2em}\texttt{#1} {\ttbf #2\ldf};\xspace}  % variable declaration
+\newcommand{\code}[1]{\texttt{#1}\xspace}  % inline code
+\newcommand{\codeb}[1]{\ttbf #1\ldf\xspace}  % inline bold code
+\newcommand{\codeline}[1]{\hspace*{2em}\texttt{#1}}  % separate code line
+
+\newcommand{\cli}[1]{\noindent\hspace*{2em}\code{\$ #1}}  % command line input
+\newcommand{\clir}[1]{\noindent\hspace*{2em}\code{\# #1}}  % command line input root
+\newcommand{\clo}[1]{\noindent\hspace*{2em}\code{#1}}  % command line output
+\newcommand{\clitem}[1]{\item[\code{\$}] \code{#1}}  % cli in itemized list, with $ as bullet
+\newcommand{\clitemb}[1]{\item[\codeb{\$}] \codeb{#1}}  % cli in itemized list, with $ as bullet - bold
+
+\newcommand{\key}[1]{\Ovalbox{\texttt{#1}}\xspace}  % key press/combination
+\newcommand{\keyb}[1]{\Ovalbox{\ttbf #1\ldf}\xspace}  % key press/combination bold
+
+
+% Heat pumps
+\newcommand{\COP}{\mathrm{COP}}  % COP in "math mode"
+\newcommand{\COPh}{\COP_{\mathrm{heating}}}  % COP_heating in "math mode"
+
+\newcommand{\Qh}{Q_{\mathrm{H}}}
+\newcommand{\Qc}{Q_{\mathrm{C}}}
+\newcommand{\Th}{T_{\mathrm{H}}}
+\newcommand{\Tc}{T_{\mathrm{C}}}
+
+\newcommand{\Tin}{T_{\mathrm{in}}}
+\newcommand{\Tout}{T_{\mathrm{out}}}
+
+\newcommand{\Ph}{P_{\mathrm{heat}}}
+\newcommand{\Pheat}{P_{\mathrm{heat}}}
+\newcommand{\Pc}{P_{\mathrm{cool}}}
+\newcommand{\Pcool}{P_{\mathrm{cool}}}
+\newcommand{\Pel}{P_{\mathrm{el}}}
+
+\newcommand{\degr}{^\circ}
+\newcommand{\tdeg}{$\degr$\xspace}
+\newcommand{\degC}{\degr\mathrm{C}}
+\newcommand{\tdegC}{$\degC$\xspace}
+
