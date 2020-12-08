@@ -63,6 +63,7 @@ def main():
                                          house_param['setpoint']['t2'],
                                          house_param['setpoint']['Night_T_SP'],
                                          house_param['setpoint']['Day_T_SP'],
+                                         house_param['setpoint']['Flex_T_SP_workday'],
                                          house_param['setpoint']['Wu_time'],
                                          house_param['setpoint']['Work_time'],
                                          house_param['setpoint']['back_home_from_work'])
@@ -71,6 +72,7 @@ def main():
                                          house_param['setpoint']['t2'],
                                          house_param['setpoint']['Night_T_SP'],
                                          house_param['setpoint']['Day_T_SP'],
+                                         house_param['setpoint']['Flex_T_SP_dayoff'],
                                          house_param['setpoint']['Wu_time'],
                                          house_param['setpoint']['shopping_time'],
                                          house_param['setpoint']['back_home'])

@@ -14,20 +14,23 @@ import pandas as pd
  
 
 
-def thermostat_sp(t1,t2,Night_T_SP,Day_T_SP,Wu_time,not_at_home,back_home):
+def thermostat_sp(t1,t2,Night_T_SP,Day_T_SP,Flex_T_SP,Wu_time,not_at_home,back_home):
    
     """ Define Temperature SP for 1 days (24 hours).
 
     Args:
-        t1:           Presence from [hour]
-        t2:           Presence until [hour]
-        Night_T_SP:   Set temperature of thermostat at night from time t2
-        Day_T_SP:     Set wishes temperature of thermostat
-        Wu_time:      Define wake up time in the morning, temperature set to 20
+        t1:             Presence from [hour]
+        t2:             Presence until [hour]
+        Night_T_SP :    Set temperature of thermostat at night from time t2
+        Day_T_SP   :    Set wishes temperature of thermostat
+        Flex_T_SP     :    Flexible temperature setting for the time that people are not at home
+                        or go to work
+                        
+        Wu_time    :    Define wake up time in the morning, temperature set to 20
         duty_wu:
         not_at_home:    Define time that people go to work or shopping.
         duty_w:
-        back_home:    Define time that people back from work 18:00
+        back_home:      Define time that people back from work 18:00
 
     Returns:
         
@@ -64,6 +67,12 @@ def thermostat_sp(t1,t2,Night_T_SP,Day_T_SP,Wu_time,not_at_home,back_home):
     # temperature different between day and night.
     delta_T= Day_T_SP - Night_T_SP
     
+    # temperature different between day and night.
+    #if (Day_T_SP - Flex_T_SP != 0):
+    delta_T_flex= Day_T_SP - Flex_T_SP
+    #else:
+    #    delta_T_flex=delta_T
+    
 	#-----------------------
     t= np.linspace(0,1,(days_hours*days)+1,endpoint=False)          #+1 start from 0 days=1
     temp1 = signal.square(2 * np.pi* days * t,duty=duty_wu/24)
@@ -84,18 +93,35 @@ def thermostat_sp(t1,t2,Night_T_SP,Day_T_SP,Wu_time,not_at_home,back_home):
     temp3 = np.clip(temp3, 0, 1)
 	# add delay to array
     temp3=np.roll(temp3,back_home)
+    
+    #----------------
+    t= np.linspace(0,1,(days_hours*days)+1,endpoint=False)          #+1 start from 0 days=1
+    temp_flex = signal.square(2 * np.pi* days * t,duty=duty_b/24)
+    temp_flex = np.clip(temp_flex, 0, 1)
+	# add delay to array
+    temp_flex=np.roll(temp_flex,back_home)
 
 	# Calculate SP
-    temp4=temp1-temp2+temp3
-    SP_weekday=(temp4*delta_T)+Night_T_SP
+    temp1=(temp1*delta_T)+Night_T_SP
+    temp2=(temp2*delta_T_flex)+Night_T_SP
+    temp3=(temp3*delta_T)+Night_T_SP
+    temp_flex=temp_flex*(delta_T-delta_T_flex)
+    #plt.plot(temp1[0:24])
+    #plt.plot(temp2[0:24])
+    #plt.plot(temp_flex[0:24])
 
-    SP_weekday=SP_weekday[np.newaxis]
-    SP_weekday=SP_weekday.T
-    SP_weekday=np.delete(SP_weekday, -1, 0)
+    temp4=temp1-temp2-temp_flex+temp3
+    #plt.plot(temp4[0:24])
+    SP=temp4
+    #SP_weekday=(temp4*delta_T)+Night_T_SP
+    #plt.plot(SP_weekday[0:24])
+    SP=SP[np.newaxis]
+    SP=SP.T
+    SP=np.delete(SP, -1, 0)
     
 	#SP_weekday=SP_weekday.flatten()	
     
-    return SP_weekday
+    return SP
 
 
 def SP_profile(SP_weekday,SP_dayoff):
@@ -131,12 +157,12 @@ def SP_profile(SP_weekday,SP_dayoff):
             #print('------------------weekend------------------')
 
         if nl_holidays.get(date[i]) != None:
-            print(i)
+            #print(i)
             temp  = SP_dayoff[0:24]
             
         #if i == 359:
             #plt.plot(SP_weekday[0:23])
-            #plt.plot(temp[7:24])
+         #   plt.plot(temp[7:24])
 
         temp2 = np.concatenate((temp2, temp))
  
@@ -147,9 +173,9 @@ def SP_profile(SP_weekday,SP_dayoff):
 
 if __name__ == "__main__":
     
-    week_day_setpoint = thermostat_sp(8, 23, 17, 20, 7, 8, 18)
-    day_off_setpoint  = thermostat_sp(8, 23, 17, 20, 10, 13, 15)
-      
+    week_day_setpoint = thermostat_sp(8, 23, 17, 20, 17, 7, 8, 18)
+    day_off_setpoint  = thermostat_sp(8, 23, 17, 20, 18, 10, 13, 15)
+    #plt.plot(day_off_setpoint[0:24], label='setpoint')  
     #print(week_data.iloc[0]['Datum'] == week_data.iloc[0]['holidays'])
     SP =SP_profile(week_day_setpoint,day_off_setpoint)
     
@@ -158,7 +184,7 @@ if __name__ == "__main__":
     #plt.plot(week_day_setpoint[0:48], label='setpoint')
     #plt.plot(day_off_setpoint[0:48], label='setpoint')
     #plt.plot(SP[0:120], label='setpoint')
-    plt.plot(SP[24*359+7:24*359+24], label='setpoint')
+    plt.plot(SP[24*0:24*1], label='setpoint')
     #plt.ylabel('Temperature_SP (degC)')
     #plt.xlabel('time (h)')
     #plt.legend(loc='best')
