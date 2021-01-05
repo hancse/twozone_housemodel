@@ -1,0 +1,1093 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 20.11) (preloaded format=pdflatex 2020.12.9)  9 DEC 2020 18:40
+entering extended mode
+**./House_model_references.tex
+(House_model_references.tex
+LaTeX2e <2020-10-01> patch level 2
+L3 programming layer <2020-12-03> xparse <2020-03-03> (preamble.tex
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/base\report.cls
+Document Class: report 2020/04/10 v1.4m Standard LaTeX document class
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/base\size10.clo
+File: size10.clo 2020/04/10 v1.4m Standard LaTeX file (size option)
+)
+\c@part=\count177
+\c@chapter=\count178
+\c@section=\count179
+\c@subsection=\count180
+\c@subsubsection=\count181
+\c@paragraph=\count182
+\c@subparagraph=\count183
+\c@figure=\count184
+\c@table=\count185
+\abovecaptionskip=\skip47
+\belowcaptionskip=\skip48
+\bibindent=\dimen138
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry
+.sty
+Package: geometry 2020/01/02 v5.9 Page Geometry
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/graphics\keyval.s
+ty
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks15
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/iftex\ifvtex.st
+y
+Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/iftex\iftex.sty
+Package: iftex 2020/03/06 v1.0d TeX engine tests
+))
+\Gm@cnth=\count186
+\Gm@cntv=\count187
+\c@Gm@tempcnt=\count188
+\Gm@bindingoffset=\dimen139
+\Gm@wd@mp=\dimen140
+\Gm@odd@mp=\dimen141
+\Gm@even@mp=\dimen142
+\Gm@layoutwidth=\dimen143
+\Gm@layoutheight=\dimen144
+\Gm@layouthoffset=\dimen145
+\Gm@layoutvoffset=\dimen146
+\Gm@dimlist=\toks16
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/geometry\geometry
+.cfg))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/babel\babel.sty
+Package: babel 2020/10/27 3.51 The Babel package
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/babel\babel.def
+File: babel.def 2020/10/27 3.51 Babel common definitions
+\babel@savecnt=\count189
+\U@D=\dimen147
+\l@babelnohyphens=\language84
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/babel\txtbabel.
+def)
+\bbl@readstream=\read2
+)
+\bbl@dirlevel=\count190
+
+*************************************
+* Local config file bblopts.cfg used
+*
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/arabi\bblopts.cfg
+File: bblopts.cfg 2005/09/08 v0.1 add Arabic and Farsi to "declared" options of
+ babel
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/babel-english\eng
+lish.ldf
+Language: english 2017/06/06 v3.3r English support from the babel system
+Package babel Info: \l@canadian = using hyphenrules for english
+(babel)             (\language0) on input line 102.
+Package babel Info: \l@australian = using hyphenrules for ukenglish
+(babel)             (\language78) on input line 105.
+Package babel Info: \l@newzealand = using hyphenrules for ukenglish
+(babel)             (\language78) on input line 108.
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/parskip\parskip.s
+ty
+Package: parskip 2020-06-15 v2.0f non-zero parskip adjustments
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/kvoptions\kvoptio
+ns.sty
+Package: kvoptions 2020-10-07 v3.14 Key value format for package options (HO)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/ltxcmds\ltxcmds
+.sty
+Package: ltxcmds 2020-05-10 v1.25 LaTeX kernel commands for general use (HO)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/kvsetkeys\kvset
+keys.sty
+Package: kvsetkeys 2019/12/15 v1.18 Key value parser (HO)
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/etoolbox\etoolbox
+.sty
+Package: etoolbox 2020/10/05 v2.5k e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count191
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/latex-tools\xspac
+e.sty
+Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/appendix\appendix
+.sty
+Package: appendix 2020/02/08 v1.2c extra appendix facilities
+\c@@pps=\count192
+\c@@ppsavesec=\count193
+\c@@ppsaveapp=\count194
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsmath.s
+ty
+Package: amsmath 2020/09/23 v2.17i AMS math features
+\@mathmargin=\skip49
+
+For additional information on amsmath, use the `?' option.
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amstext.s
+ty
+Package: amstext 2000/06/29 v2.01 AMS text
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsgen.st
+y
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks17
+\ex@=\dimen148
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsbsy.st
+y
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen149
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/amsmath\amsopn.st
+y
+Package: amsopn 2016/03/08 v2.02 operator names
+)
+\inf@bad=\count195
+LaTeX Info: Redefining \frac on input line 234.
+\uproot@=\count196
+\leftroot@=\count197
+LaTeX Info: Redefining \overline on input line 399.
+\classnum@=\count198
+\DOTSCASE@=\count199
+LaTeX Info: Redefining \ldots on input line 496.
+LaTeX Info: Redefining \dots on input line 499.
+LaTeX Info: Redefining \cdots on input line 620.
+\Mathstrutbox@=\box47
+\strutbox@=\box48
+\big@size=\dimen150
+LaTeX Font Info:    Redeclaring font encoding OML on input line 743.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 744.
+\macc@depth=\count266
+\c@MaxMatrixCols=\count267
+\dotsspace@=\muskip16
+\c@parentequation=\count268
+\dspbrk@lvl=\count269
+\tag@help=\toks18
+\row@=\count270
+\column@=\count271
+\maxfields@=\count272
+\andhelp@=\toks19
+\eqnshift@=\dimen151
+\alignsep@=\dimen152
+\tagshift@=\dimen153
+\tagwidth@=\dimen154
+\totwidth@=\dimen155
+\lineht@=\dimen156
+\@envbody=\toks20
+\multlinegap=\skip50
+\multlinetaggap=\skip51
+\mathdisplay@stack=\toks21
+LaTeX Info: Redefining \[ on input line 2923.
+LaTeX Info: Redefining \] on input line 2924.
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amssymb.
+sty
+Package: amssymb 2013/01/14 v3.01 AMS font symbols
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\amsfonts
+.sty
+Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/bbm\bbm.sty
+Package: bbm 1999/03/15 V 1.2 provides fonts for set symbols - TH
+LaTeX Font Info:    Overwriting math alphabet `\mathbbm' in version `bold'
+(Font)                  U/bbm/m/n --> U/bbm/bx/n on input line 33.
+LaTeX Font Info:    Overwriting math alphabet `\mathbbmss' in version `bold'
+(Font)                  U/bbmss/m/n --> U/bbmss/bx/n on input line 35.
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/latex-tools\enume
+rate.sty
+Package: enumerate 2015/07/23 v3.00 enumerate extensions (DPC)
+\@enLab=\toks22
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/listings\listings
+.sty
+\lst@mode=\count273
+\lst@gtempboxa=\box49
+\lst@token=\toks23
+\lst@length=\count274
+\lst@currlwidth=\dimen157
+\lst@column=\count275
+\lst@pos=\count276
+\lst@lostspace=\dimen158
+\lst@width=\dimen159
+\lst@newlines=\count277
+\lst@lineno=\count278
+\lst@maxwidth=\dimen160
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstmisc.
+sty
+File: lstmisc.sty 2020/03/24 1.8d (Carsten Heinz)
+\c@lstnumber=\count279
+\lst@skipnumbers=\count280
+\lst@framebox=\box50
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/listings\listings
+.cfg
+File: listings.cfg 2020/03/24 1.8d listings configuration
+))
+Package: listings 2020/03/24 1.8d (Carsten Heinz)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/pgf/basiclayer\pg
+f.sty
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/pgf/utilities\pgf
+rcs.sty
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\p
+gfutil-common.tex
+\pgfutil@everybye=\toks24
+\pgfutil@tempdima=\dimen161
+\pgfutil@tempdimb=\dimen162
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\p
+gfutil-common-lists.tex))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\p
+gfutil-latex.def
+\pgfutil@abb=\box51
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\p
+gfrcs.code.tex
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf\pgf.revisio
+n.tex)
+Package: pgfrcs 2020/12/01 v3.1.7a (3.1.7a)
+))
+Package: pgf 2020/12/01 v3.1.7a (3.1.7a)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/pgf/basiclayer\pg
+fcore.sty
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphicx
+.sty
+Package: graphicx 2020/09/09 v1.2b Enhanced LaTeX Graphics (DPC,SPQR)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/graphics\graphics
+.sty
+Package: graphics 2020/08/30 v1.4c Standard LaTeX Graphics (DPC,SPQR)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/graphics\trig.sty
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\grap
+hics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 105.
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/graphics-def\pdft
+ex.def
+File: pdftex.def 2020/10/05 v1.2a Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen163
+\Gin@req@width=\dimen164
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/pgf/systemlayer\p
+gfsys.sty
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer
+\pgfsys.code.tex
+Package: pgfsys 2020/12/01 v3.1.7a (3.1.7a)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\p
+gfkeys.code.tex
+\pgfkeys@pathtoks=\toks25
+\pgfkeys@temptoks=\toks26
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/utilities\p
+gfkeysfiltered.code.tex
+\pgfkeys@tmptoks=\toks27
+))
+\pgf@x=\dimen165
+\pgf@y=\dimen166
+\pgf@xa=\dimen167
+\pgf@ya=\dimen168
+\pgf@xb=\dimen169
+\pgf@yb=\dimen170
+\pgf@xc=\dimen171
+\pgf@yc=\dimen172
+\pgf@xd=\dimen173
+\pgf@yd=\dimen174
+\w@pgf@writea=\write3
+\r@pgf@reada=\read3
+\c@pgf@counta=\count281
+\c@pgf@countb=\count282
+\c@pgf@countc=\count283
+\c@pgf@countd=\count284
+\t@pgf@toka=\toks28
+\t@pgf@tokb=\toks29
+\t@pgf@tokc=\toks30
+\pgf@sys@id@count=\count285
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer
+\pgf.cfg
+File: pgf.cfg 2020/12/01 v3.1.7a (3.1.7a)
+)
+Driver file for pgf: pgfsys-pdftex.def
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer
+\pgfsys-pdftex.def
+File: pgfsys-pdftex.def 2020/12/01 v3.1.7a (3.1.7a)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer
+\pgfsys-common-pdf.def
+File: pgfsys-common-pdf.def 2020/12/01 v3.1.7a (3.1.7a)
+)))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer
+\pgfsyssoftpath.code.tex
+File: pgfsyssoftpath.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgfsyssoftpath@smallbuffer@items=\count286
+\pgfsyssoftpath@bigbuffer@items=\count287
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/systemlayer
+\pgfsysprotocol.code.tex
+File: pgfsysprotocol.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/xcolor\xcolor.sty
+Package: xcolor 2016/05/11 v2.12 LaTeX color extensions (UK)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/graphics-cfg\colo
+r.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: pdftex.def on input line 225.
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1348.
+Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1352.
+Package xcolor Info: Model `RGB' extended on input line 1364.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1366.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1367.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1370.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1371.
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcore.code.tex
+Package: pgfcore 2020/12/01 v3.1.7a (3.1.7a)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+h.code.tex
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hcalc.code.tex
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hutil.code.tex)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hparser.code.tex
+\pgfmath@dimen=\dimen175
+\pgfmath@count=\count288
+\pgfmath@box=\box52
+\pgfmath@toks=\toks31
+\pgfmath@stack@operand=\toks32
+\pgfmath@stack@operation=\toks33
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hfunctions.code.tex
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hfunctions.basic.code.tex)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hfunctions.trigonometric.code.tex)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hfunctions.random.code.tex)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hfunctions.comparison.code.tex)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hfunctions.base.code.tex)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hfunctions.round.code.tex)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hfunctions.misc.code.tex)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hfunctions.integerarithmetics.code.tex)))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfmat
+hfloat.code.tex
+\c@pgfmathroundto@lastzeros=\count289
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/math\pgfint
+.code.tex)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcorepoints.code.tex
+File: pgfcorepoints.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgf@picminx=\dimen176
+\pgf@picmaxx=\dimen177
+\pgf@picminy=\dimen178
+\pgf@picmaxy=\dimen179
+\pgf@pathminx=\dimen180
+\pgf@pathmaxx=\dimen181
+\pgf@pathminy=\dimen182
+\pgf@pathmaxy=\dimen183
+\pgf@xx=\dimen184
+\pgf@xy=\dimen185
+\pgf@yx=\dimen186
+\pgf@yy=\dimen187
+\pgf@zx=\dimen188
+\pgf@zy=\dimen189
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcorepathconstruct.code.tex
+File: pgfcorepathconstruct.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgf@path@lastx=\dimen190
+\pgf@path@lasty=\dimen191
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcorepathusage.code.tex
+File: pgfcorepathusage.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgf@shorten@end@additional=\dimen192
+\pgf@shorten@start@additional=\dimen193
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcorescopes.code.tex
+File: pgfcorescopes.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgfpic=\box53
+\pgf@hbox=\box54
+\pgf@layerbox@main=\box55
+\pgf@picture@serial@count=\count290
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcoregraphicstate.code.tex
+File: pgfcoregraphicstate.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgflinewidth=\dimen194
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcoretransformations.code.tex
+File: pgfcoretransformations.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgf@pt@x=\dimen195
+\pgf@pt@y=\dimen196
+\pgf@pt@temp=\dimen197
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcorequick.code.tex
+File: pgfcorequick.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcoreobjects.code.tex
+File: pgfcoreobjects.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcorepathprocessing.code.tex
+File: pgfcorepathprocessing.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcorearrows.code.tex
+File: pgfcorearrows.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgfarrowsep=\dimen198
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcoreshade.code.tex
+File: pgfcoreshade.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgf@max=\dimen199
+\pgf@sys@shading@range@num=\count291
+\pgf@shadingcount=\count292
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcoreimage.code.tex
+File: pgfcoreimage.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcoreexternal.code.tex
+File: pgfcoreexternal.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgfexternal@startupbox=\box56
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcorelayers.code.tex
+File: pgfcorelayers.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcoretransparency.code.tex
+File: pgfcoretransparency.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcorepatterns.code.tex
+File: pgfcorepatterns.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/basiclayer\
+pgfcorerdf.code.tex
+File: pgfcorerdf.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+)))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\pgf
+moduleshapes.code.tex
+File: pgfmoduleshapes.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+\pgfnodeparttextbox=\box57
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pgf/modules\pgf
+moduleplot.code.tex
+File: pgfmoduleplot.code.tex 2020/12/01 v3.1.7a (3.1.7a)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/pgf/compatibility
+\pgfcomp-version-0-65.sty
+Package: pgfcomp-version-0-65 2020/12/01 v3.1.7a (3.1.7a)
+\pgf@nodesepstart=\dimen256
+\pgf@nodesepend=\dimen257
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/pgf/compatibility
+\pgfcomp-version-1-18.sty
+Package: pgfcomp-version-1-18 2020/12/01 v3.1.7a (3.1.7a)
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/natbib\natbib.sty
+Package: natbib 2010/09/13 8.31b (PWD, AO)
+\bibhang=\skip52
+\bibsep=\skip53
+LaTeX Info: Redefining \cite on input line 694.
+\c@NAT@ctr=\count293
+) (commands.tex
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/fancybox\fancybox
+.sty
+Package: fancybox 2010/05/15 1.4
+
+Style option: `fancybox' v1.4 <2010/05/15> (tvz)
+\@fancybox=\box58
+\shadowsize=\dimen258
+\@Sbox=\box59
+\do@VerbBox=\toks34
+\the@fancyput=\toks35
+\this@fancyput=\toks36
+\EndVerbatimTokens=\toks37
+\Verbatim@Outfile=\write4
+\Verbatim@Infile=\read4
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hyperref
+.sty
+Package: hyperref 2020-05-15 v7.00e Hypertext links for LaTeX
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pdftexcmds\pdft
+excmds.sty
+Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/infwarerr\infwa
+rerr.sty
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+)
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/kvdefinekeys\kv
+definekeys.sty
+Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/pdfescape\pdfes
+cape.sty
+Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/hycolor\hycolor.s
+ty
+Package: hycolor 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/letltxmacro\letlt
+xmacro.sty
+Package: letltxmacro 2019/12/03 v1.6 Let assignment for LaTeX macros (HO)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/auxhook\auxhook.s
+ty
+Package: auxhook 2019-12-17 v1.6 Hooks for auxiliary files (HO)
+)
+\@linkdim=\dimen259
+\Hy@linkcounter=\count294
+\Hy@pagecounter=\count295
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\pd1enc.d
+ef
+File: pd1enc.def 2020-05-15 v7.00e Hyperref: PDFDocEncoding definition (HO)
+Now handling font encoding PD1 ...
+... no UTF-8 mapping file for font encoding PD1
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/intcalc\intcalc
+.sty
+Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/etexcmds\etexcm
+ds.sty
+Package: etexcmds 2019/12/15 v1.7 Avoid name clashes with e-TeX commands (HO)
+)
+\Hy@SavedSpaceFactor=\count296
+Package hyperref Info: Hyper figures OFF on input line 4464.
+Package hyperref Info: Link nesting OFF on input line 4469.
+Package hyperref Info: Hyper index ON on input line 4472.
+Package hyperref Info: Plain pages OFF on input line 4479.
+Package hyperref Info: Backreferencing OFF on input line 4484.
+Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
+Package hyperref Info: Bookmarks ON on input line 4717.
+\c@Hy@tempcnt=\count297
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/url\url.sty
+\Urlmuskip=\muskip17
+Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
+)
+LaTeX Info: Redefining \url on input line 5076.
+\XeTeXLinkMargin=\dimen260
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/bitset\bitset.s
+ty
+Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/bigintcalc\bigi
+ntcalc.sty
+Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
+)
+))
+\Fld@menulength=\count298
+\Field@Width=\dimen261
+\Fld@charsize=\dimen262
+Package hyperref Info: Hyper figures OFF on input line 6347.
+Package hyperref Info: Link nesting OFF on input line 6352.
+Package hyperref Info: Hyper index ON on input line 6355.
+Package hyperref Info: backreferencing OFF on input line 6362.
+Package hyperref Info: Link coloring OFF on input line 6367.
+Package hyperref Info: Link coloring with OCG OFF on input line 6372.
+Package hyperref Info: PDF/A mode OFF on input line 6377.
+LaTeX Info: Redefining \ref on input line 6417.
+LaTeX Info: Redefining \pageref on input line 6421.
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/base\atbegshi-ltx
+.sty
+Package: atbegshi-ltx 2020/08/17 v1.0a Emulation of the original atbegshi packa
+ge
+with kernel methods
+)
+\Hy@abspage=\count299
+\c@Item=\count300
+\c@Hfootnote=\count301
+)
+Package hyperref Info: Driver: hpdftex.
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\hpdftex.
+def
+File: hpdftex.def 2020-05-15 v7.00e Hyperref driver for pdfTeX
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/base\atveryend-lt
+x.sty
+Package: atveryend-ltx 2020/08/19 v1.0a Emulation of the original atvery packag
+e
+with kernel methods
+)
+\Fld@listcount=\count302
+\c@bookmark@seq@number=\count303
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/rerunfilecheck\re
+runfilecheck.sty
+Package: rerunfilecheck 2019/12/05 v1.9 Rerun checks for auxiliary files (HO)
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/uniquecounter\u
+niquecounter.sty
+Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
+)
+Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
+86.
+)
+\Hy@SectionHShift=\skip54
+)
+Package hyperref Info: Option `colorlinks' set `true' on input line 40.
+Package hyperref Info: Option `bookmarksnumbered' set `true' on input line 40.
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/base\inputenc.sty
+Package: inputenc 2020/08/01 v1.3d Input encoding file
+\inpenc@prehook=\toks38
+\inpenc@posthook=\toks39
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/setspace\setspace
+.sty
+Package: setspace 2011/12/19 v6.7a set line spacing
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/float\float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count304
+\float@exts=\toks40
+\float@box=\box60
+\@float@everytoks=\toks41
+\@floatcapt=\box61
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/tocbibind\tocbibi
+nd.sty
+Package: tocbibind 2010/10/13 v1.5k extra ToC listings
+Package tocbibind Info: The document has chapter divisions on input line 50.
+
+
+Package tocbibind Note: Using chapter style headings, unless overridden.
+
+))
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backe
+nd-pdftex.def
+File: l3backend-pdftex.def 2020-09-24 L3 backend support: PDF output (pdfTeX)
+\l__kernel_color_stack_int=\count305
+\l__pdf_internal_box=\box62
+) (House_model_references.aux (introduction.aux) (2R2Cmodel.aux)
+(7R4Cmodel.aux) (NEN_ISO.aux))
+\openout1 = `House_model_references.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 11.
+LaTeX Font Info:    ... okay on input line 11.
+
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+*geometry* verbose mode - [ preamble ] result:
+* driver: pdftex
+* paper: a4paper
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(71.13188pt, 455.24411pt, 71.13188pt)
+* v-part:(T,H,B)=(71.13188pt, 702.78308pt, 71.13188pt)
+* \paperwidth=597.50787pt
+* \paperheight=845.04684pt
+* \textwidth=455.24411pt
+* \textheight=702.78308pt
+* \oddsidemargin=-1.1381pt
+* \evensidemargin=-1.1381pt
+* \topmargin=-38.1381pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=10.0pt
+* \footskip=30.0pt
+* \marginparwidth=65.0pt
+* \marginparsep=11.0pt
+* \columnsep=10.0pt
+* \skip\footins=9.0pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+\c@lstlisting=\count306
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-
+pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count307
+\scratchdimen=\dimen263
+\scratchbox=\box63
+\nofMPsegments=\count308
+\nofMParguments=\count309
+\everyMPshowfont=\toks42
+\MPscratchCnt=\count310
+\MPscratchDim=\dimen264
+\MPnumerator=\count311
+\makeMPintoPDFobject=\count312
+\everyMPtoPDFconversion=\toks43
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/epstopdf-pkg\epst
+opdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/grfext\grfext.sty
+Package: grfext 2019/12/03 v1.3 Manage graphics extensions (HO)
+)
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+Package grfext Info: Graphics extension search list:
+(grfext)             [.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 504.
+)
+Package hyperref Info: Link coloring ON on input line 11.
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/hyperref\nameref.
+sty
+Package: nameref 2019/09/16 v2.46 Cross-referencing by name of section
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/refcount\refcount
+.sty
+Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
+)
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/generic/gettitlestring\
+gettitlestring.sty
+Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
+)
+\c@section@level=\count313
+)
+LaTeX Info: Redefining \ref on input line 11.
+LaTeX Info: Redefining \pageref on input line 11.
+LaTeX Info: Redefining \nameref on input line 11.
+ (House_model_references.out) (House_model_references.out)
+\@outlinefile=\write5
+\openout5 = `House_model_references.out'.
+
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/listings\lstlang1
+.sty
+File: lstlang1.sty 2020/03/24 1.8d listings language file
+)
+LaTeX Font Info:    Trying to load font information for U+msa on input line 54.
+
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsa.fd
+File: umsa.fd 2013/01/14 v3.01 AMS symbols A
+)
+LaTeX Font Info:    Trying to load font information for U+msb on input line 54.
+
+(D:\Users\TrungNguyen\AppData\Local\Programs\MiKTeX\tex/latex/amsfonts\umsb.fd
+File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+) [1
+
+{C:/Users/TrungNguyen/AppData/Local/MiKTeX/pdftex/config/pdftex.map}]
+(House_model_references.toc)
+\tf@toc=\write6
+\openout6 = `House_model_references.toc'.
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has 
+been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.61 \newpage
+              [1
+
+]
+\openout2 = `introduction.aux'.
+
+ (introduction.tex
+Chapter 1.
+<Pictures/heat transfer mode.JPG, id=56, 428.802pt x 197.538pt>
+File: Pictures/heat transfer mode.JPG Graphic file (type jpg)
+<use Pictures/heat transfer mode.JPG>
+Package pdftex.def Info: Pictures/heat transfer mode.JPG  used on input line 13
+.
+(pdftex.def)             Requested size: 364.19667pt x 167.78148pt.
+[2
+
+
+pdfTeX warning (ext4): destination with the same identifier (name{figure.1.1}) 
+has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.26 $
+       [W] = [\frac{W}{m \cdot K}] \dot [m^2] \cdot [\frac{K}{m}] $ <./Pictures
+/heat transfer mode.JPG>]
+Underfull \hbox (badness 10000) in paragraph at lines 42--44
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 58--60
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 61--63
+
+ []
+
+<Pictures/Overview of heat resistances.JPG, id=74, 406.51875pt x 392.667pt>
+File: Pictures/Overview of heat resistances.JPG Graphic file (type jpg)
+<use Pictures/Overview of heat resistances.JPG>
+Package pdftex.def Info: Pictures/Overview of heat resistances.JPG  used on inp
+ut line 77.
+(pdftex.def)             Requested size: 364.19667pt x 351.79727pt.
+[3]
+<Pictures/Rc_values_2020.JPG, id=89, 672.111pt x 108.405pt>
+File: Pictures/Rc_values_2020.JPG Graphic file (type jpg)
+<use Pictures/Rc_values_2020.JPG>
+Package pdftex.def Info: Pictures/Rc_values_2020.JPG  used on input line 87.
+(pdftex.def)             Requested size: 455.24411pt x 73.42659pt.
+<Pictures/Rc_values_2021.JPG, id=92, 419.76825pt x 105.39375pt>
+File: Pictures/Rc_values_2021.JPG Graphic file (type jpg)
+<use Pictures/Rc_values_2021.JPG>
+Package pdftex.def Info: Pictures/Rc_values_2021.JPG  used on input line 97.
+(pdftex.def)             Requested size: 455.24411pt x 114.30438pt.
+ [4pdfTeX warning (ext4): destination with the same identifier (name{figure.1.2
+}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.101 
+      pdfTeX warning (ext4): destination with the same identifier (name{figure.
+1.3}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.101 
+       <./Pictures/Overview of heat resistances.JPG> <./Pictures/Rc_values_2020
+.JPG>]
+<Pictures/row_house_1975-1991.JPG, id=105, 585.387pt x 295.70474pt>
+File: Pictures/row_house_1975-1991.JPG Graphic file (type jpg)
+<use Pictures/row_house_1975-1991.JPG>
+Package pdftex.def Info: Pictures/row_house_1975-1991.JPG  used on input line 1
+07.
+(pdftex.def)             Requested size: 364.19667pt x 183.97124pt.
+) [5pdfTeX warning (ext4): destination with the same identifier (name{figure.1.
+4}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.63 \include{introduction}
+                           pdfTeX warning (ext4): destination with the same ide
+ntifier (name{figure.1.5}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.63 \include{introduction}
+                            <./Pictures/Rc_values_2021.JPG> <./Pictures/row_hou
+se_1975-1991.JPG>]
+\openout2 = `2R2Cmodel.aux'.
+
+ (2R2Cmodel.tex
+Chapter 2.
+<Pictures/envelopRC.jpg, id=115, 529.98pt x 381.67593pt>
+File: Pictures/envelopRC.jpg Graphic file (type jpg)
+<use Pictures/envelopRC.jpg>
+Package pdftex.def Info: Pictures/envelopRC.jpg  used on input line 7.
+(pdftex.def)             Requested size: 455.24411pt x 327.85635pt.
+<Pictures/2R2C_Model.png, id=117, 1032.85875pt x 301.125pt>
+File: Pictures/2R2C_Model.png Graphic file (type png)
+<use Pictures/2R2C_Model.png>
+Package pdftex.def Info: Pictures/2R2C_Model.png  used on input line 16.
+(pdftex.def)             Requested size: 455.24411pt x 132.72514pt.
+[6
+
+
+
+
+pdfTeX warning (ext4): destination with the same identifier (name{figure.2.1}) 
+has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.20 	
+       <./Pictures/envelopRC.jpg>]) [7pdfTeX warning (ext4): destination with t
+he same identifier (name{figure.2.2}) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.65 \include{2R2Cmodel}
+                         <./Pictures/2R2C_Model.png>]
+\openout2 = `7R4Cmodel.aux'.
+
+ (7R4Cmodel.tex
+Chapter 3.
+<Pictures/House_electrical_circuits overview.png, id=132, 1571.8725pt x 1186.43
+25pt>
+File: Pictures/House_electrical_circuits overview.png Graphic file (type png)
+<use Pictures/House_electrical_circuits overview.png>
+Package pdftex.def Info: Pictures/House_electrical_circuits overview.png  used 
+on input line 7.
+(pdftex.def)             Requested size: 455.24411pt x 343.60403pt.
+<Pictures/2_Zones_house_circuits.png, id=134, 1249.66875pt x 607.26875pt>
+File: Pictures/2_Zones_house_circuits.png Graphic file (type png)
+<use Pictures/2_Zones_house_circuits.png>
+Package pdftex.def Info: Pictures/2_Zones_house_circuits.png  used on input lin
+e 16.
+(pdftex.def)             Requested size: 455.24411pt x 221.22037pt.
+[8
+
+
+
+
+pdfTeX warning (ext4): destination with the same identifier (name{figure.3.1}) 
+has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.20 
+      <./Pictures/House_electrical_circuits overview.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 21--22
+
+ []
+
+[9pdfTeX warning (ext4): destination with the same identifier (name{figure.3.2}
+) has been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  
+l.36 \newpage
+              <./Pictures/2_Zones_house_circuits.png>])
+\openout2 = `NEN_ISO.aux'.
+
+ (NEN_ISO.tex
+Chapter 4.
+) [10
+
+
+
+
+] (House_model_references.bbl
+Underfull \hbox (badness 10000) in paragraph at lines 15--18
+[]\OT1/cmr/m/it/10 Fundamentals of ther-mal re-sis-tance\OT1/cmr/m/n/10 .  URL 
+[][]$\OT1/cmtt/m/n/10 https : / / celsiainc . com / heat-[]sink-[]blog /
+ []
+
+
+Underfull \hbox (badness 1371) in paragraph at lines 20--23
+[]\OT1/cmr/m/it/10 Electrical re-sis-tiv-ity and con-duc-tiv-ity\OT1/cmr/m/n/10
+ .  URL [][]$\OT1/cmtt/m/n/10 https : / / en . wikipedia . org / wiki / Electri
+cal _
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 25--28
+[]\OT1/cmr/m/it/10 Overall heat trans-fer co-ef-fi-cient\OT1/cmr/m/n/10 .  URL 
+[][]$\OT1/cmtt/m/n/10 https : / / www . engineeringtoolbox . com /
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 30--33
+[]\OT1/cmr/m/it/10 Surface heat trans-fer co-ef-fi-cient\OT1/cmr/m/n/10 .  URL 
+[][]$\OT1/cmtt/m/n/10 https : / / www . htflux . com / en / documentation /
+ []
+
+
+Underfull \hbox (badness 2512) in paragraph at lines 35--38
+[]\OT1/cmr/m/it/10 Het bouwbesluit over iso-latie en rc waarde\OT1/cmr/m/n/10 .
+  URL [][]$\OT1/cmtt/m/n/10 https : / / www . isolatiemateriaal . nl /
+ []
+
+
+Underfull \hbox (badness 4391) in paragraph at lines 49--52
+[]\OT1/cmr/m/it/10 Voorbeeldwoningen 2011\OT1/cmr/m/n/10 .  URL [][]$\OT1/cmtt/
+m/n/10 https : / / www . rvo . nl / onderwerpen / duurzaam-[]ondernemen /
+ []
+
+) [11
+
+
+
+] (House_model_references.aux (introduction.aux) (2R2Cmodel.aux)
+(7R4Cmodel.aux) (NEN_ISO.aux))
+Package rerunfilecheck Info: File `House_model_references.out' has not changed.
+
+(rerunfilecheck)             Checksum: 45B5500239AB13E34842E9D6F7CCE2ED;438.
+ ) 
+Here is how much of TeX's memory you used:
+ 18078 strings out of 479659
+ 319392 string characters out of 2862486
+ 815288 words of memory out of 3000000
+ 34727 multiletter control sequences out of 15000+200000
+ 413047 words of font info for 64 fonts, out of 3000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 98i,7n,100p,608b,356s stack positions out of 5000i,500n,10000p,200000b,50000s
+{D:/Users/TrungNguyen/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/cm-super/
+cm-super-ts1.enc}<D:/Users/TrungNguyen/AppData/Local/Programs/MiKTeX/fonts/type
+1/public/amsfonts/cm/cmbx10.pfb><D:/Users/TrungNguyen/AppData/Local/Programs/Mi
+KTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><D:/Users/TrungNguyen/AppData/Lo
+cal/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><D:/Users/TrungNg
+uyen/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi5.pfb><D:
+/Users/TrungNguyen/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm
+/cmmi7.pfb><D:/Users/TrungNguyen/AppData/Local/Programs/MiKTeX/fonts/type1/publ
+ic/amsfonts/cm/cmr10.pfb><D:/Users/TrungNguyen/AppData/Local/Programs/MiKTeX/fo
+nts/type1/public/amsfonts/cm/cmr12.pfb><D:/Users/TrungNguyen/AppData/Local/Prog
+rams/MiKTeX/fonts/type1/public/amsfonts/cm/cmr17.pfb><D:/Users/TrungNguyen/AppD
+ata/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr5.pfb><D:/Users/Tru
+ngNguyen/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb>
+<D:/Users/TrungNguyen/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts
+/cm/cmsy10.pfb><D:/Users/TrungNguyen/AppData/Local/Programs/MiKTeX/fonts/type1/
+public/amsfonts/cm/cmsy5.pfb><D:/Users/TrungNguyen/AppData/Local/Programs/MiKTe
+X/fonts/type1/public/amsfonts/cm/cmsy7.pfb><D:/Users/TrungNguyen/AppData/Local/
+Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><D:/Users/TrungNguyen
+/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt10.pfb><D:/Us
+ers/TrungNguyen/AppData/Local/Programs/MiKTeX/fonts/type1/public/cm-super/sfrm1
+000.pfb>
+Output written on House_model_references.pdf (12 pages, 700182 bytes).
+PDF statistics:
+ 237 PDF objects out of 1000 (max. 8388607)
+ 39 named destinations out of 1000 (max. 500000)
+ 114 words of extra memory for PDF output out of 10000 (max. 10000000)
+
