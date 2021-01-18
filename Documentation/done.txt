@@ -1,0 +1,3 @@
+House models references from commit 63fa4fa replaced by House models references new, using BibLateX\biber
+Using natbib /bibtex with MvdS_nuber_url.bst is still possible
+

@@ -1,0 +1,90 @@
+% LaTeX template for a short report (written for MSES scenario modelling)
+% uses LaTeX documentclass "article" for use of sections (not chapter) and References (not Bibliography)
+% for Chapters and Bibliography use "documentclass "report
+\documentclass[10pt]{article}   % Use article class with 10pt letter
+%\documentclass[10pt]{report}
+\usepackage[utf8]{inputenc}
+
+%\usepackage[T1]{fontenc}  % 8-bit encoding, helps hyphenation of accented characters -
+% https://tex.stackexchange.com/a/677/42066
+
+% Use A4 paper and set margins:
+%\usepackage[a4paper, twoside, top=2.0cm, left=3.0cm, bottom=2.0cm, right=2.0cm]{geometry}
+\usepackage[a4paper, twoside, top=2.0cm, left=2.0cm, bottom=2.0cm, right=2.0cm]{geometry}
+%\usepackage[a4paper, top=2.5cm, left=2.5cm, bottom=2.5cm, right=2.5cm]{geometry}
+
+\usepackage[english]{babel}  % Hyphenation and more for English
+
+\usepackage{pgf}      % Include graphics inside figures using \pgfimage
+\usepackage[font=small, labelfont=bf]{caption}  % Stylize figure, table, etc. captions
+
+\usepackage{parskip}         % Replace paragraph indentations with white lines
+\usepackage[hyphens]{url}    % Take care of urls, e.g. wrapping in the Bibliography (hyphens: also break at -)
+
+\usepackage{xspace}   % \xspace saves the user from having to type \  or {} after a macro name in text.
+
+% Use the appendix package for nicer appendices:
+%\usepackage[toc,page]{appendix}  % MvdS
+\usepackage[titletoc]{appendix}
+%\usepackage[toc,page,title]{appendix}  % Use \begin{appendices} ... \end{} iso \appendix
+
+% \usepackage[numbib,numindex]{tocbibind}  % Add ToC, List of Figures/Tables/Code listings, Bibliography and Index to ToC
+% \usepackage[]{tocbibind}       % Add ToC, List of Figures/Tables/Code listings, Bibliography and Index to ToC
+\usepackage[nottoc]{tocbibind}   % ToC without extra "Contents" entry...
+
+\usepackage{amsmath,amssymb,bbm}
+\usepackage{enumerate}         % Choose alternative numberings, e.g. \begin{enumerate}[a.]
+
+\usepackage{listings}          % Code listings
+\usepackage[section, above, below]{placeins}  % \FloatBarrier - flush floats before \section by default
+% \usepackage{pgf}               % Figures
+
+\usepackage{color}
+\definecolor{lightgrey}{rgb}{0.9,0.9,0.9}
+\definecolor{darkgreen}{rgb}{0.0,0.6,0.0}
+
+% Citations:
+
+% option1: use natbib/bibtex with MvdS_number_url.bst
+%\usepackage[numbers, square]{natbib}  % Use numbered citations with square brackets
+%\bibliographystyle{MvdS_number_url}  % Use [1], print url = field  (plain doesn't print urls)
+
+%option2: use biblatex/biber without *.bst file
+\usepackage[backend=biber, style=numeric, citestyle=numeric-comp, sorting=none]{biblatex} 
+\setlength\bibitemsep{0.5\baselineskip}
+\usepackage{csquotes}
+
+% \bibliography{mybibliography} % old-style for backward comp. in preamble for biblatex/bibtex
+\addbibresource{mybibliography.bib}  % new syntax for BibLaTeX
+
+\input{commands}  % Custom commands
+
+\usepackage[pdftex]{hyperref}
+\hypersetup{
+  colorlinks = true,  % They get a red box around them if false, better set colour to black?
+  linkcolor = blue,
+  filecolor = magenta,
+  citecolor = blue,
+  urlcolor = blue,
+  % linkcolor = black,
+  % citecolor = black,
+  % urlcolor = black,
+  pdftitle = House Model References,
+  pdfauthor = Trung Nguyen,
+  pdfsubject = House Models,
+  pdfkeywords = house - models - Python,
+  pdfcreator = TeXStudio pdfLaTeX2 on Windows,
+  pdfproducer = TeXStudio pdfLaTeX2 on Windows,
+  bookmarksnumbered = true,  % Number sections in PDF toc
+}
+
+\usepackage[onehalfspacing]{setspace}
+\usepackage{float}
+
+\usepackage{graphicx}
+\usepackage{multirow}
+
+%\renewcommand{\thesection}{\arabic{section}}  % needed for documentclass "report" with sections
+
+
+

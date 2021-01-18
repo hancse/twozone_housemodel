@@ -1,0 +1,12 @@
+*.aux
+.gitignore
+*.bbl
+*.blg
+*.log
+*.out
+*.pdf
+*.gz
+*.toc
+*.bcf
+*.run.xml
+
