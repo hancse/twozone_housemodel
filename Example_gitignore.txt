@@ -4,7 +4,6 @@
 *.blg
 *.log
 *.out
-*.pdf
 *.gz
 *.toc
 *.bcf
