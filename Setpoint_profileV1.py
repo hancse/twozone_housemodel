@@ -173,6 +173,7 @@ def SP_profile(SP_weekday,SP_dayoff):
 
 if __name__ == "__main__":
     
+	#thermostat_sp(t1,t2,Night_T_SP,Day_T_SP,Flex_T_SP,Wu_time,not_at_home,back_home):
     week_day_setpoint = thermostat_sp(8, 23, 17, 20, 17, 7, 8, 18)
     day_off_setpoint  = thermostat_sp(8, 23, 17, 20, 18, 10, 13, 15)
     #plt.plot(day_off_setpoint[0:24], label='setpoint')  
