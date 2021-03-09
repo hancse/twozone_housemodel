@@ -1,0 +1,67 @@
+\input{preamble}
+
+
+% Title page:
+\title{Change report}
+\author{Maarten van den Berg\\
+	HAN University of Applied Sciences\\
+	Doesburg, The Netherlands} %\\
+
+\begin{document}
+	
+\ldf  % Set LaTeX default font
+
+% Set up code listing style:
+\lstset{
+	language=Python,
+	% Fonts:
+	basicstyle=\ttfamily\footnotesize,
+	%keywordstyle=\ttfamily,
+	%identifierstyle=,
+	%commentstyle=\ttfamily\scriptsize,
+	% B/W code:
+	% commentstyle=\ttfamily\itshape,  % Italic
+	% stringstyle=\ttfamily,
+	% identifierstyle=\ttbf,           % Bold typewriter type
+	% keywordstyle=\ttbf,              % Bold tt
+	% Colour:
+	commentstyle=\scriptsize\ttfamily\color{brown},
+	stringstyle=\ttfamily\color{darkgreen},
+	identifierstyle=\color{blue},
+	keywordstyle=\ttfamily\color{red},
+	% Spaces:
+	showstringspaces=false,
+	breaklines=true,
+	breakatwhitespace=true,
+	% Line numbering:
+	numbers=left,
+	numberstyle=\tiny,
+	stepnumber=2, 
+	numbersep=5pt,
+	% Frames:
+	frame=single,
+	frameround=tttt,
+	backgroundcolor=\color{lightgrey},
+	morekeywords={pthread_create},
+}
+
+%\renewcommand{\thelstlisting}{\thechapter.\arabic{lstlisting}}  % This is the default?
+\numberwithin{lstlisting}{section}  % AMSmath: number code listings per section
+%\numberwithin{lstlisting}{chapter}  % AMSmath: number code listings per chapter
+	
+\maketitle
+
+\newpage
+
+% \include: new section on new page
+% \input: new section directly follows previous
+
+\input{introduction}
+
+
+%\bibliography{mybibliography}
+\printbibliography[heading=bibintoc]
+
+
+\end{document}
+
