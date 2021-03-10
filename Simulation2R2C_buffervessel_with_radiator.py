@@ -12,7 +12,7 @@ from configurator import load_config, calculateRCOne
 from NEN5060 import nen5060_to_dataframe, run_qsun
 
 from internal_heat_gain import internal_heat_gain
-from Temperature_SP import temp_sp
+from Temperature_SP import temp_sp, thermostat_sp, SP_profile
 
 import matplotlib.pyplot as plt
 
@@ -50,6 +50,7 @@ def main():
     Toutdoor = df_nen.loc[:, 'temperatuur'].values / 10.0  # temperature
     T_outdoor_sim = Toutdoor[0:days_sim*24]
 
+    """
     SP = temp_sp(house_param['setpoint']['t1'],
                  house_param['setpoint']['t2'],
                  house_param['setpoint']['Night_T_SP'],
@@ -59,6 +60,27 @@ def main():
                  house_param['setpoint']['Work_time'],
                  house_param['setpoint']['duty_w'],
                  house_param['setpoint']['back_home'])
+    """
+    week_day_setpoint = thermostat_sp(house_param['setpoint']['t1'],
+                                  house_param['setpoint']['t2'],
+                                  house_param['setpoint']['Night_T_SP'],
+                                  house_param['setpoint']['Day_T_SP'],
+                                  house_param['setpoint']['Flex_T_SP_workday'],
+                                  house_param['setpoint']['Wu_time'],
+                                  house_param['setpoint']['Work_time'],
+                                  house_param['setpoint']['back_home_from_work'])
+
+    day_off_setpoint = thermostat_sp(house_param['setpoint']['t1'],
+                                 house_param['setpoint']['t2'],
+                                 house_param['setpoint']['Night_T_SP'],
+                                 house_param['setpoint']['Day_T_SP'],
+                                 house_param['setpoint']['Flex_T_SP_dayoff'],
+                                 house_param['setpoint']['Wu_time'],
+                                 house_param['setpoint']['shopping_time'],
+                                 house_param['setpoint']['back_home'])
+
+    SP = SP_profile(week_day_setpoint, day_off_setpoint)
+
     SP_sim = SP[0:days_sim * 24]
 
     # solve ODE

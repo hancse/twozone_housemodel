@@ -121,7 +121,8 @@ def house_buffervessel_with_radiator(T_outdoor, Q_internal, Q_solar, SP_T, time_
         inputs = (T_outdoor[i], Q_internal[i], Q_solar[i], SP_T[i], Qinst, CF,
                   Rair_outdoor, Rair_wall, Cair, Cwall, mdot)
         ts = [t[i], t[i+1]]
-        y = odeint(model_buffervessel_with_radiator, y0, ts, args=inputs)
+        # y = odeint(model_buffervessel_with_radiator, y0, ts, args=inputs)
+        y = odeint(model_buffervessel_with_radiator, y0, ts, full_output=1, args=inputs)
 
         Tair[i+1] = y[-1][0]
         Twall[i+1] = y[-1][1]
