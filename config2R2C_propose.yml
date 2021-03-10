@@ -69,11 +69,11 @@ resistance:
     Rc_facade : 1.3
     
     # Heat transfer coefficient [W/m2K]. 
-    # Exterior surface thermal resistance Rse = 1/ alpha_e_facade    
+    # Surface to Exterior R-value Rse = 1/ alpha_e_facade    
     alpha_e_facade : 23
     
     # Heat transfer coefficient [W/m2K]. 
-    # Interior surface thermal resistance Ri= 1/ alpha_i_facade
+    # Surface to Interior R-value Rsi= 1/ alpha_i_facade
     alpha_i_facade : 8
     
     # Sum of all glass surfaces:    A_glass  = g_value.sum(glass)
