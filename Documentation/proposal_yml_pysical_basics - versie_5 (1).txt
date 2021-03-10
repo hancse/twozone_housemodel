@@ -1,0 +1,169 @@
+# A building model created from simple basic components
+# ---------------------------------------------------------------------------------------------------------
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# ---------------------------------------------------------------------------------------------------------
+# General setting
+  Identifier: "Definition file created by HAN"
+  Date:       25-02-2021
+# Climatefile with description of temperatures humidity and solar irradiation
+
+Climatefile: ..\..\NEN5060.xls
+
+# Define nonlinear functions to be used in the file
+
+  - function: nonlin1
+#   Define a nonlinear function with a table
+    parameter: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ]
+    result:  [ 0, .2, .4, .8, 1.6, 3.2, 6.4, 12.8, 25.6 ]
+
+#  - function: radiator
+#   Define a nonlinear function for heat transfer
+#    parameter: [ 0, 5, 10, 15 ,20, 25, 30, 35, 40  ]
+#    result:  [ 28.55480908, 75.35659295, 132.9379623,	198.867241,	271.7923739,	350.8253857,	435.327915,	524.8137955 ]
+
+    
+ # Define infinite heat sources or heat sink e.g. ground source for heatpump or heating water from district heating
+ # Fixed values like river water may vary in time butr are not dependent on other variables in the model
+
+  - Reservoir: District heating
+    scale: month
+    # define temperatures for district heating
+    parameter: [ 1,2,3,4,5,6,7,8,9,10,12 ]
+    result:  [ 40, 40, 35, 30, 25, 20 ,20, 20,25 ,30 ,35 , 40 ]
+
+  - Reservoir:  Wasteheat
+    parameter: [ 0]
+    result:  [40 ]
+    
+
+ 
+# Define chains of heat transfer
+# ---------------------------------------------------------------------------------------------------------
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# ---------------------------------------------------------------------------------------------------------
+ 
+ -  chain : 1  #
+     designation: 1st_floor	
+#
+#   --------------------------- thermal model of zone ------------------
+#   Define nodes in heat transfer sequence. N nodes. Node 1 may be a capicitor, a reservoir or the outside temperatur
+#                 cond1 capac1 cond2 capac2         condn  capacn
+#      T_outside <----->  o   <----->  o   <-> ... <----->    o 
+#
+
+# Define the anchor of a heat transfer sequence. This may be a reservoir (1),  the outside temperature (2) or a node of a previous heat transferchain (3)
+# For instance zone 2 may be anchored to a link of zone 1 e.g:
+# anchor: [ 3, 1, 2 ]  # The thermal chain is anchored to the earlier defined node 2 or chain 1
+#
+#
+#
+#
+      anchor: 2
+#     specification of a link consists of a heat conductor and a capacity
+#     the heat conductor is connected to capacity of the previous link 
+#     specify link [   identifier [i}  conduction type : 1 [i] (W/K) 2 Nonlinear function ,  capacity 1 (K/J), 2 Nonlinear function ]
+        
+    - link: [ 1, 1, 0,1, 1, 1.0E-6 ]
+    - link: [ 2, 2, radiator 1, 1, 1.0E-6 ]
+    - link: [ 3, 1, 0.2, 1, 1.0E-4 ]
+
+
+#
+# ------------------------------solar irradition for this zone --------------
+# Solar: [ idnummer, node of thermal zone model that absorbs solar heat, glass area [m2], ZTA value , Azimuth (rad), Zenith (rad) ]
+    - Solar [ 1, 2, 1.0, 0.7, .15, 0.0 ]
+    - Solar [ 2, 2, 0.8, 0.7, 3.29159, 0.0 ]
+# Add more glass surfaces when required
+#
+    - Set_temperature
+#     Specify the temperature in a certain node of the zone
+      node:  3
+      scale: hour
+      time: [ 0.0 9.0,  17.0, 23.0 ]
+      temp: [ 18.5, 20.0, 21.0, 18.5 ]
+
+    - Internal_load
+      nodes: [ 1, 3, 5 ]
+      distribution [ 0.5, 0.35, 0.15 ] 
+      scale: hour
+      time: [ 0.0 9.0,  17.0, 23.0 ]
+      load: [ 300, 200, 400, 300 ]  
+
+    Heating:
+#     Heating is introduced in following nodes:
+      nodes: [ 1, 3, ... ]
+#     power [ C1, n1, C2, n2, .... ] with P1 = C1 * LMTD1 ^ n1, P2 = C2 *LMTD2 ^n2  
+      power: [ 15, 1.4, 18, 1.2 ]
+#
+#     Controller [ { 1: on/off, 2: PID, 3: MPC  }]
+#     for PID Controller [ 2,  P,  I (s), D (s)]  
+#  ---- 
+# 
+      Controller: [ 2, 500, 1000, 250 )
+
+
+# ---------------------------------------------------------------------------------------------------------
+# chain : 2  # zone number
+# add more zones and corresponding data if necessary
+#
+# ---------------------------------------------------------------------------------------------------------
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# ---------------------------------------------------------------------------------------------------------
+# Combine thermal chains  to Building model
+# ---------------------------------------------------------------------------------------------------------
+# Couple 2 chains A and B with respect to heat transfer
+# Define the link of  chain A and the link of chain B that are dominant in the heat exchange. Refer to the node number of the corresponding zone that is defined with the command 
+# inode for the corresponding node
+# Due to thermal layering, A nett heatflow may be present if both coupled nodes have the same temperature! 
+# E.g. If different floors have the same temperature, heattransfer is going up in the building
+# Crosslink :  [ Index of zone A, Index of dominant node for heat transfer in zone A, Index of zone B, Index of dominant node for heat transfer in zone B, 
+#              Heat transfer  {  Linear: , value}, { Non-linear,  function name} ]
+  Crosslink : [ 1,2,2, 100 ]
+#
+#  -----------------------------definition of heating system ----------------------------------------
+ Heating idetifier : Heatpump Main Building
+# 1: Air Source HP modulating, 2: Air source Heatpump non-modulating, 3: Groundsource HP, 11 Condensing Boiler ] 
+- Heating: 1
+# heating table         [ Power , T_source,  T_delivery, COP ]
+    - heating_power_COP [ 6                     ,  0      ,  35        , 5   ]
+    - heating_power_COP [ 4                     ,  0      ,  55        , 3   ]
+#
+# A function has to be defined to account for reduced efficiency because of switching on and off
+#
+# 3 control algorithms are available:
+# 1 one zone nheating
+# 2 flow based
+# 2 temperature based
+#
+##   one zone heating
+# - control: 1
+#   zone 1
+# 
+##   flow based
+##   flow is result of flow in zones. Flow in zone is determined by local controller. 
+#  - control: 2
+#    zones: [ 1, 2 ]
+#    factor: [ 1., 1. ]
+##    What temperature difference over the heatpoump, to detrmine power?
+#     delta_T: 5.0 
+
+# waterflow: [{ 1 {constant flow } , flow ( m3/s) | 2 (constant delta T ), deltaT (K) }]
+    waterflow: [  1, 0,00025 ]
+
+#    add proportional means that the heatpump combines the proportional imput of the thermostatic controllers weight factors may be included
+#    mastercontrol: add_proportional
+#   for what zones is the heating defined?
+    zones: [ 1, 2 ]
+#   With a heating line, the slave controllers control the flow
+    mastercontrol: heating_line
+    outside_temperature: [ -10, 20 ]
+    water_temperature: [ 60, 20 ]
+      
+
+
+  
+
+ 
+
+
+ 
