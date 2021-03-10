@@ -7,7 +7,7 @@ Created on Tue Nov 10 12:05:19 2020
 from house_buffervessel_LMTD import house_buffervessel  # exposed function "house" in house module
 # function "model" in module house is private
 
-from configurator import load_config, calculateRC
+from configurator import load_config, calculateRCOne
 from NEN5060 import nen5060_to_dataframe, run_qsun
 
 from internal_heat_gain import internal_heat_gain
@@ -19,7 +19,7 @@ def main():
     house_param = load_config("config2R2C.yml")
     days_sim = house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
-    Rair_wall, Cwall, Rair_outdoor, Cair = calculateRC(house_param)
+    Rair_wall, Cwall, Rair_outdoor, Cair = calculateRCOne(house_param)
     print(days_sim)
     
     #Loading the radiator and buffervessel parameters

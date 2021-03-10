@@ -7,7 +7,7 @@ Created on Tue Nov 10 12:05:19 2020
 from two_zones_house import house  # exposed function "house" in house module
 # function "model" in module house is private
 
-from configurator import load_config, calculateRC
+from configurator import load_config, calculateRCTwo
 from NEN5060      import nen5060_to_dataframe, run_qsun
 
 from internal_heat_gain import internal_heat_gain
@@ -25,7 +25,7 @@ def main():
     [Rair_wall_z1, Rair_wall_z2, Rair_cc, 
     Rair_outdoor_z1, Rair_outdoor_z2, Rair_z12, 
     Rair_z21, Cair_z1, Cair_z2, Cwall_z1, 
-    Cwall_z2, Cwall_cc, Rair_wall] = calculateRC(house_param)
+    Cwall_z2, Cwall_cc, Rair_wall] = calculateRCTwo(house_param)
     
     print('Simulation days:', days_sim)
 
