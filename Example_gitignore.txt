@@ -1,5 +1,8 @@
-*.aux
 .gitignore
+__pycache__
+.idea
+
+*.aux
 *.bbl
 *.blg
 *.log

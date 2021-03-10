@@ -46,14 +46,98 @@ the parameters c_internal_mass, th_internal_mass and rho_internal_mass
 
 # It is assumed that furniture and the surface part of the walls have the same temperature
 # as the air and the wall mass is divided between the air and wall mass.
-# Thus, the capacity of the air node consists of the air capacity,
-# furniture capacity and capacity of a part of the walls.
+# Thus, the Heat capacity of the air node consists of the air capacity,
+# furniture Heat capacity and Heat capacity of a part of the walls.
 # Appendix I presents the coefficients in the dwelling model.
 # In the resistance Rair_outdoor the influence of heat transmission through the outdoor walls
 # and natural ventilation is considered.
 
 
-def calculateRC(hp: dict):
+def calculateRCOne(hp: dict):
+    """
+
+    Args:
+        hp:
+
+    Returns:
+        Rair_wall :
+        Cwall :
+        Rair_outdoor :
+        Cair :
+    """
+    # assignment to local variables from hp: dict
+
+    # Envelope surface (facade + roof + ground) [m2]
+    A_facade = hp['dimensions']['A_facade']
+    # Floor and internal walls surface [m2]
+    A_internal_mass = hp['dimensions']['A_internal_mass']
+    # Internal volume [m3]
+    V_dwelling = hp['dimensions']['V_dwelling']
+
+    # Envelope thermal resistance, R-value [m2/KW]
+    Rc_facade = hp['thermal']['Rc_facade']
+    # Window thermal transmittance, U-value [W/m2K]
+    Uglass = hp['thermal']['U_glass']
+
+    CF = hp['ventilation']['CF']
+    # Ventilation, air changes per hour [#/h]
+    n = hp['ventilation']['n']
+
+    # Facade construction
+    # Light_weight = 0 / Middle_weight = 1  / Heavy_weight = 2
+    N_facade = hp['construction']['N_facade']
+
+    # Floor and internal walls construction
+    N_internal_mass = hp['construction']['N_internal_mass']
+
+    # Initial parameters file for House model
+    ##Predefined variables
+
+    rho_air = hp['initial']['rho_air']  # density air in [kg/m3]
+    c_air = hp['initial']['c_air']  # specific heat capacity air [J/kgK]
+    alpha_i_facade = hp['initial']['alpha_i_facade']
+    alpha_e_facade = hp['initial']['alpha_e_facade']
+    alpha_internal_mass = hp['initial']['alpha_internal_mass']
+
+    c_internal_mass = hp['thermal']['c_internal_mass'][N_internal_mass]  # Specific heat capacity construction [J/kgK]
+    th_internal_mass = hp['construction']['th_internal_mass'][N_internal_mass]  # Construction thickness [m]
+    rho_internal_mass = hp['construction']['rho_internal_mass'][N_internal_mass]  # Density construction in [kg/m3]
+
+    c_facade = hp['thermal']['c_facade'][N_facade]  # Specific heat capacity construction [J/kgK]
+    th_facade = hp['construction']['th_facade'][N_facade]  # Construction thickness [m]
+    rho_facade = hp['construction']['rho_facade'][N_facade]  # Density construction in [kg/m3]
+
+    A_glass = sum(hp['glass'].values())  # Sum of all glass surfaces [m2]
+    A_glass -= hp['glass']['g_value']
+    print(A_glass)
+
+    # Volume floor and internal walls construction [m3]
+    V_internal_mass = A_internal_mass * th_internal_mass
+
+    # A_internal_mass:  Floor and internal walls surface [m2]
+    qV = (n * V_dwelling) / 3600  # Ventilation, volume air flow [m3/s],
+
+    # n: ventilation air change per hour;  V_dwelling : internal volume m3
+    qm = qV * rho_air  # Ventilation, mass air flow [kg/s]
+
+    # Dwelling temperatures calculation
+    # Calculation of the resistances
+
+    Rair_wall = 1.0 / (A_internal_mass * alpha_internal_mass)  # Resistance indoor air-wall
+
+    U = 1.0 / (1.0 / alpha_i_facade + Rc_facade + 1 / alpha_e_facade)  # U-value indoor air-facade
+
+    Rair_outdoor = 1.0 / (A_facade * U + A_glass * Uglass + qm * c_air)  # Resistance indoor air-outdoor air
+
+    # Calculation of the capacities
+    Cair = rho_internal_mass * c_internal_mass * V_internal_mass / 2.0 + rho_air * c_air * V_dwelling  # Heat capacity indoor air + walls
+
+    Cwall = rho_internal_mass * c_internal_mass * V_internal_mass / 2.0  # Heat capacity walls
+
+    return Rair_wall, Cwall, Rair_outdoor, Cair
+
+
+def calculateRCTwo(hp: dict):
     """
 
     Args:
