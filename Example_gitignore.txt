@@ -1,4 +1,6 @@
 .gitignore
+
+.ipynb_checkpoints
 __pycache__
 .idea
 
@@ -11,4 +13,7 @@ __pycache__
 *.toc
 *.bcf
 *.run.xml
+
+~*.*
+
 

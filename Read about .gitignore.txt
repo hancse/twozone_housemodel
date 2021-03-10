@@ -1,0 +1,24 @@
+The .gitignore file contains the names of the LOCAL files YOU do NOT want to be under version control.
+It is located in the root of the repository.
+The gitignore file contains:
+
+.gitignore     (it is information about your local files)
+.ipynb_checkpoints (local bookkeeping if you run a Jupyter notebook)
+.idea (local bookkeeping of PyCharm IDE)
+__pycache__ (folder with precompiled python code which makes it run faster after the first run)
+
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.gz
+*.toc
+*.bcf
+*.run.xml
+
+These are the LaTeX temporary files needed for pdf generation.
+
+~*.*
+
+These are temporary files generated when a Word, Excel or Powerpoint is open.
