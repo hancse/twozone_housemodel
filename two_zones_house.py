@@ -83,7 +83,7 @@ def house_m_zone(x,t,T_outdoor,Q_internal,Q_solar,SP_T,
     Tair_z2dt   = ((Twall-Tair_z2)/Rair_wall_z2 + ((T_outdoor-Tair_z2)/Rair_outdoor_z2 + (Tair_z1-Tair_z2)/Rair_z12 - Tc) 
                    + (Twall_cc-Tair_z2)/Rair_cc + 0  + Qinst_1 + Q_internal + CF*Q_solar_z2)/Cair_z2
     
-    #________temperature of the concrete between Zone 1 and Zone 2____
+    #________temperature of the concrete between Zone 1 and Zone 2___
     
     Twall_ccdt   = ((Tair_z2-Twall_cc)/Rair_cc + (1-CF)*Q_solar_z2)/Cwall_cc
    
