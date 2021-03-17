@@ -16,13 +16,24 @@ def controllerTemperatureandBuffervessel(setpointTemperature, setpointBuffervess
     return Qinst, mdot
 
 def LMTD(Tbuffervessel, Treturn, Tair):
-    if(Treturn<Tair):
+    """calculates log mean temperature difference
+
+    representative value in case of varying temperature difference along heat exchanger
+    Args:
+        Tbuffervessel:
+        Treturn:
+        Tair:
+
+    Returns:
+        LMTD temperature
+        ( Delta T 1 - Delta T 2 ) / ln (Delta t 1 / Delta T 2)
+    """
+    if Treturn < Tair:
         LMTD = 0
     else:
         value = (Tbuffervessel-Tair)-(Tair/Treturn)-Tair
         LMTD = (Tbuffervessel-Treturn)/np.log(value)
     return LMTD
-    
     
 
 def model_buffervessel(t, x, T_outdoor, Q_internal, Q_solar, SP_T, CF, Rair_outdoor, Rair_wall, Cair, Cwall, UAradiator, Crad, Cbuffervessel, cpwater):
