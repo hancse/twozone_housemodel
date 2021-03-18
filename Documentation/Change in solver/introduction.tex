@@ -33,15 +33,15 @@ Twall[i+1] = y[-1][1]
 y0 = y[-1]
 \end{lstlisting}
 
-The way the odeint function is used in the original file is not correct. It is used in a for loop, in which only 2 points in time are used as input. Using these 2 points, the output of the ODE is generated. In the next iteration of the loop, outputs are used as inputs for the next time step. This causes unwanted oscillations in the output.
+The way the odeint function is used in the original file is not correct. It is used in a for loop, in which only 2 points in time are used as input to calculate the state, in this case Tair and Twall. The output state that is generated in the iteration of the loop, is then used as intput for the next iteration. This causes unwanted oscillations in the output.
 
-Control of the heat source is also included in the for loop, however, it would be more beneficial to have the control part of the model inside the house model itself.
+Control of the heat source 'Qinst' to control the indoor air temperature is also included in the for loop, however, it would be more beneficial to have the control part of the model inside the house model itself.
 
-\subsection{Improved situation}
+\subsection{Changes needed in the code to switch solver}
 
-This routine can be improved by using the solveivp function from the Scipy library and removing the for loop.
+The routine can be improved by using the solve.ivp function from the Scipy library and removing the for loop.
 
-The function has similar arguments, however, in the solveivp function, the y0 and time data are switched (see below).
+The function has similar arguments, however, in the solve.ivp function, the y0 and time data are switched (see below).
 
 
 \begin{lstlisting}
@@ -51,7 +51,7 @@ The function has similar arguments, however, in the solveivp function, the y0 an
 	y = solve_ivp(model_buffervessel, [0, t[-1]], y0, args=inputs)
 \end{lstlisting}
 
-The args=inputs in the odeint function are single values. However, for the solveivp function an array is used.
+The inputs in the odeint function are single values. However, for the solve.ivp function an array is used for the inputs, since the inputs can change over time. An example is the setpoint of the indoor temperature. In the original file, the inputs changed with the help of the for loop, but the for loop will be removed with the solve.ivp function.
 
 By incorporating the changes, the code snippet from the original file (see top of this document) can be replaced with the snippet below.
 
@@ -61,4 +61,26 @@ Rair_outdoor, Rair_wall, Cair, Cwall, UAradiator, Crad, Cbuffervessel, cpwater)
 y = solve_ivp(model_buffervessel, [0, t[-1]], y0, args=inputs)
 \end{lstlisting}
 
-\subsection{Suggested code for house.py}
+\subsection{Outcome comparison between the solvers}
+
+Incorporating these changes will result in the following difference:
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=1\columnwidth]{pictures/odeint_with_for_loop.png}
+	\caption[Short title]{Indoor (wall)temperature output with ODEint}
+	\label{fig:profilelabels}
+\end{figure}
+
+\begin{figure}[ht]
+	\centering
+	\includegraphics[width=1\columnwidth]{pictures/solve_ivp_without_for_loop.png}
+	\caption[Short title]{Indoor (wall)temperature output with solve.ivp}
+	\label{fig:profilelabels}
+\end{figure}
+
+As can be seen, a much smoother output is created by using the solve.ivp function.
+
+	
+
+
