@@ -1,0 +1,62 @@
+
+# ---------------------------------------------------------------------------------------------------------
+# xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# ---------------------------------------------------------------------------------------------------------
+# General setting
+---
+Identifier:           Definition file created by HAN
+Date:                                                           2/25/2021
+
+# Climatefile with description of temperatures humidity and solar irradiation
+
+Climatefile:          ..\..\NEN5060.xls
+# Default simulation time in
+Timescale:            Hour
+
+chains:
+          -
+                      designation:                                       2R2C, 1-node
+                      anchor:                                                       1            # De warmte-overdrachtsketen start bij de buitentemperatuur
+                      links:
+                                                                     - [ name,                                        conductivity,                 capacity]
+                                                                     - [ internals                ,                                 147.30,         2.70E+06]
+                                                                     - [ load bearing construction,                                1160.00,         5.51E+07]
+
+                      Solar_irradiation:
+                                               -
+                                                                         Designation:             Front_facade
+                                                                         Effective Area:                         6.755# m2
+                                                                         Surfaces:
+                                                                                              - [ name                ,                   factor    ]
+                                                                                              - [ internals           ,                         0.40]
+
+                                                                         Theta:                                      0# radians
+                                                                         Phi:                                        0# radians
+                                               -
+                                                                         Designation:             Back
+                                                                         Surfaces:
+                                                                                              - [ name                ,                   factor    ]
+                                                                                              - [ internals           ,                         0.40]
+                                                                         Theta:                                      0# radians
+                                                                         Phi:                              3.141592654# radians
+
+                      Heating:
+                      -                                                  Description:             Radiators
+                                                                         C:                                1794.652389
+                                                                         n:                                        1.3
+                                                                         Location:
+                                                                         - [                      link                ,                   fraction  ]
+                                                                         - [                                         1,                          0.8]
+                                                                         - [                                         1,                          0.2]
+                      Control:
+                                                                         Type:                    PID
+                                                                         Link:                                       1
+                                                                         Scale:                   hrs
+                                                                         Set_time:                [                                      0,               24]
+                                                                         Set_temp:                [                                     20,               20]
+
+                      Heater:
+                                                                         Type:                    Condensing Boiler
+                                                                         Power:                                     26kW
+                                                                         Modulation:                              0.15
+                                                                         Min_time:                                 180s
