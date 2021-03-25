@@ -1,6 +1,6 @@
 \section{PID in practice.}
 % Implement PID in practice
-The Ideal and parallel PID in equation [1] and [2] can be easily converted from one to another with"  $K_i = \frac{Kc}{T_i}$ and $K_d = \frac{Kc}{T_d}$.
+The Ideal and parallel PID in equation (1) and (2) can be easily converted from one to another with  $K_i = \frac{Kc}{T_i}$ and $K_d = \frac{Kc}{T_d}$.
 
 Let Consider the independent PID equation (parallel):
 \begin{equation}
@@ -22,7 +22,7 @@ Using difference to approximate the differential we get discrete PID equation.
     CO(t) = CO(t-1) + K_p[e(t) - e(t-1)] + K_i\cdot T \cdot e(t) + \frac{K_d}{T}[e(t) - 2e(t)-1) + e(t-2)]
 \end{equation}
 
-Where T is the sampling period. Equation [5] is called textbook PID. The D-term of this equation contains set point and changes in set point may cause an unwanted change in CO (a Dirac function \cite{Delta_Function}, some time call derivative Kick ). Remove set point from D-term we get equation [6] (e = SP - PV, de = dSP -dPV, when SP is constant de = dPV).
+Where T is the sampling period. The D-term of this equation contains set point and changes in set point may cause an unwanted change in CO (a Dirac function \cite{Delta_Function}, some time call derivative Kick ). Remove set point from D-term we get equation [6] (e = SP - PV, de = dSP -dPV, when SP is constant de = dPV).
 
 \begin{equation}
 \label{eqn:7}
@@ -36,7 +36,7 @@ Many industrial PID controllers use equation [6] (e.g. Allen Bradley PLCs). Howe
     CO(t) = CO(t-1) + K_p[PV(t) - PV(t-1)] + K_i\cdot T \cdot e(t) + \frac{K_d}{T}[PV(t) - 2PV(t)-1) + PV(t-2)]
 \end{equation}
 
-To implement PID controller in practice a few more things need to be address.
+To implement PID controller in practice a few more things need to be addressed.
 
 \begin{itemize}
     \item Windup protection.
