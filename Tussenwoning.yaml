@@ -10,8 +10,13 @@ Date:                                                           2/25/2021
 # Climatefile with description of temperatures humidity and solar irradiation
 
 Climatefile:          ..\..\NEN5060.xls
+timing:
+          days_sim:   365
 # Default simulation time in
-Timescale:            Hour
+          timescale:  hour
+
+ventilation:
+          CF:         0.8
 
 chains:
           -

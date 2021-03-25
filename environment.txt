@@ -1,7 +1,10 @@
-conda create -n house python=3.7
+conda create -n house python=3.8
 activate house
-conda install scipy
 conda install matplotlib
-conda install jupyter  notebook
+conda install scipy
+conda install jupyter notebook
 conda install pandas
-conda install xlrd
+conda install openpyxl
+conda install pyyaml
+conda install holidays
+
