@@ -12,7 +12,7 @@ Date:                                                           2/25/2021
 Climatefile:  ..\..\NEN5060.xls
 
 timing:
-  days_sim:   365
+  days_sim:   20
   timescale:  hour   # Default simulation time in
 
 ventilation:
@@ -102,7 +102,7 @@ chains:
       Type:  PID
       Link:  1
       Scale: hrs
-      kp: 7000
+      kp: 5000
       Set_time: [0, 24]
       Set_temp: [20, 20]
 

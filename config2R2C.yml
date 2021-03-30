@@ -16,7 +16,7 @@ glass:
     g_value : 0.7
 
 timing:
-    days_sim : 365
+    days_sim : 20
     interval : NEN5060
     unit : ss
 

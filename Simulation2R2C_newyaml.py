@@ -15,6 +15,8 @@ from internal_heat_gain import internal_heat_gain
 #from Temperature_SP     import temp_sp
 from Temperature_SP     import thermostat_sp, SP_profile
 
+import matplotlib
+matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -28,7 +30,7 @@ def main():
 
     df_nen = nen5060_to_dataframe()
 
-    Qsolar = np.zeros(days_sim*24)
+    Qsolar = np.zeros(365*24)
     for s in house_param['chains'][0]['Solar_irradiation']:
         descr = s['Designation']
         az = s['azimuth']
@@ -39,15 +41,18 @@ def main():
         time_sim = df_irr.iloc[0:days_sim * 24, 0].values
         CF = house_param['ventilation']['CF']
 
+    Qsolar_sim = Qsolar[0:days_sim*24]
+
     # Q_internal = np.zeros(days_sim*24)
     Q_internal = internal_heat_gain(house_param['internal']['Q_day'],
                               house_param['internal']['delta_Q'],
                               house_param['internal']['t1'],
                               house_param['internal']['t2'])
-    Q_internal = Q_internal.flatten()
+    Q_internal_sim = Q_internal[0:days_sim * 24]
+    #Q_internal = Q_internal.flatten()
 
     T_outdoor = df_nen.loc[:, 'temperatuur'].values / 10.0  # temperature
-    # T_outdoor_sim = Toutdoor[0:days_sim*24]
+    T_outdoor_sim = T_outdoor[0:days_sim*24]
     # plt.plot(T_outdoor_sim)
     
     week_day_setpoint = thermostat_sp(house_param['setpoint']['t1'],
@@ -79,7 +84,7 @@ def main():
     #             house_param['setpoint']['back_home'])
     
     
-    # SP_sim = SP[0:days_sim * 24]
+    SP_sim = SP[0:days_sim * 24]
 
 
     # addition NTA8800 house model
@@ -89,16 +94,17 @@ def main():
     kp = house_param['chains'][0]['Control']['kp']
 
     # solve ODE
-    data = house(T_outdoor, Q_internal, Qsolar, SP, time_sim,
+    data = house(T_outdoor_sim, Q_internal_sim, Qsolar_sim, SP, time_sim,
                  CF, Rair_outdoor, Rair_wall, Cair, Cwall, kp)
 
     # plot the results
     plt.figure(figsize=(15, 5))         # key-value pair: no spaces
     plt.plot(data[0], label='Tair')
     plt.plot(data[1], label='Twall')
-    plt.plot(SP, label='SP_Temperature')
+    plt.plot(SP_sim, label='SP_Temperature')
     # plt.plot(T_outdoor_sim,label='Toutdoor')
     plt.legend(loc='best')
+    plt.title("Simulation2R2C_newyaml")
     plt.show()
     
     '''
