@@ -62,14 +62,14 @@ chains:
       -
         name: internals
         conductance: 147.30            # [W/K] = 1/Rth
-        capacity: 2.7e+6                # [J/K]
+        capacity: 2.7e+6               # [J/K]
       -
         name: load_bearing_construction
         conductance: 1160.0
         capacity: 5.51e+7
 
        # [ name, conductivity, capacity]
-      #[ internals , 147.30, 2.70E+06]
+       # [ internals , 147.30, 2.70E+06]
       # - [ load bearing construction, 1160.00, 5.51E+07]
 
     Solar_irradiation:
@@ -98,13 +98,22 @@ chains:
           - [link , fraction]
           - [1, 0.8]
           - [1, 0.2]
-    Control:
-      Type:  PID
-      Link:  1
-      Scale: hrs
-      kp: 5000
-      Set_time: [0, 24]
-      Set_temp: [20, 20]
+
+    Controller:
+      -
+        Type:  PID       # smart room controller (kamerthermostaat)
+        Link:  1
+        Scale: hrs
+        kp: 5000
+        Set_time: [6, 22]
+        Set_temp: [20, 17]
+
+      -
+        Type: OnOff       # basic controller
+        Link: 1
+        Scale: hrs
+        Set_time: [ 0, 24 ]
+        Set_temp: [ 20, 20 ]
 
     Heater:
       Type: Condensing Boiler
