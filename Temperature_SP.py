@@ -9,6 +9,8 @@ import holidays
 
 import numpy as np
 import scipy.signal as signal
+import matplotlib
+matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 
 
@@ -250,7 +252,47 @@ def SP_profile(SP_weekday, SP_dayoff):
     return SP
 
 
+def simple_thermostat(t_on=7, t_off=22, SP_day=20.0, SP_night=17.0,
+                      begin_summer=3500, end_summer=6500,
+                      to_work=8, from_work=18, SP_absent=17.0):
+    """
+
+    Args:
+        t_on:
+        t_off:
+        SP_day:
+        SP_night:
+        begin_summer:
+        end_summer:
+        to_work:
+        from_work:
+        SP_absent:
+
+    Returns:
+        sp: array with setpoint temperatures
+    """
+    hours = np.linspace(0, 8760, 8760, endpoint=False)
+    sp = np.where( ((hours % 24) >= t_off) | ((hours % 24) < t_on), SP_night, SP_day )
+    # sp = np.where(((hours % 24) >= to_work) & ((hours % 24) < from_work), SP_absent, sp)
+    sp = np.where((hours >= begin_summer) & (hours < end_summer), 5, sp)
+    return sp
+
 if __name__ == "__main__":
+    SP = simple_thermostat(t_on=6, t_off=22,
+                      SP_day=20.0, SP_night=17.0,
+                      begin_summer=3500, end_summer=6500)
+
+
+    # Plot 120 hours
+    plt.figure(figsize=(5, 5))
+    plt.plot(SP[0:240], label='setpoint')
+    plt.ylabel('Temperature_SP ($ \degree $ C)')
+    plt.xlabel('time (h)')
+    plt.legend(loc='best')
+    plt.title("Simple thermostat")
+    plt.tight_layout()
+    plt.show()
+
     setpoint = temp_sp(8, 23, 17, 20, 7, 16, 8, 15, 18)
 
     # Plot 48 hours
