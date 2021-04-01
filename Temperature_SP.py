@@ -255,18 +255,20 @@ def SP_profile(SP_weekday, SP_dayoff):
 def simple_thermostat(t_on=7, t_off=22, SP_day=20.0, SP_night=17.0,
                       begin_summer=3500, end_summer=6500,
                       to_work=8, from_work=18, SP_absent=17.0):
-    """
+    """simple home thermostat setting routine with day/night setting and summer period
+
+       optional: setpoint reduction during absence for work
 
     Args:
-        t_on:
-        t_off:
-        SP_day:
-        SP_night:
-        begin_summer:
-        end_summer:
-        to_work:
-        from_work:
-        SP_absent:
+        t_on:            start time of high (day) thermostat setting
+        t_off:           end time of high (day) thermostat setting
+        SP_day:          set point thermostat day
+        SP_night:        set point thermostat night
+        begin_summer:    begin seasonal no-heating (summer) period
+        end_summer:      end seasonal no-heating (summer) period
+        to_work:         optional start time of daily absence
+        from_work:       optional start time of daily return home
+        SP_absent:       set point thermostat during daily absence
 
     Returns:
         sp: array with setpoint temperatures

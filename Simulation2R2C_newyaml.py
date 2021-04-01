@@ -9,11 +9,10 @@ from house import house  # exposed function "house" in house module
 
 # from configurator import load_config, calculateRCOne
 from new_configurator import load_config, calculateRC
-from NEN5060      import nen5060_to_dataframe, run_qsun_new
+from NEN5060 import nen5060_to_dataframe, run_qsun_new
 
 from internal_heat_gain import internal_heat_gain
-#from Temperature_SP     import temp_sp
-from Temperature_SP     import thermostat_sp, SP_profile
+from Temperature_SP import simple_thermostat
 
 import matplotlib
 matplotlib.use("Qt5Agg")
@@ -39,8 +38,8 @@ def main():
         df_irr = run_qsun_new(df_nen, az, tlt)
         Qsolar += (df_irr.total_irr).values
         time_sim = df_irr.iloc[0:days_sim * 24, 0].values
-        CF = house_param['ventilation']['CF']
 
+    CF = house_param['ventilation']['CF']
     Qsolar_sim = Qsolar[0:days_sim*24]
 
     # Q_internal = np.zeros(days_sim*24)
@@ -54,44 +53,19 @@ def main():
     T_outdoor = df_nen.loc[:, 'temperatuur'].values / 10.0  # temperature
     T_outdoor_sim = T_outdoor[0:days_sim*24]
     # plt.plot(T_outdoor_sim)
-    
-    week_day_setpoint = thermostat_sp(house_param['setpoint']['t1'],
-                                         house_param['setpoint']['t2'],
-                                         house_param['setpoint']['Night_T_SP'],
-                                         house_param['setpoint']['Day_T_SP'],
-                                         house_param['setpoint']['Flex_T_SP_workday'],
-                                         house_param['setpoint']['Wu_time'],
-                                         house_param['setpoint']['Work_time'],
-                                         house_param['setpoint']['back_home_from_work'])
-    
-    day_off_setpoint  = thermostat_sp(house_param['setpoint']['t1'],
-                                         house_param['setpoint']['t2'],
-                                         house_param['setpoint']['Night_T_SP'],
-                                         house_param['setpoint']['Day_T_SP'],
-                                         house_param['setpoint']['Flex_T_SP_dayoff'],
-                                         house_param['setpoint']['Wu_time'],
-                                         house_param['setpoint']['shopping_time'],
-                                         house_param['setpoint']['back_home'])
-    
-    SP = SP_profile(week_day_setpoint,day_off_setpoint)
-    
-    #SP = temp_sp(house_param['setpoint']['t1'],
-    #             house_param['setpoint']['t2'],
-    #             house_param['setpoint']['Night_T_SP'],
-    #             house_param['setpoint']['Day_T_SP'],
-    #             house_param['setpoint']['Wu_time'],
-    #             house_param['setpoint']['Work_time'],
-    #             house_param['setpoint']['back_home'])
-    
-    
-    SP_sim = SP[0:days_sim * 24]
 
+    t_on = house_param['chains'][0]['Controller'][0]['Set_time'][0]
+    t_off = house_param['chains'][0]['Controller'][0]['Set_time'][1]
+    T_day = house_param['chains'][0]['Controller'][0]['Set_temp'][0]
+    T_night = house_param['chains'][0]['Controller'][0]['Set_temp'][1]
+    SP = simple_thermostat(t_on, t_off, T_day, T_night)
+    SP_sim = SP[0:days_sim * 24]
 
     # addition NTA8800 house model
     
     # Controller value
     
-    kp = house_param['chains'][0]['Control']['kp']
+    kp = house_param['chains'][0]['Controller'][0]['kp']
 
     # solve ODE
     data = house(T_outdoor_sim, Q_internal_sim, Qsolar_sim, SP, time_sim,
@@ -102,7 +76,7 @@ def main():
     plt.plot(data[0], label='Tair')
     plt.plot(data[1], label='Twall')
     plt.plot(SP_sim, label='SP_Temperature')
-    # plt.plot(T_outdoor_sim,label='Toutdoor')
+    plt.plot(T_outdoor_sim,label='Toutdoor')
     plt.legend(loc='best')
     plt.title("Simulation2R2C_newyaml")
     plt.show()

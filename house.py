@@ -94,8 +94,9 @@ def house(T_outdoor, Q_internal, Q_solar, SP_T, time_sim, CF,
 
         err = SP_T[i+1] - Tair[i]
         Qinst = err * kp
-        Qinst = np.clip(Qinst, 0, 7000)
-        
+        #Qinst = np.clip(Qinst, 0, 7000)
+        Qinst = np.clip(Qinst, 0, 26000)
+
         if (T_outdoor[i]>= 15):
             Qinst=0
         else:

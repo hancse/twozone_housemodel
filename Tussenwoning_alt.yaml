@@ -12,7 +12,7 @@ Date:                                                           2/25/2021
 Climatefile:  ..\..\NEN5060.xls
 
 timing:
-  days_sim:   20
+  days_sim:   30
   timescale:  hour   # Default simulation time in
 
 ventilation:
@@ -28,31 +28,21 @@ internal:
     # Presence until [hour]
     t2 : 23
 
-setpoint:
-    # Presence from [hour]
-    t1 : 8
-    # Presence until [hour]
-    t2 : 23
-    # Set temperature of thermostat at night from time t2
-    Night_T_SP : 17
-    # Set wishes temperature of thermostat
-    Day_T_SP   : 20
-    # Set the temperature when people are not at home
-    Flex_T_SP_dayoff   : 18
-    Flex_T_SP_workday  : 17
-    # Define Wake up time
-    # Define wake up time in the morning, temperature set to 20
-    Wu_time : 7
-    # Go to work time/ leave the house
-    # Define time that people go to work.
-    Work_time : 8
-    # Define time that people go out for shopping.
-    shopping_time : 13
-    # Back to home
-    #Define time that people back from work 18:00
-    back_home_from_work : 18
-    #Define time that people back from work 18:00
-    back_home : 15
+radiator:
+    # Heat transfer coefficient of the radiator
+    Urad : 30
+    # Area of the radiator
+    Arad : 10
+    # Cp value of water
+    cpwater : 4180
+    #Volume of the radiator
+    volume_rad : 0.050
+    #density of the water
+    rhowater : 1000
+    #Volume of the buffervessel
+    volume_buffervessel : 0.150
+    #Waterflow through the radiator
+    mdot : 0.150
 
 chains:
   -
@@ -104,7 +94,7 @@ chains:
         Type:  PID       # smart room controller (kamerthermostaat)
         Link:  1
         Scale: hrs
-        kp: 5000
+        kp: 7000
         Set_time: [6, 22]
         Set_temp: [20, 17]
 
