@@ -31,11 +31,11 @@ def LMTD(T_hot_in, T_hot_out, T_cold_in, T_cold_out, flowpattern='parallel', cor
         DeltaT_in = T_hot_in - T_cold_out
         DeltaT_out = T_hot_out - T_cold_in
 
-    assert (DeltaT_out > 0), "Output temperature difference $\Delta T_1$ is negative"
-    assert DeltaT_in > DeltaT_out, "Input temperature difference $\Delta T_1$ is smaller than output "
+    # assert (DeltaT_out > 0), "Output temperature difference $\Delta T_1$ is negative"
+    # assert DeltaT_in > DeltaT_out, "Input temperature difference $\Delta T_1$ is smaller than output "
     denominator = np.log(DeltaT_in) - np.log(DeltaT_out)
     nominator = DeltaT_in - DeltaT_out
-    assert denominator > eps, "Ratio of input/output temperature difference too large"
+    # assert denominator > eps, "Ratio of input/output temperature difference too large"
     log_mean_diff = nominator / denominator
 
     if flowpattern == 'cross' or flowpattern == 'multipass':

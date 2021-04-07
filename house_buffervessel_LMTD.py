@@ -4,6 +4,8 @@ house model base on 2R2C model with a buffervessel and a radiator
 
 from scipy.integrate import solve_ivp       # ODE solver
 import numpy as np                       # linear algebra
+# from house_tools import LMTD
+
 
 def controllerTemperatureandBuffervessel(setpointTemperature, setpointBuffervessel, Tair, Tbuffervessel):
     errorbuffervessel = setpointBuffervessel - Tbuffervessel
@@ -14,6 +16,7 @@ def controllerTemperatureandBuffervessel(setpointTemperature, setpointBuffervess
         
     mdot = np.clip(errorroomtemperature*0.1, 0, 0.3)
     return Qinst, mdot
+
 
 def LMTD(Tbuffervessel, Treturn, Tair):
     """calculates log mean temperature difference
@@ -34,7 +37,7 @@ def LMTD(Tbuffervessel, Treturn, Tair):
         value = (Tbuffervessel-Tair)-(Tair/Treturn)-Tair
         LMTD = (Tbuffervessel-Treturn)/np.log(value)
     return LMTD
-    
+
 
 def model_buffervessel(t, x, T_outdoor, Q_internal, Q_solar, SP_T, CF, Rair_outdoor, Rair_wall, Cair, Cwall, UAradiator, Crad, Cbuffervessel, cpwater):
     """model function for scipy.integrate.odeint.
@@ -78,8 +81,9 @@ def model_buffervessel(t, x, T_outdoor, Q_internal, Q_solar, SP_T, CF, Rair_outd
     
     # LMTD of the radiator
     
-    if(mdot>0):
+    if(mdot > 0):
         LMTDradiator = LMTD(Tbuffervessel, Treturn, Tair)
+        # LMTDradiator = LMTD(Tbuffervessel, Treturn, Tair, Tair, flowpattern='counter')
     else:
         LMTDradiator = Treturn - Tair
  
@@ -144,4 +148,7 @@ def house_buffervessel(T_outdoor, Q_internal, Q_solar, SP_T, time_sim, CF,
     Tbuffervessel = y.y[3,:]
     print(y.y[4,-1]/3600000)    
     return Tair, Twall, Treturn, Tbuffervessel, y.t
+
+if __name__ == "__main__":
+    main()  # temporary solution, recommended syntax
 
