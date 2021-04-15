@@ -32,7 +32,7 @@ chains:
         Surfaces:
         - {link: internals, factor: 0.8}  # Meeste zon komt direct in het interieur
         - {link: Load_bearing_construction, factor: 0.2} # Klein deel warmte de dragende wanden op
-        Tilt:    0 # degrees
+        Tilt:    90 # degrees
         Azimuth: 0 # degrees N = 0
       -
         Designation: Back

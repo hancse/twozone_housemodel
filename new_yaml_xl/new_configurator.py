@@ -44,7 +44,7 @@ def save_config(hp):
     Returns:
 
     """
-    with open("config2R2C.yml", "w") as config_outfile:
+    with open("../config2R2C.yml", "w") as config_outfile:
         yaml.dump(hp, config_outfile, indent=4)
 
 

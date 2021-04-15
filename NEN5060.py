@@ -19,6 +19,8 @@ def nen5060_to_dataframe(xl_tab_name: str = "nen5060 - energie") -> pd.DataFrame
     """
     # print(Path.cwd())
     data_dir = Path.cwd() / 'NEN_data'
+    if not data_dir.exists():
+        data_dir = Path.cwd().parent / 'NEN_data'
     output_dir = Path.cwd() / 'working' / 'submit'
     NENdata_path = data_dir / 'NEN5060-2018.xlsx'
     print(NENdata_path)
@@ -120,12 +122,21 @@ def run_qsun(df5060: pd.DataFrame):
     return dfout
 
 
-def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt):
+def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt, north_is_zero=False):
     """
+
+    Args:
+        df5060:          datafrme from NEN5060 spreadsheet
+        azimuth:         azimuth of solar panel
+        tilt:            tilt (inclination) of solar panel
+        north_is_zero:   azimuth convention
+                         if TRUE, north=0, east=90, south=180, west=270
+                         if FALSE, north=180, east=-90, south=0, west=+90
 
     Returns:
-
+        dataframe with total irradiation on surface in [W/m^2]
     """
+
     # copying dataframe columns to numpy array
     # calculation using dataframe columns is much slower than using numpy arrays
     qglob_hor = df5060.loc[:, 'globale_zonnestraling'].values  # global irradiation
@@ -153,10 +164,8 @@ def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt):
     # ground albedo is ignored, hence the  input parameter for qsun is zero
     ground_albedo = 0
 
-    # (scalar) beta is the tilt (inclination) angle of the surface, horizontal is 0, vertical is +90
-    # beta is 90 for k = -1 to 7 (vertical walls of house) and 0 for the horizontal flat roof surface
-    # (scalar) gamma is the azimuth of the surface, starting with -90(E), loop over k = -1 to 7 to 225(NE)
-    # for k = 8 (horizontal surface) gamma is arbitrary (set to 90 degrees here), since beta = 0
+    if north_is_zero:
+        azimuth -= 180.0
 
     for row in range(8760):
         diffuse_irr, direct_irr, \

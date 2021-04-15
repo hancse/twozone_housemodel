@@ -48,7 +48,7 @@ def LMTD(T_hot_in, T_hot_out, T_cold_in, T_cold_out, flowpattern='parallel', cor
 
 
 def house_to_csv():
-    with open('simulation_output.csv', mode='w') as output_file:
+    with open('new_yaml_xl/simulation_output.csv', mode='w') as output_file:
         output_writer = csv.writer(output_file, delimiter=';',
                                    quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
@@ -61,8 +61,6 @@ def house_to_csv():
                                'Internals', 'Load bearing construction'])
         output_writer.writerow(['TIMESTEP', 'TEMPERATURE (GRADEN C)', 'TEMPERATURE (GRADEN C)',
         'SOLAR (J)', 'SOURCES (J)', 'HEATING (J)', 'TEMPERATURE', 'SOLAR', 'SOURCES', 'HEATING'])
-
-def house_to_excel():
 
 
 

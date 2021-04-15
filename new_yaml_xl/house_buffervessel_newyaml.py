@@ -62,6 +62,9 @@ def model_buffervessel(t, x, T_outdoor, Q_internal, Q_solar, SP_T, Rair_outdoor,
 
     energydt = Qinst
 
+    if (t/3600 % 1000) < 1:
+        print(int(t/3600))
+
     return [Tairdt, Twalldt, Treturndt, Tbuffervesseldt, energydt]
 
 
