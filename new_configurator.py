@@ -83,10 +83,10 @@ def calculateRC(hp: dict):
         Cair :
     """
     # assignment to local variables from hp: dict 
-    Rair_outdoor = 1.0 / hp['chains'][0]['links'][0]['conductance']
-    Cair = hp['chains'][0]['links'][0]['capacity']
-    Rair_wall = 1.0 / hp['chains'][0]['links'][1]['conductance']
-    Cwall = hp['chains'][0]['links'][1]['capacity']
+    Rair_outdoor = 1.0 / hp['chains'][0]['links'][0]['Conductance']
+    Cair = hp['chains'][0]['links'][0]['Capacity']
+    Rair_wall = 1.0 / hp['chains'][0]['links'][1]['Conductance']
+    Cwall = hp['chains'][0]['links'][1]['Capacity']
 
     return Rair_wall, Cwall, Rair_outdoor, Cair
 

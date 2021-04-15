@@ -1,5 +1,7 @@
 
 import numpy as np
+import csv
+
 
 def LMTD(T_hot_in, T_hot_out, T_cold_in, T_cold_out, flowpattern='parallel', corrfact=1.0):
     """calculates log mean temperature difference
@@ -44,6 +46,26 @@ def LMTD(T_hot_in, T_hot_out, T_cold_in, T_cold_out, flowpattern='parallel', cor
 
     return log_mean_diff
 
+
+def house_to_csv():
+    with open('simulation_output.csv', mode='w') as output_file:
+        output_writer = csv.writer(output_file, delimiter=';',
+                                   quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        output_writer.writerow(['Description',
+                                'Resultaten HAN Dynamic Model Heat Built Environment'])
+        output_writer.writerow(['Chain number', '1'])
+        output_writer.writerow(['Designation', '2R-2C-1-zone' '2R-2C-1-zone'])
+        output_writer.writerow(['Node number', '0', '1', '2'])
+        output_writer.writerow(['Designation', 'Outside Temperature',
+                               'Internals', 'Load bearing construction'])
+        output_writer.writerow(['TIMESTEP', 'TEMPERATURE (GRADEN C)', 'TEMPERATURE (GRADEN C)',
+        'SOLAR (J)', 'SOURCES (J)', 'HEATING (J)', 'TEMPERATURE', 'SOLAR', 'SOURCES', 'HEATING'])
+
+def house_to_excel():
+
+
+
 if __name__ == "__main__":
     pattern = 'parallel'
     log_mean_td = LMTD(80, 50, 20, 40, pattern)
@@ -52,3 +74,7 @@ if __name__ == "__main__":
     pattern = 'counter'
     log_mean_td = LMTD(80, 50, 20, 40, pattern)
     print("LMTD : %s %f" % (pattern, log_mean_td))
+
+    house_to_csv()
+
+
