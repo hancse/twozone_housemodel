@@ -24,7 +24,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 
 def main():
     # house_param = load_config("Tussenwoning_alt.yaml")
-    house_param = load_config("Tussenwoning 14april.yaml")
+    house_param = load_config("Tussenwoning16april.yaml")
     num_sim = house_param['Duration']
     print ('Simulation points:', num_sim)
     num_nodes = len(house_param['chains'][0]['links'])
