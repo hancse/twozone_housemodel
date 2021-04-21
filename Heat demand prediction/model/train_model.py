@@ -10,11 +10,33 @@ import torch
 #import torch.nn as nn
 #from torch.autograd import Variable
 
+
+
 # PATH = "heat_demand.pt"
 def train(filename,seq_length,num_epochs,learning_rate,
           input_size,hidden_size,num_layers,num_classes,bidirectional,PATH):
     
-    ''' Train and save the model for prediction.
+    ''' Function to train and save the model for prediction.
+    
+     Args:
+        
+        filename:       name of the data set.
+        seq_length:     the number of pass input points which needed 
+                            for predicting the future value. 
+        
+        num_epochs:     number of times all the data has passed to the model.
+        
+        learning_rate:  step size at each iteration while moving 
+                            toward a minimum of a loss function
+      input_size:       number of input features.
+      hidden_size:      number of hidden layer.
+      num_classes:      number of outputs.
+      bidirectional:    True or False.
+      PATH:             name of the save model *.pt (pytorch model)
+    
+    Returns:
+       
+        lstm:           A train lstm models with the structure define as input.   
     
     '''
     
@@ -43,7 +65,7 @@ def train(filename,seq_length,num_epochs,learning_rate,
     
     # Save the model for prediction.
     
-    PATH = "heat_demand.pt"
+    #PATH = PATH
     torch.save(lstm.state_dict(), PATH)
     
     return lstm
@@ -51,7 +73,9 @@ def train(filename,seq_length,num_epochs,learning_rate,
 if __name__ == "__main__":
     
     # data file name
-    filename = 'Heavy_weight.txt'
+    #filename = 'Heavy_weight.txt'
+    filename = 'Light_weight.txt'
+
     seq_length = 12
         
     # number of tranning cycle.
