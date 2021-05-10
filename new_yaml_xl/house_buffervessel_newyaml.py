@@ -5,6 +5,7 @@ house model base on 2R2C model with a buffervessel and a radiator
 from scipy.integrate import solve_ivp       # ODE solver
 import numpy as np                       # linear algebra
 
+
 def controllerTemperatureandBuffervessel(setpointTemperature, setpointBuffervessel, Tair, Tbuffervessel):
     errorbuffervessel = setpointBuffervessel - Tbuffervessel
     errorroomtemperature = setpointTemperature - Tair
@@ -14,7 +15,6 @@ def controllerTemperatureandBuffervessel(setpointTemperature, setpointBuffervess
         
     mdot = np.clip(errorroomtemperature*0.05, 0, 0.15)
     return Qinst, mdot
-    
     
 
 def model_buffervessel(t, x, T_outdoor, Q_internal, Q_solar, SP_T, Rair_outdoor, Rair_wall, Cair, Cwall, UAradiator, Crad, Cbuffervessel, cpwater):
@@ -113,4 +113,8 @@ def house_buffervessel(T_outdoor, Q_internal, Q_solar, SP_T, time_sim,
     Tbuffervessel = result.y[3, :]
     print(result.y[4, -1]/3600000)
     return Tair, Twall, Treturn, Tbuffervessel, result.t
+
+
+if __name__ == "__main__":
+    pass
 
