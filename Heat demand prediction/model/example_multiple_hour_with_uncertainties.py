@@ -97,7 +97,7 @@ def main():
     axs[0].title.set_text('Zoom_in')
     axs[1].title.set_text('Heat demand')
     axs[0].set_xlim([0,pred_hour])
-    #axs[1].set_xlim([500,1000])
+    axs[1].set_xlim([0,pred_hour])
     axs[0].legend()
     axs[1].legend()
     plt.show()

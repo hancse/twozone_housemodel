@@ -95,14 +95,15 @@ if __name__ == "__main__":
     # Plot the results
     
     fig, axs = plt.subplots(2,figsize=(20,12))
-    axs[0].plot(Y_val_plot,label='measured')
-    axs[0].plot(predict_tf,label='predicted')
+    axs[0].plot(testX.detach().numpy()[:,0,2],label='Outdoor_Temperature')
+    #axs[0].plot(Y_val_plot,label='measured')
+    #axs[0].plot(predict_tf,label='predicted')
     axs[1].plot(Y_val_plot,label='measured')
     axs[1].plot(predict_tf,label = 'predicted')
     axs[0].title.set_text('Zoom_in')
     axs[1].title.set_text('Heat demand')
-    axs[0].set_xlim([0,pred_hour])
-    #axs[1].set_xlim([500,1000])
+    axs[0].set_xlim([500,pred_hour])
+    axs[1].set_xlim([500,pred_hour])
 
     axs[0].legend()
     axs[1].legend()

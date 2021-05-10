@@ -77,7 +77,7 @@ def main():
     axs[0].title.set_text('Zoom_in')
     axs[1].title.set_text('Heat demand')
     #plt.figure(figsize=(17,6)) #plotting
-    axs[0].set_xlim([1500,2000])
+    axs[0].set_xlim([0,2000])
     #axs[1].set_xlim([500,1000])
     #plt.xlim([0,0])
     #plt.plot(dataY_plot[:,0],label='measured')

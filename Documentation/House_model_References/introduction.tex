@@ -1,5 +1,20 @@
+% \chapter{Introduction}
+
 \section{Introduction}
 
-This document presents the basic information for calculating a house model based on an RC network. 
-This category of house models, analogous to electrical impedance networks, may have different numbers of R and C components, and may have various component topologies. 
-For the specific model properties, references will be given.
+Building energy simulation is a vast field of research that started in the late 50’s and that is still highly active nowadays. Building energy simulations are mainly used to help taking design decisions, to analyze current designs and to forecast future building energy use. Building energy modelling methods can mainly be divided into three categories:
+\begin{itemize}
+  
+    \item White box models (physics-based)
+    \item Black box models (data-driven)
+    \item Grey box models (hybrid)
+
+\end{itemize}
+
+
+White box models are based on the equations related to the fundamental laws of energy and mass balance and heat transfer. White box models can be differentiated in two types, \emph{distributed} parameter models and \emph{lumped} parameter models. Lumped parameter models simplify the description of distributed physical systems into discrete entities that approximate the behavior of a distributed system. The advantage of using lumped models is the decrease in simulation time \textbf{(Ramallo-González et al.\cite{Alfonso})}. White box models are of special interest for the design phase as they are used to predict and analyse the performance of the building envelope and building systems.
+Black box models are based on the statistical relation between input and output system values. The statistical relation between input and output is based on actual data. The relation between the parameters can differ based on the amount of data and the method used to analyze the relation. Currently, there is a large and active field of research about statistical models that are used on black box models \textbf{(Coacley et al.\cite{Coakley})}. Black box models are of special interest when there is a large amount of actual input and output data available. 
+
+Grey box models are hybrid models that aim to combine the advantages of both approaches. In order to use them it is necessary to implement some equations and it is also required to have actual data of inputs and outputs.
+
+\newpage
