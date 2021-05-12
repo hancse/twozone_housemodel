@@ -1,7 +1,9 @@
 
 import numpy as np
+# https://simple-pid.readthedocs.io/en/latest/simple_pid.html#module-simple_pid.PID
 from simple_pid import PID
 import dvg_pid_controller
+
 
 class gasboiler(PID):
     """class for modelling PID-controlled gasboiler
@@ -46,7 +48,7 @@ class gasboiler(PID):
         self.upper_db = T_setpoint + 0.5 * dead_band
         self.output_limits(0, P_max)
         self.Power = 0.0
-        self.output = 0.0
+
 
     """
     Todo: 
