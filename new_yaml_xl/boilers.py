@@ -4,18 +4,49 @@ from simple_pid import PID
 import dvg_pid_controller
 
 class gasboiler(PID):
-    def __init__(self, kp, ki, kd, T_setpoint,
-                 T_node, T_amb, dead_band, P_max):
-        super.__init__(kp, ki, kd, T_setpoint)
+    """class for modelling PID-controlled gasboiler
+
+    If the class has public attributes, they may be documented here
+    in an ``Attributes`` section and follow the same formatting as a
+    function's ``Args`` section. Alternatively, attributes may be documented
+    inline with the attribute's declaration (see __init__ method below).
+
+    Properties created with the ``@property`` decorator should be documented
+    in the property's getter method.
+
+    Attributes:
+        attr1 (str): Description of `attr1`.
+        attr2 (:obj:`int`, optional): Description of `attr2`.
+
+    """
+    def __init__(self, kp, ki, kd, T_setpoint):
+                # T_node, T_amb, dead_band, P_max):
+        """
+
+        Args:
+            kp (float):          proportional PID gain [W/C]
+            ki (float):          integral PID parameter
+            kd (float):          derivative PID parameter
+            T_setpoint (float):  setpoint (SP) temperature
+            T_node (float):      process value (PV) temperature
+            T_amb (float):       outdoor temperature
+            dead_band (float):   deadband in [C]
+            P_max (float):       maximum power of boiler [W]
+        """
+        super().__init__(kp, ki, kd, T_setpoint)
         self.P_max = P_max
+        """str: Docstring *after* attribute, with type specified."""
         self.T_amb = T_amb
+        """str: Docstring *after* attribute, with type specified."""
         self.T_node = T_node
+        """str: Docstring *after* attribute, with type specified."""
         self.dead_band = dead_band
-        self.lower_db = T_node - 0.5 * dead_band
-        self.upper_db = T_node + 0.5 * dead_band
+
+        self.lower_db = T_setpoint - 0.5 * dead_band
+        self.upper_db = T_setpoint + 0.5 * dead_band
         self.output_limits(0, P_max)
         self.Power = 0.0
-        self.
+        self.output = 0.0
 
     """
     Todo: 
@@ -42,10 +73,9 @@ class gasboiler(PID):
 
 
 if __name__ == "__main__":
-    g = gasboiler( 20, 20.1, 0, 10000, kp= 2000)
+    g = gasboiler(kp=2000, ki=10, kd=0, T_setpoint=20)
     # Q = g.
     print ("Q_boiler: ", Q)
-
 
     """
     def gasboiler(T_setpoint, T_node, T_amb, P_max, kp, ki=0, kd=0):
