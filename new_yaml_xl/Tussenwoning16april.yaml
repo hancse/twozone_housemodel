@@ -65,7 +65,7 @@ chains:
                                                                                               - [ link:               Load_bearing_constructon,    factor:       0.15]       # Een klein aandeel warmte de draghende muren op
                       Control:
                                                                          Type:                    PID
-                                                                         Param:                   [                                           5000]         # Parameters for control
+                                                                         Param:                   [                                           5000, 0, 0]         # Parameters for control
                                                                          Link:                    internals
                                                                          Scale:                   hrs
                                                                          Set_time:                [                                              0,               23]
