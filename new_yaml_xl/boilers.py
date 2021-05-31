@@ -2,6 +2,7 @@ import numpy as np
 # https://simple-pid.readthedocs.io/en/latest/simple_pid.html#module-simple_pid.PID
 from simple_pid import PID
 import time
+import matplotlib.pyplot as plot
 #from Temperature_SP import simple_thermostat
 
 
@@ -85,27 +86,17 @@ class gasboiler(PID):
         return output
 
 if __name__ == "__main__":
-    g = gasboiler(kp=100, ki=100, kd=0, T_setpoint=19.9, T_node=15, T_amb=10, dead_band=2, P_max=10000, P_min=4000)
-    g.output_limits = (4000, 10000)
-    #SP = simple_thermostat(t_on, t_off, T_day, T_night)
-    #SP_sim = SP[0:days_sim * 24]
+    g = gasboiler(kp=5, ki=0, kd=0, T_setpoint=19.9, T_node=15, T_amb=10, dead_band=2, P_max=10000, P_min=0)
+    g.output_limits = (4, 10)
     print(g.update)
-    """
-    def gasboiler(T_setpoint, T_node, T_amb, P_max, kp, ki=0, kd=0):
 
-    # Q_boiler = pid(T_node)
-
-    # if  T_setpoint - 0.5* dead_band < T_node  < T_setpoint + 0.5* dead_band:
-
-    if (T_setpoint < 10) | (T_amb > 15):
-        # implement summer period by a ridiculously low value of T_setpoint
-        pid.auto_mode = False
-        Q_boiler = 0.0
-    else:
-        pid.auto_mode = True
-        Q_boiler = pid(T_node)
-        if  Q_boiler < 0.15*P_max:
-            Q_boiler = 0.0
-
-    return Q_boiler
-    """
+    #testing Gasboiler class
+    time = np.arange(0, 100, 0.1);
+    amplitude = 5 * np.sin(time) + 18
+    hysteresis = []
+    for i in amplitude:
+        g.T_node = i
+        hysteresis.append(g.update())
+    plot.plot(time, amplitude)
+    plot.plot(time, hysteresis)
+    plot.show()
