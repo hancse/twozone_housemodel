@@ -1,0 +1,345 @@
+\section{Lumped-element thermal model of a building}
+
+Heat generation and transport inside a building, with heat loss to the surrounding outdoor environment is governed by the same laws of conduction, convection and radiation as elsewhere. A number of approximations is made, however, which will be treated below:
+
+\subsection{Heat Conduction: Fourier's Law}
+
+Heat transport \emph{within} a solid material is governed by conduction, according to Fourier's Law, illustrated in Figure \ref{fig:heatcond_1d}.
+One side of a rectangular solid is held at temperature $T_1$, while the opposite side is held at a lower temperature, $T_2$. The other four sides are insulated so that heat can flow only in the $x$-direction. For a given material, it is found that the rate, $\dot{Q_x}$ , at which heat (thermal
+energy) is transferred from the hot side to the cold side (the \emph{heat transfer rate}) is proportional to the cross-sectional area, $A$, across which the heat flows; the temperature difference, $T_1 - T_2$; and inversely proportional to
+the thickness, $\Delta x$, of the material. That is:
+
+\begin{equation}
+	\label{eq:fourierlaw}
+	\dot{Q_x} = - kA \frac{\Delta T}{\Delta x}
+\end{equation}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\columnwidth]{Pictures/heat_conduction_1d.png}
+	\caption[Short title]{One-dimensional heat conduction in a solid}
+	\label{fig:heatcond_1d}
+\end{figure} 
+
+The constant of proportionality, $k$, is called the \emph{thermal conductivity}. Equation \eqref{eq:fourierlaw} is also applicable to heat conduction in liquids and gases. However, when temperature differences exist in fluids, convection currents tend to be set up, so that heat is generally not transferred solely by the mechanism of conduction. The thermal conductivity is a property of the material. Values may be found in various handbooks and compendiums of physical property data.
+
+The form of Fourier’s law given by Equation \eqref{eq:fourierlaw} is valid only when the thermal conductivity can be assumed constant. A more general result can be obtained by writing the equation for an element of differential thickness. in the limit as $\Delta x$ approaches zero, $\frac{\Delta T}{\Delta x} \rightarrow \frac{d T}{d x}$. Thus, substituting in Equation \eqref{eq:fourierlaw} gives:
+
+\begin{equation}
+	\label{eq:fourierdiff}
+	\dot{Q_x} = - kA \frac{d T}{d x}
+\end{equation}
+
+Equation \eqref{eq:fourierdiff} is not subject to the restriction of constant $k$. Furthermore, when $k$ is constant, it can be integrated to yield Equation \eqref{eq:fourierlaw}. Hence, Equation \eqref{eq:fourierdiff} is the general one-dimensional form of Fourier’s law. The negative sign is necessary because heat flows in the positive $x$-direction when the temperature decreases in the $x$-direction. Thus, according to the standard sign convention that
+$\dot Q_x$ is positive when the heat flow is in the positive $x$-direction, $\dot Q_x$ must be positive when $dT/dx$ is negative. 
+
+\subsubsection{More than one dimension}
+
+It is often convenient to formulate Fourier's Law in the original phrasing: the \emph{heat flux} $ \dot{\varphi}$  is proportional to the \emph{temperature gradient}. We divide \eqref{eq:fourierdiff} by the area to give:
+
+\begin{equation}
+	\label{eq:fourierflux}
+	\dot{\varphi_x} \equiv \frac{\dot Q_x}{A}- k \frac{d T}{d x}
+\end{equation}
+
+where $\dot{\varphi_x}$ is the heat flux. It has units of $\frac{J}{s \cdot m^2} = \frac{W}{m^2}$. 
+Thus, the units of $k$ are $\frac{W}{m \cdot K}$.
+
+Equation \eqref{eq:fourierflux} is restricted to the situation in which heat flows in the $x$-direction
+only. In the general case in which heat flows in all three coordinate directions, the total heat flux is obtained by vector addition of adding the fluxes in the coordinate directions. Thus,
+
+\begin{equation}
+	\label{eq:flux3d}
+	\boldsymbol{\dot{\varphi}} = \dot{\varphi_x} \mathbf{i} + \dot{\varphi_y} \mathbf{j} + \dot{\varphi_z} \mathbf{k}
+\end{equation}
+
+where $\boldsymbol{\dot{\varphi}}$ is the heat flux vector and \textbf{i}, \textbf{j}, \textbf{k} are unit vectors in the x-, y-, z-directions, respectively.
+
+Each of the component fluxes is given by a one-dimensional Fourier expression as follows:
+
+\begin{equation}
+	\begin{aligned}
+		\label{eq:fourier3d}
+		\dot{\varphi_x} = - k \frac{\partial T}{\partial x} & \qquad & \dot{\varphi_y} = - k \frac{\partial T}{\partial y} & \qquad & \dot{\varphi_z} = - k \frac{\partial T}{\partial z}
+	\end{aligned}
+\end{equation}
+
+Partial derivatives are used here since the temperature now varies in all three directions. Substituting
+the above expressions for the fluxes into Equation \eqref{eq:flux3d} gives:
+
+\begin{equation}
+	\label{eq:fouriercart}
+	\boldsymbol{\dot{\varphi}} = -k \left(\frac{\partial T}{\partial x} \mathbf{i} + \frac{\partial T}{\partial y} \mathbf{j} + \frac{\partial T}{\partial z} \mathbf{k} \right)
+\end{equation}
+
+The vector in parenthesis is the temperature gradient vector, and is denoted by $\nabla T$. Hence,
+
+\begin{equation}
+	\label{eq:fouriernabla}
+	\boldsymbol{\dot{\varphi}} = -k \nabla T
+\end{equation}
+
+Equation \eqref{eq:fouriernabla} is the three-dimensional form of Fourier’s law. It is valid for homogeneous, isotropic materials for which the thermal conductivity is the same in all directions. Fourier’s law states that heat flows in the direction of greatest temperature decrease.
+
+\subsubsection{The Heat Conduction Equation}
+
+The solution of problems involving heat conduction in solids can, in principle, be reduced to the
+solution of a single differential equation, the \emph{heat conduction equation}. The equation can be derived
+by making a thermal power balance on a differential volume element in the solid. For the case of
+conduction in the $x$-direction only, such a volume element is illustrated in Figure \ref{fig:element_1d}. 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\columnwidth]{Pictures/Element.png}
+	\caption[Short title]{Differential element for 1D heat conduction}
+	\label{fig:element_1d}
+\end{figure}
+
+The rate at which thermal energy enters the volume element across the face at $x$ is given by the
+product of the heat flux and the cross-sectional area, $\dot{\varphi_x}|_x \cdot A$.
+Similarly, the rate at which thermal energy leaves the element across the face at $x + \Delta x$ is $\dot{\varphi_x}|_{x + \Delta x} \cdot A$. 
+
+A heat generation term appears in the equation because the balance is made on thermal energy, not
+total energy. For example, thermal energy may be generated within a solid by an electric current
+or by decay of a radioactive material.
+
+For a homogeneous heat source of strength $\dot{q}$ \emph{per unit volume}, the net rate of generation is $\dot{q}A \Delta x$. Finally, the rate of accumulation of heat in the material is given by the time derivative of the thermal energy content of the volume element, which is $\rho c(T - T_{ref} )A\Delta x$, where $T_{ref}$ is an arbitrary reference temperature. Thus, the balance equation
+becomes:
+
+\begin{equation}
+	\label{eq;heatbalance}
+	\left( \dot{\varphi_x}|_x - \dot{\varphi_x}|_{x + \Delta x} \right)A + \dot{q}A \Delta x = \rho c  \frac{\partial T}{\partial t}A\Delta x
+\end{equation}
+
+It has been assumed here that the density, $\rho$, and heat capacity, $c$, are constant. 
+
+Dividing by $A \Delta x$ and taking the limit as $\Delta x \rightarrow 0 $ yields:
+
+\begin{equation}
+	\rho c  \frac{\partial T}{\partial t} = -\frac{\partial \dot{\varphi_x}}{\partial x} + \dot{q}
+\end{equation}
+
+Using Fourier’s law as given by Equation \eqref{eq:fourierflux}, the balance equation becomes:
+
+\begin{equation}
+	\rho c  \frac{\partial T}{\partial t} = \frac{\partial}{\partial x} \left(\frac{k \partial T}{\partial x} \right)+ \dot{q}
+\end{equation}
+
+When conduction occurs in all three coordinate directions, the balance equation contains y- and
+z-derivatives analogous to the x-derivative. The balance equation then becomes:
+
+\begin{equation}
+	\label{eq:heat3d}
+	\rho c  \frac{\partial T}{\partial x} = \frac{\partial}{\partial x} \left(\frac{k \partial T}{\partial x} \right)  + \frac{\partial}{\partial y} \left(\frac{k \partial T}{\partial y} \right) + \frac{\partial}{\partial z} \left(\frac{k \partial T}{\partial z} \right) + \dot{q}
+\end{equation}
+
+When $k$ is constant, it can be taken outside the derivatives and Equation \eqref{eq:heat3d} can be written as:	
+
+\begin{equation}
+	\frac{\rho c}{k}  \frac{\partial T}{\partial t} = \frac{\partial^2 T}{\partial x^2}  + \frac{\partial^2 T}{\partial y^2} + \frac{\partial^2 T}{\partial z^2} + \frac{\dot{q}}{k}
+\end{equation}
+
+or
+
+\begin{equation}
+	\frac{1}{\alpha} \frac{\partial T}{\partial t} = \nabla^2 T + \frac{\dot{q}}{k}
+\end{equation}
+
+where $\alpha \equiv k /\rho c$ is the \emph{thermal diffusivity} and $\nabla^2$ is the Laplacian operator. The thermal diffusivity has units of $m^2/s$.
+
+
+\subsection{Convection: Newton's Law of cooling}
+
+When a solid is \emph{immersed} in a fluid or atmospheric gas, heat transfer on the interface occurs by convection. This phenomenon is governed by Newton's Law of cooling:
+
+“The rate of heat lost by a body is directly proportional to the temperature difference of a body and its surroundings”
+
+\begin{equation}
+	\label{eq:newtonlaw}
+	\dot{Q_x} = - hA \Delta T
+\end{equation}
+
+\subsection{Radiation}
+
+\subsection{Approximations: A Simplified Model}
+
+In building physics, it is often assumed that Fourier's Law is valid in the form of Eq. \eqref{eq:fourierlaw}. This can be done under the condition that 
+
+\begin{equation}
+	\begin{aligned}
+	    \nabla^2 T \equiv 0 & \rightarrow & \frac{\partial T}{\partial \mathbf{r}} = constant
+    \end{aligned}
+\end{equation}
+
+\subsection{Lumped-element matrix representation}
+
+We take the 2R-2C lumped-element model from Section 2:
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\columnwidth]{Pictures/2R2Cmodel_rev.png}
+	\caption[Short title]{2R-2C house model revisited}
+	\label{fig:elec2R2Cbis}
+\end{figure}
+
+The differential equations are:
+
+\begin{equation}
+	\begin{aligned}
+	C_{air}\frac{dT_{air}}{dt} &=\frac{T_{amb}-T_{air}}{R_{air, amb}} + \frac{T_{wall}-T_{air}}{R_{air, wall}} + \dot{Q}_{heat, air} + \dot{Q}_{int, air} + \dot{Q}_{solar, air} 
+	\\ \\
+	C_{wall}\frac{dT_{wall}}{dt} &=\frac{T_{air}-T_{wall}}{R_{air, wall}} + \dot{Q}_{solar, wall}
+    \end{aligned}
+\end{equation}
+
+Writing out the differential equations in the classical notation:
+
+\begin{equation}
+	\begin{aligned}
+		C_{air}\frac{dT_{air}}{dt} &= \left[ \frac{-1}{R_{air, amb}} + \frac{-1}{R_{air, wall}} \right]  \cdot T_{air}  + \frac{1}{R_{air, wall}} \cdot T_{wall} + \frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air} + \dot{Q}_{int, air} + \dot{Q}_{solar, air} 
+		\\ \\
+		C_{wall}\frac{dT_{wall}}{dt} &= \frac{1}{R_{air, wall}} \cdot T_{air} + \frac{-1}{R_{air, wall}}   \cdot T_{wall} + \dot{Q}_{solar, wall}
+	\end{aligned}
+\end{equation}
+
+The differential equations can be written in matrix notation as:
+
+\begin{subequations}
+	\label{eq:matnot}
+	\begin{align}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} = - \mathbf{K} \cdot \boldsymbol{\theta} + \mathbf{\dot{q}} \\ 
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} + \mathbf{K} \cdot \boldsymbol{\theta} = \mathbf{\dot{q}}
+	\end{align}
+\end{subequations}
+
+with:
+
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{air} & 0 \\
+		0 &  C_{wall}
+	\end{bmatrix}
+    \cdot
+    \begin{bmatrix}
+    	\frac{dT_{air}}{dt} \\
+    	\frac{dT_{wall}}{dt}
+    \end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{air, amb}} + \frac{1}{R_{air, wall}} & \frac{-1}{R_{air, wall}} \\
+		\frac{-1}{R_{air, wall}} &  \frac{1}{R_{air, wall}}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{air} \\
+		T_{wall}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air} + \dot{Q}_{int, air} + \dot{Q}_{solar, air} \\
+		\dot{Q}_{solar, wall}
+	\end{bmatrix}
+\end{equation}
+
+Written out, the differential equation according to \eqref{eq:matnot} becomes:
+
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			C_{air} & 0 \\
+			0 &  C_{wall}
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			\frac{dT_{air}}{dt} \\
+			\frac{dT_{wall}}{dt}
+		\end{bmatrix}
+		=
+		\begin{bmatrix}
+			\frac{-1}{R_{air, amb}} + \frac{-1}{R_{air, wall}} & \frac{1}{R_{air, wall}} \\
+			\frac{1}{R_{air, wall}} &  \frac{-1}{R_{air, wall}}
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			T_{air} \\
+			T_{wall}
+		\end{bmatrix}
+		+ \\ \\
+		\begin{bmatrix}
+			\frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air} + \dot{Q}_{int, air} + \dot{Q}_{solar, air} \\
+			\dot{Q}_{solar, wall}
+		\end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+In the alternative notation:
+
+\begin{equation}
+	\begin{aligned}
+	\begin{bmatrix}
+	    C_{air} & 0 \\
+	    0 &  C_{wall}
+    \end{bmatrix}
+    \cdot
+    \begin{bmatrix}
+    	\frac{dT_{air}}{dt} \\
+    	\frac{dT_{wall}}{dt}
+    \end{bmatrix}
+    +
+    	\begin{bmatrix}
+    	\frac{1}{R_{air, amb}} + \frac{1}{R_{air, wall}} & \frac{-1}{R_{air, wall}} \\
+    	\frac{-1}{R_{air, wall}} &  \frac{1}{R_{air, wall}}
+    \end{bmatrix}
+    \cdot
+    \begin{bmatrix}
+    	T_{air} \\
+    	T_{wall}
+    \end{bmatrix}
+    = \\ \\
+    \begin{bmatrix}
+        \frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air} + \dot{Q}_{int, air} + \dot{Q}_{solar, air} \\
+    	\dot{Q}_{solar, wall}
+    \end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+The lumped-element equations above are systems of \emph{first-order ordinary differential equations} (ODE). The first order derivative is with respect to \emph{time}. The (silent) assumption that heat conduction within the air and the wall of the previous 2R-2C model is \emph{faster} than the exchange of heat at the \emph{interfaces} between air and wall and air and ambient surroundings has replaced all spatial information from the \emph{second-order partial differential equations} (PDE) that govern conductive heat transport \emph{within} materials.
+
+Therefore, the lumped-element equations can be solved by:
+\begin{itemize}
+	\item the \textsf{odexxx} in Matlab., preferrably \textsf{ode45}.
+	\item the \textsf{state-space} module in Simulink, after conversion to a state-space representation.
+	\item the \textsf{scipy.integrate.solve\_ivp} function in Python. In older code, \textsf{scipy.integrate.odeint} is still encountered.
+	\item in C++ several options exist, similar to the options in Python.
+\end{itemize}
+
+The routines in Matlab, Simulink and Python need a \emph{model function} that provides the vector $\boldsymbol{\dot{\theta}}$ for evaluation at any time instance chosen by the algorithm. The equations \eqref{eq:matnot} then should be cast in the following form by left multiplication with $\mathbf{C^{-1}}$.
+
+\begin{subequations}
+	\label{eq:matnot_ivp}
+	\begin{align}
+		\mathbf{C}^{-1} \cdot \mathbf{C} \cdot \boldsymbol{\dot{\theta}} = - \mathbf{C}^{-1} \cdot \mathbf{K} \cdot \boldsymbol{\theta} + \mathbf{C}^{-1} \cdot \mathbf{\dot{q}} \\ 
+        \boldsymbol{\dot{\theta}} = - \mathbf{C}^{-1} \cdot \mathbf{K} \cdot \boldsymbol{\theta} + \mathbf{C}^{-1} \cdot \mathbf{\dot{q}}
+	\end{align}
+\end{subequations}
+
+Since $\mathbf{C}$ is a \emph{diagonal} matrix with positive elements only, its inverse exists and contains the reciprocal elements on its diagonal:
+
+\begin{equation}
+	\mathbf{C^{-1}} =
+	\begin{bmatrix}
+		\frac{1}{C_{air}} & 0 \\
+		0 &  \frac{1}{C_{wall}}
+	\end{bmatrix}
+\end{equation}
+
+This provides the division by the lumped thermal capacitances of the air and wall compartments in the model, necessary for the calculating the derivative vector $\boldsymbol{\dot{\theta}}$ in the model functions. 
+
+\subsection{Extension of the method to larger lumped-element networks}
