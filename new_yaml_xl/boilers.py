@@ -1,9 +1,13 @@
+
+
 import numpy as np
 # https://simple-pid.readthedocs.io/en/latest/simple_pid.html#module-simple_pid.PID
 from simple_pid import PID
 import time
-import matplotlib.pyplot as plot
-#from Temperature_SP import simple_thermostat
+import matplotlib
+matplotlib.use("Qt5Agg")
+import matplotlib.pyplot as plt
+# from Temperature_SP import simple_thermostat
 
 
 class gasboiler(PID):
@@ -45,14 +49,15 @@ class gasboiler(PID):
         """str: Docstring *after* attribute, with type specified."""
         self.T_node = T_node
         """str: Docstring *after* attribute, with type specified."""
+        self.setpoint = T_setpoint
         self.dead_band = dead_band
 
-        self.lower_db = T_setpoint - 0.5 * dead_band
-        self.upper_db = T_setpoint + 0.5 * dead_band
+        self.lower_db = self.setpoint - 0.5 * dead_band
+        self.upper_db = self.setpoint + 0.5 * dead_band
         #self.output_limits(0, P_max)
         self.Power = 0.0
-        self.db_state = True
-
+        self.enter_from_below = True
+        self.output = 0.0
 
     """
     Todo: 
@@ -66,37 +71,53 @@ class gasboiler(PID):
     """
 
     def update(self):
-        #If the hysteresis is upward, and withing the control band, send minimal power to the room
-        if (self.lower_db < self.T_node < self.upper_db) & (self.db_state == True):
+        self.output = self.__call__(self.T_node) # should happen always
+
+        # If the hysteresis is upward, and within the control band, send minimal power to the room
+        if (self.lower_db <= self.T_node <= self.upper_db) & (self.enter_from_below == True):
+            if self.auto_mode:
+                self.set_auto_mode(False)
+            self.output = self.P_min
+        # If the hysteresis is downward, and within the control band, send no power
+        elif (self.lower_db <= self.T_node <= self.upper_db) & (self.enter_from_below == False):
             self.set_auto_mode(False)
-            output = self.P_min
-        #If the hysteresis is downward, and withing the control band, send no power
-        elif (self.lower_db < self.T_node < self.upper_db) & (self.db_state == False):
-            self.set_auto_mode(False)
-            output = 0
-        #If T_node is over the deadband, dont send power and reset hysteresis state
+            self.output = 0
+        # If T_node is over the deadband, dont send power and reset hysteresis state
         elif self.T_node > self.upper_db:
-            self.db_state = False
-            output = 0
-        #If T_node is under the deadband, send power with PID control set hysteresis state
+            self.enter_from_below = False
+            self.output = 0
+        #'If T_node is under the deadband, send power with PID control and set hysteresis state
         elif self.T_node < self.lower_db:
-            self.db_state = True
-            self.set_auto_mode(True, last_output=self.Power)
-            output = self.__call__(self.T_node)
-        return output
+            self.enter_from_below = True
+            if not self.auto_mode:
+                self.set_auto_mode(True, last_output=self.output)
+            if self.output < self.P_min:
+                self.output = self.P_min
+            # self.output = self.__call__(self.T_node)
+        # return output
+
 
 if __name__ == "__main__":
-    g = gasboiler(kp=5, ki=0, kd=0, T_setpoint=19.9, T_node=15, T_amb=10, dead_band=2, P_max=10000, P_min=0)
-    g.output_limits = (4, 10)
-    print(g.update)
+    g = gasboiler(kp=1000, ki=0, kd=0, T_setpoint=20, T_node=15, T_amb=10, dead_band=2, P_max=10000, P_min=1500)
+    g.output_limits = (0, g.P_max)
+    # g.sample_time = 0.1
+    print(g.output)
 
     #testing Gasboiler class
-    time = np.arange(0, 100, 0.1);
-    amplitude = 5 * np.sin(time) + 18
+
+    tm = np.arange(0, 100, 0.1)
+    amplitude = 5 * np.sin(tm) + 18
     hysteresis = []
     for i in amplitude:
         g.T_node = i
-        hysteresis.append(g.update())
-    plot.plot(time, amplitude)
-    plot.plot(time, hysteresis)
-    plot.show()
+        g.update()
+        hysteresis.append(g.output)
+        # time.sleep(0.002)
+    result = np.vstack((amplitude, np.array(hysteresis)))
+
+    fig, ax = plt.subplots(2,1)
+    ax[0].plot(tm, amplitude)
+    ax[1].plot(tm, hysteresis)
+    ax[0].grid(True)
+    ax[1].grid(True)
+    plt.show()
