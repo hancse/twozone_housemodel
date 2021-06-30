@@ -343,3 +343,57 @@ Since $\mathbf{C}$ is a \emph{diagonal} matrix with positive elements only, its 
 This provides the division by the lumped thermal capacitances of the air and wall compartments in the model, necessary for the calculating the derivative vector $\boldsymbol{\dot{\theta}}$ in the model functions. 
 
 \subsection{Extension of the method to larger lumped-element networks}
+
+Take a house model with two stories. Each level in the building is described with a 2R-2C model. Heat transfer occurs between the ground floor and the 1st floor.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\columnwidth]{Pictures/5R4C.png}
+	\caption[Short title]{5R-4C house model}
+	\label{fig:elec4R5C}
+\end{figure}
+
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{0} & 0 & 0 & 0\\
+		0 &  C_{1} & 0 & 0 \\
+		0 & 0 & C_{1} & 0\\
+		0 & 0 & 0 & C_{3}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{0}}{dt} \\
+		\frac{dT_{1}}{dt} \\
+	    \frac{dT_{2}}{dt} \\
+	    \frac{dT_{3}}{dt} 
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}} + \frac{1}{R_{01}} & \frac{-1}{R_{01}} & 0 & 0 \\
+		\frac{-1}{R_{01}} &  \frac{1}{R_{01}} + \frac{1}{R_{12}} & \frac{-1}{R_{12}} & 0 \\
+		 0 & \frac{-1}{R_{12}} & \frac{1}{R_{12}} + \frac{1}{R_{23}}  & \frac{-1}{R_{23}}\\
+	 	 0 & 0 & \frac{-1}{R_{23}} &  \frac{1}{R_{3, amb}} + \frac{1}{R_{23}} \\
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{0} \\
+		T_{1} \\
+		T_{2} \\
+		T_{3}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}} \cdot T_{amb} + \dot{Q}_{heat, 0} + \dot{Q}_{int, 0} + \dot{Q}_{solar, 0} \\
+		\dot{Q}_{solar, 1} \\
+		\dot{Q}_{solar, 2} \\
+		\frac{1}{R_{3, amb}} \cdot T_{amb} + \dot{Q}_{heat, 3} + \dot{Q}_{int, 3} + \dot{Q}_{solar, 3}
+	\end{bmatrix}
+\end{equation}
+
