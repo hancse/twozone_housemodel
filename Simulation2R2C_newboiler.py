@@ -17,7 +17,7 @@ from Temperature_SP     import thermostat_sp, SP_profile
 
 import matplotlib.pyplot as plt
 
-from new_yaml_xl.boilers import gasboiler
+from new_yaml_xl.boilers import GasBoiler
 from numpy import diff
 
 def main():
@@ -74,7 +74,7 @@ def main():
     
     SP_sim = SP[0:days_sim * 24]
 
-    g = gasboiler(kp=5000, ki=0, kd=0, T_setpoint=19.9, T_node=15, T_amb=10, dead_band=1, P_max=10000, P_min=2000)
+    g = GasBoiler(kp=5000, ki=0, kd=0, T_setpoint=19.9, T_node=15, T_amb=10, dead_band=1, P_max=10000, P_min=2000)
     # solve ODE
     data = house_buffervessel(T_outdoor_sim, Qinternal_sim, Qsolar_sim, SP_sim, time_sim,
                  CF, Rair_outdoor, Rair_wall, Cair, Cwall, g)

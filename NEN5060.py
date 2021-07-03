@@ -32,7 +32,7 @@ def nen5060_to_dataframe(xl_tab_name: str = "nen5060 - energie") -> pd.DataFrame
     # df5060 = pd.read_excel(xls, 'nen5060 - energie')  # this file is part of NEN 5060 20018
     # NEN5060-2018.xlsx has two lines with column headers
     # first line is column name, second line is measurement unit
-    df5060 = pd.read_excel(xls, xl_tab_name, header=[0, 1])  # this file is part of NEN 5060 20018
+    df5060 = pd.read_excel(xls, xl_tab_name, header=[0, 1])  # this file is part of NEN 5060 2018
     ind = df5060.index
     print(ind.values)
     print(df5060.head())
@@ -43,6 +43,9 @@ def nen5060_to_dataframe(xl_tab_name: str = "nen5060 - energie") -> pd.DataFrame
 
 def run_qsun(df5060: pd.DataFrame):
     """
+
+    Args:
+        df5060:   dataframe from NEN5060 spreadsheet
 
     Returns:
 
@@ -126,7 +129,7 @@ def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt, north_is_zero=False):
     """
 
     Args:
-        df5060:          datafrme from NEN5060 spreadsheet
+        df5060:          dataframe from NEN5060 spreadsheet
         azimuth:         azimuth of solar panel
         tilt:            tilt (inclination) of solar panel
         north_is_zero:   azimuth convention
@@ -136,7 +139,6 @@ def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt, north_is_zero=False):
     Returns:
         dataframe with total irradiation on surface in [W/m^2]
     """
-
     # copying dataframe columns to numpy array
     # calculation using dataframe columns is much slower than using numpy arrays
     qglob_hor = df5060.loc[:, 'globale_zonnestraling'].values  # global irradiation
@@ -156,8 +158,7 @@ def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt, north_is_zero=False):
     # Define an empty matrix for the result of qsun
     # this result is a numpy stack with
     # 8760 rows (hours per year)
-    # 9 columns (compass directions -90(E), -45(SE), 0(S), 45(SW), 90(W), 135(NW), 180(N), 225 (NE) plus horizontal)
-    # 4 decks (diffuse, direct, global and total solar irradiation)
+    # 4 columns (diffuse, direct, global and total solar irradiation)
 
     E = np.zeros((8760, 4))
 
