@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 
 def main():
     house_param = load_config("config2R2C.yml")
-    days_sim = house_param['timing']['days_sim']
+    days_sim = 365 # house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
     Rair_wall, Cwall, Rair_outdoor, Cair = calculateRCOne(house_param)
     print(days_sim)

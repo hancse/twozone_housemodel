@@ -10,7 +10,7 @@ Date:                                                           2/25/2021
 Climatefile:          ..\..\NEN5060.xls
 # Default simulation time in
 Timescale:            hrs                                                 # default timescale used in yaml file
-Duration:                                                            8766 # a year in the defined timescale
+Duration:                                                            8760 # a year in the defined timescale
 Timestep:                                                               1 # default timestep in time integration. Required until new integration subsoutine is implemented
 
 chains:
@@ -35,7 +35,7 @@ chains:
                                                                          #Surfaces:
                                                                                              # - [ name:               internals,                   factor:        0.8]       # Meeste zon komt direct in het interieur
                                                                                              # - [ name:               Load_bearing_construction,    factor:        0.2]       # Klein deel warmte de dragende wanden op
-                                                                         Tilt:                                       0 # degrees
+                                                                         Tilt:                                       90 # degrees
                                                                          Azimuth:                                    0 # degrees N = 0
                                                -
                                                                          Designation:             Back

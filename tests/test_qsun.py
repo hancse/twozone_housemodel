@@ -10,7 +10,7 @@ logging.basicConfig()
 logger = logging.getLogger('test_qsun')
 logger.setLevel(logging.INFO)
 
-from NEN5060 import nen5060_to_dataframe, run_qsun, run_qsun_new
+from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun, run_qsun_new
 
 def my_assert(condition, fail_str, suc_str):
     assert condition, fail_str
