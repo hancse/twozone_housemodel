@@ -1,0 +1,92 @@
+dirs:
+    cfg_dir : ".."
+
+model:
+
+Solar_irradiation:
+  -
+    Designation: Front_facade
+    Effective Area: 9.5 # m2 (glass surface x ZTA )
+    Node_partition: [0.8, 0.2]
+    Tilt: 90 # degrees
+    Azimuth: 90 # degrees N = 0
+  -
+    Designation: Back
+    Effective Area: 9.5 # m2 (glass surface x ZTA )
+    Node_partition: [0.8, 0.2]
+    Tilt: 90 # degrees
+    Azimuth: 270 # degrees N = 0
+
+glass:
+# Windows size [m2]
+    E  : 9.5
+    SE : 0
+    S  : 0
+    SW : 0
+    W  : 9.5
+    NW : 0
+    N  : 0
+    NE : 0
+    g_value : 0.7
+
+timing:
+    days_sim : 20
+    interval : NEN5060
+    unit : ss
+
+thermal:
+    conductance: [214.97182405625463, 1360.0]  
+    capacity: [7472373.6, 7140000.0]
+    #Window thermal transmittance, U-value [W/m2K]
+    U_glass : 2.9
+
+ventilation:
+    #Ventilation, air changes per hour [#/h]
+    n : 0.55
+    #convection factor (solar radiation): 
+    #the convection factor is the part of the solar radiation 
+    #that enters the room and is released directly convectively into the room
+    CF : 0.8
+
+internal:
+    # Internal heat difference between day and night [W]
+    delta_Q : 150
+    # Daytime internal heat generation [W]
+    Q_day : 400
+    # Presence from [hour]
+    t1 : 8
+    # Presence until [hour]
+    t2 : 23
+
+control:
+    set_temp: [20, 17]
+    set_time: [8, 23]
+
+
+controller:
+    # propotional gain
+    kp : 7000
+    # intergal
+    ki : 0
+    # derivative
+    kd : 0
+
+radiator:
+    # Heat transfer coefficient of the radiator
+    Urad : 30
+    # Area of the radiator
+    Arad : 10
+    # Cp value of water
+    cpwater : 4180
+    #Volume of the radiator
+    volume_rad : 0.050
+    #density of the water
+    rhowater : 1000
+    #Volume of the buffervessel
+    volume_buffervessel : 0.150
+    #Waterflow through the radiator
+    mdot : 0.150     
+     
+    
+
+

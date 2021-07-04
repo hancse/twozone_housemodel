@@ -8,21 +8,34 @@ from housemodel.solvers.house_buffervessel import house_buffervessel  # exposed 
 # function "model" in module house is private
 
 from housemodel.tools.configurator import load_config, calculateRCOne
-from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun
+from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun, run_qsun_new
 
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
-from housemodel.controls.Temperature_SP import thermostat_sp, SP_profile, simple_thermostat
+from housemodel.controls.Temperature_SP import simple_thermostat
 
 import matplotlib.pyplot as plt
+import numpy as np
+
+import logging
+logging.basicConfig()
+logger = logging.getLogger('buffervessel_matrix')
+logger.setLevel(logging.INFO)
 
 from pathlib import Path
 CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False):
-    house_param = load_config(str(CONFIGDIR / "config2R2C.yml"))
+    house_param = load_config(str(CONFIGDIR / "Tussenwoning2R2C_simple.yml"))
     days_sim = 365 # house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
-    Rair_wall, Cwall, Rair_outdoor, Cair = calculateRCOne(house_param)
+
+    Cair = house_param['thermal']['capacity'][0]
+    Cwall = house_param['thermal']['capacity'][1]
+
+    Rair_outdoor = 1.0/house_param['thermal']['conductance'][0]
+    Rair_wall = 1.0/house_param['thermal']['conductance'][1]
+
+    print(1.0/Rair_outdoor, Cair, 1.0/Rair_wall, Cwall)
     print(days_sim)
     
     #Loading the radiator and buffervessel parameters
@@ -38,7 +51,6 @@ def main(show=False):
     #Heat capacity of the buffervessel
     volumeBuffervessel = house_param['radiator']['volume_buffervessel']
     Cbuffervessel = cpwater*volumeBuffervessel*rhowater
-    
 
     df_nen = nen5060_to_dataframe()
     df_irr = run_qsun(df_nen)
@@ -57,6 +69,31 @@ def main(show=False):
     Qsolar *= house_param['glass']['g_value']
     Qsolar_sim = Qsolar[0:days_sim*24]
 
+    #  ====================================================
+    Qsolar2 = np.zeros((2, 8760))  # 2 rows x 8760 cols
+    for s in house_param['Solar_irradiation']:
+        descr = s['Designation']
+        az = s['Azimuth']
+        tlt = s['Tilt']
+        area = s['Effective Area']
+        df_irr2 = run_qsun_new(df_nen, az, tlt, north_is_zero=True)
+        area =  s['Effective Area']
+        partfactor = s['Node_partition'] # list of num_nodes elements 0<x<1
+        logger.info(f"Window area {area} @ Azimuth {az} and Tilt {tlt} for {descr}, divided {partfactor[0]} {partfactor[1]}")
+        for n in range(2):
+            Qsolar2[n, :] += (df_irr2.total_irr * area * partfactor[n]).values
+
+    Qsolar2 *= house_param['glass']['g_value']
+    Qsolar2_sum = np.sum(Qsolar2, axis=0)
+    logger.info(f"Testing if Qsolar == Qsolar2_sum")
+    np.testing.assert_allclose(Qsolar, Qsolar2_sum)
+
+    # Qsolar_sim = Qsolar[0:days_sim * 24]
+    Qsolar_sim = Qsolar2_sum[0:days_sim*24]
+
+    time_year = df_irr.iloc[:, 0].values  # 8760 rows 1D
+    # =======================================================
+
     Qint = internal_heat_gain(house_param['internal']['Q_day'],
                               house_param['internal']['delta_Q'],
                               house_param['internal']['t1'],
@@ -65,28 +102,13 @@ def main(show=False):
 
     Toutdoor = df_nen.loc[:, 'temperatuur'].values / 10.0  # temperature
     T_outdoor_sim = Toutdoor[0:days_sim*24]
-    """
-    week_day_setpoint = thermostat_sp(house_param['setpoint']['t1'],
-                                         house_param['setpoint']['t2'],
-                                         house_param['setpoint']['Night_T_SP'],
-                                         house_param['setpoint']['Day_T_SP'],
-                                         house_param['setpoint']['Flex_T_SP_workday'],
-                                         house_param['setpoint']['Wu_time'],
-                                         house_param['setpoint']['Work_time'],
-                                         house_param['setpoint']['back_home_from_work'])
+
+    t_on = house_param['control']['set_time'][0]
+    t_off = house_param['control']['set_time'][1]
+    T_day = house_param['control']['set_temp'][0]
+    T_night = house_param['control']['set_temp'][1]
+    SP = simple_thermostat(t_on, t_off, T_day, T_night)
     
-    day_off_setpoint  = thermostat_sp(house_param['setpoint']['t1'],
-                                         house_param['setpoint']['t2'],
-                                         house_param['setpoint']['Night_T_SP'],
-                                         house_param['setpoint']['Day_T_SP'],
-                                         house_param['setpoint']['Flex_T_SP_dayoff'],
-                                         house_param['setpoint']['Wu_time'],
-                                         house_param['setpoint']['shopping_time'],
-                                         house_param['setpoint']['back_home'])
-    
-    SP = SP_profile(week_day_setpoint,day_off_setpoint)
-    """
-    SP = simple_thermostat(8, 23, 20, 17)
     SP_sim = SP[0:days_sim * 24]
     # solve ODE
     data = house_buffervessel(T_outdoor_sim, Qinternal_sim, Qsolar_sim, SP_sim, time_sim,
