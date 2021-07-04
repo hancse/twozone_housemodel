@@ -4,14 +4,14 @@ Created on Tue Nov 10 12:05:19 2020
 
 @author: TrungNguyen, PvK, MvdB
 """
-from new_yaml_xl.house_buffervessel_newyaml import house_buffervessel  # exposed function "house" in house module
+from housemodel.solvers.house_buffervessel_newyaml import house_buffervessel  # exposed function "house" in house module
 # function "model" in module house is private
 
-from new_configurator import load_config, calculateRC
-from NEN5060 import nen5060_to_dataframe, run_qsun_new
+from housemodel.tools.new_configurator import load_config, calculateRC
+from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun_new
 
-from internal_heat_gain import internal_heat_gain
-from Temperature_SP import simple_thermostat
+from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
+from housemodel.controls.Temperature_SP import simple_thermostat
 
 import matplotlib
 matplotlib.use("Qt5Agg")
@@ -20,17 +20,38 @@ import numpy as np
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
+from scipy.sparse import diags, spdiags
 
+import logging
+logging.basicConfig()
+logger = logging.getLogger('matrix')
+logger.setLevel(logging.INFO)
 
 def main():
     # house_param = load_config("Tussenwoning_alt.yaml")
     house_param = load_config("Tussenwoning16april.yaml")
-    num_sim = house_param['Duration']
-    print ('Simulation points:', num_sim)
-    num_nodes = len(house_param['chains'][0]['links'])
-    print('Simulation nodes:', num_nodes)
+    chain = house_param['chains'][0]
+    num_nodes = len(chain['links'])
+    logger.info(f'Simulation nodes: {num_nodes}')
 
-    Rair_wall, Cwall, Rair_outdoor, Cair = calculateRC(house_param)
+    # make C matrix
+    c_list = [ l['Capacity'] for l in chain['links'] ]
+    c_matrix = np.diag(c_list, k=0)
+    logger.info(f"C matrix: \n {c_matrix}")
+
+    # make K matrix
+    conductance = np.array([l['Conductance'] for l in chain['links']])
+    up_low = conductance[1:]
+    up_low_padded = np.pad(up_low, (0,1))
+    # adding [0] for now, more elegant solution? numpy.pad?
+    main_diag = np.add(conductance, up_low_padded)
+    diagonals = [main_diag, -1.0*up_low, -1.0*up_low]
+    k_matrix = diags(diagonals, [0, 1, -1]).toarray()
+
+    # make 8760 Q vectors
+    num_sim = house_param['Duration']
+    logger.info(f'Simulation points: {num_sim}')
+    # T_ambient
 
     #Loading the radiator and buffervessel parameters
     #Heat transfer coefficient of the radiator and het capacity

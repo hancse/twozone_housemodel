@@ -4,15 +4,15 @@ Created on Tue Nov 10 12:05:19 2020
 
 @author: TrungNguyen, PvK, MvdB
 """
-from house import house  # exposed function "house" in house module
+from housemodel.solvers.house import house  # exposed function "house" in house module
 # function "model" in module house is private
 
 # from configurator import load_config, calculateRCOne
-from new_configurator import load_config, calculateRC
-from NEN5060 import nen5060_to_dataframe, run_qsun_new
+from housemodel.tools.new_configurator import load_config, calculateRC
+from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun_new
 
-from internal_heat_gain import internal_heat_gain
-from Temperature_SP import simple_thermostat
+from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
+from housemodel.controls.Temperature_SP import simple_thermostat
 
 import matplotlib
 matplotlib.use("Qt5Agg")

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-from qsun import qsun
+from housemodel.sourcesink.qsun import qsun
 
 from typing import List
 

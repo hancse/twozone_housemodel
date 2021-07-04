@@ -4,14 +4,14 @@ Created on Tue Nov 10 12:05:19 2020
 
 @author: TrungNguyen, PvK, MvdB
 """
-from house_buffervessel_LMTD import house_buffervessel  # exposed function "house" in house module
+from housemodel.solvers.house_buffervessel_LMTD import house_buffervessel  # exposed function "house" in house module
 # function "model" in module house is private
 
-from configurator import load_config, calculateRCOne
-from NEN5060 import nen5060_to_dataframe, run_qsun
+from housemodel.tools.configurator import load_config, calculateRCOne
+from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun
 
-from internal_heat_gain import internal_heat_gain
-from Temperature_SP     import thermostat_sp, SP_profile
+from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
+from housemodel.controls.Temperature_SP import thermostat_sp, SP_profile
 
 import matplotlib.pyplot as plt
 

@@ -10,14 +10,14 @@ matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from house_buffervessel_LMTD import house_buffervessel  # exposed function "house" in house module
+from housemodel.solvers.house_buffervessel_LMTD import house_buffervessel  # exposed function "house" in house module
 # function "model" in module house is private
 
-from new_configurator import load_config, calculateRC
-from NEN5060 import nen5060_to_dataframe, run_qsun_new
+from housemodel.tools.new_configurator import load_config, calculateRC
+from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun_new
 
-from internal_heat_gain import internal_heat_gain
-from Temperature_SP import simple_thermostat
+from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
+from housemodel.controls.Temperature_SP import simple_thermostat
 
 
 def main():
