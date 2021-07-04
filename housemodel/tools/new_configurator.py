@@ -12,8 +12,9 @@ the module performs the following tasks:
 4. get additional parameters from NEN5060
 5. perform calculations to prepare for ODE integration
 """
-
+import numpy as np
 import yaml
+from scipy.sparse import diags, spdiags
 
 """
 The predefined variables are now defined in a configuration file
@@ -90,3 +91,31 @@ def calculateRC(hp: dict):
 
     return Rair_wall, Cwall, Rair_outdoor, Cair
 
+def make_c_matrix(capacity_list: list):
+    """make C matrix.
+
+    Args:
+        capacity_list: list of node thermal capacities
+    Returns:
+        (ndarray): diagonal 2d array with thermal capacities
+    """
+    cap_array = np.array(capacity_list)
+    return np.diag(cap_array, k=0)
+
+
+def make_k_matrix(conductance_list):
+    """make K matrix.
+
+    Args:
+        conductance_list: list of connecting thermal conductances
+
+    Returns:
+       (ndarray): diagonal 2d array with thermal conductances
+    """
+    cond_array = np.array(conductance_list)
+    up_low = cond_array[1:]
+    up_low_padded = np.pad(up_low, (0, 1))
+    # adding [0] for now, more elegant solution? numpy.pad?
+    main_diag = np.add(cond_array, up_low_padded)
+    diagonals = [main_diag, -1.0 * up_low, -1.0 * up_low]
+    return diags(diagonals, [0, 1, -1]).toarray()
