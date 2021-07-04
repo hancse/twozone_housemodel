@@ -27,6 +27,7 @@ CONFIGDIR = Path(__file__).parent.absolute()
 def main(show=False):
     house_param = load_config(str(CONFIGDIR / "Tussenwoning2R2C_simple.yml"))
     days_sim = 365 # house_param['timing']['days_sim']
+    num_nodes = 2
     CF = house_param['ventilation']['CF']
 
     Cair = house_param['thermal']['capacity'][0]
@@ -53,6 +54,9 @@ def main(show=False):
     Cbuffervessel = cpwater*volumeBuffervessel*rhowater
 
     df_nen = nen5060_to_dataframe()
+
+    """
+    # old way: Qsolar as sum of transparent windows in 8 directions and horizontal
     df_irr = run_qsun(df_nen)
     print(df_irr.head())
 
@@ -68,9 +72,17 @@ def main(show=False):
               df_irr.total_NE * house_param['glass']['NE']).values
     Qsolar *= house_param['glass']['g_value']
     Qsolar_sim = Qsolar[0:days_sim*24]
+    """
 
-    #  ====================================================
-    Qsolar2 = np.zeros((2, 8760))  # 2 rows x 8760 cols
+    # new way: Qsolar2 as loop over transparent surfaces with:
+    # effective area = area * ZTA
+    # orientation in azimuth and tilt (inclination)
+    # partition factor over nodes
+    # inner loop over node divides energy of each window over nodes
+    # result: array with num_nodes rows
+    # containing 8760 values for heat delivered to each node
+    time_secs = np.zeros(8760)
+    Qsolar2 = np.zeros((num_nodes, 8760))  # num_nodes rows x 8760 cols
     for s in house_param['Solar_irradiation']:
         descr = s['Designation']
         az = s['Azimuth']
@@ -80,19 +92,19 @@ def main(show=False):
         area =  s['Effective Area']
         partfactor = s['Node_partition'] # list of num_nodes elements 0<x<1
         logger.info(f"Window area {area} @ Azimuth {az} and Tilt {tlt} for {descr}, divided {partfactor[0]} {partfactor[1]}")
-        for n in range(2):
+        for n in range(num_nodes):
             Qsolar2[n, :] += (df_irr2.total_irr * area * partfactor[n]).values
+        time_secs = df_irr2.iloc[:, 0].values  # 8760 rows 1D
 
+    time_sim = time_secs[0:days_sim*24]
     Qsolar2 *= house_param['glass']['g_value']
     Qsolar2_sum = np.sum(Qsolar2, axis=0)
-    logger.info(f"Testing if Qsolar == Qsolar2_sum")
-    np.testing.assert_allclose(Qsolar, Qsolar2_sum)
+    # logger.info(f"Testing if Qsolar == Qsolar2_sum")
+    # np.testing.assert_allclose(Qsolar, Qsolar2_sum)
+    # tested to be true!
 
     # Qsolar_sim = Qsolar[0:days_sim * 24]
     Qsolar_sim = Qsolar2_sum[0:days_sim*24]
-
-    time_year = df_irr.iloc[:, 0].values  # 8760 rows 1D
-    # =======================================================
 
     Qint = internal_heat_gain(house_param['internal']['Q_day'],
                               house_param['internal']['delta_Q'],
@@ -110,6 +122,8 @@ def main(show=False):
     SP = simple_thermostat(t_on, t_off, T_day, T_night)
     
     SP_sim = SP[0:days_sim * 24]
+
+
     # solve ODE
     data = house_buffervessel(T_outdoor_sim, Qinternal_sim, Qsolar_sim, SP_sim, time_sim,
                  CF, Rair_outdoor, Rair_wall, Cair, Cwall, UAradiator, Crad, Cbuffervessel, cpwater)
