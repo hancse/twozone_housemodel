@@ -37,8 +37,6 @@ timing:
 thermal:
     conductance: [214.97182405625463, 1360.0]  
     capacity: [7472373.6, 7140000.0]
-    #Window thermal transmittance, U-value [W/m2K]
-    U_glass : 2.9
 
 ventilation:
     #Ventilation, air changes per hour [#/h]
