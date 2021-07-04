@@ -21,14 +21,19 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
+import logging
+logging.basicConfig()
+logger = logging.getLogger('matrix')
+logger.setLevel(logging.INFO)
 
 def main():
     # house_param = load_config("Tussenwoning_alt.yaml")
     house_param = load_config("Tussenwoning16april.yaml")
+    chain = house_param['chains'][0]
+    num_nodes = len(chain['links'])
+    logger.info(f'Simulation nodes: {num_nodes}')
     num_sim = house_param['Duration']
-    print ('Simulation points:', num_sim)
-    num_nodes = len(house_param['chains'][0]['links'])
-    print('Simulation nodes:', num_nodes)
+    logger.info(f'Simulation points: {num_sim}')
 
     Rair_wall, Cwall, Rair_outdoor, Cair = calculateRC(house_param)
 
