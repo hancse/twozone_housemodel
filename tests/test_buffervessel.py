@@ -4,8 +4,9 @@ matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-import logging
+import context1
 
+import logging
 logging.basicConfig()
 logger = logging.getLogger('test_buffervessel')
 logger.setLevel(logging.INFO)

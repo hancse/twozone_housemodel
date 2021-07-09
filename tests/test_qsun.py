@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+import context1
+
 import logging
 logging.basicConfig()
 logger = logging.getLogger('test_qsun')

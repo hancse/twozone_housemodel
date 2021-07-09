@@ -5,73 +5,76 @@ house model base on 2R2C model with a buffervessel and a radiator
 from scipy.integrate import solve_ivp       # ODE solver
 import numpy as np                       # linear algebra
 
-def controllerTemperatureandBuffervessel(setpointTemperature, setpointBuffervessel, Tair, Tbuffervessel):
-    errorbuffervessel = setpointBuffervessel - Tbuffervessel
-    errorroomtemperature = setpointTemperature - Tair
+def control_temp_buffer(setpointTemperature,
+                        setpointBuffervessel,
+                        Tair, Tbuffervessel):
+    """controller for heating of buffervessel
+
+    Args:
+        setpointTemperature:   setpoint for air temperature in house
+        setpointBuffervessel:  setpoint for temperature in buffervessel
+        Tair:                  actual air temperature
+        Tbuffervessel:         actuel temperature of buffervessel
+
+    Returns:
+        elements (terms) in q_vector
+    """
+    error_buffervessel = setpointBuffervessel - Tbuffervessel  # SP - PV
+    error_roomtemp = setpointTemperature - Tair         # SP - PV
     
-    Qinst = errorbuffervessel * 300
-    Qinst = np.clip(Qinst, 0, 12000)
-        
-    mdot = np.clip(errorroomtemperature*0.05, 0, 0.15)
-    return Qinst, mdot
+    q_inst = error_buffervessel * 300    # kp = 300  [W/K]
+    q_inst = np.clip(q_inst, 0, 12000)   # Pmax = 12000 [W]
+
+    mdot = error_roomtemp*0.05   # kp = 0.05 kg/(K s)
+    mdot = np.clip(mdot, 0, 0.15)  # mdot_max = 0.15 ks/s
+
+    cp_water = 4200 # J/(kg K)
+    mdot_cp = error_roomtemp*(0.05*cp_water)  # kp = 0.05*4200 = 210 [W/K]
+    mdot_cp = np.clip(0, 0.15*cp_water)       # Pmax = 630 W
+
+    # return q_inst, mdot
+    return q_inst, mdot_cp
     
     
 
-def model_buffervessel_matrix(t, T_vector,
-                              T_outdoor, Q_internal, Q_solar, SP_T, CF,
-                              cap_mat, cond_mat,
-                              UAradiator, Crad, Cbuffervessel, cpwater):
-    """model function for scipy.integrate.odeint.
+def model_buffervessel_matrix(t, T_vector, SP_T,
+                              cap_mat_inv, cond_mat_minus,
+                              q_vector):
+    """model function for scipy.integrate.solve_ivp.
 
-    :param x:            (array):   variable array dependent on time with the vairable Air temperature, Wall temperature Return water temperature and buffervessel temperature
-    :param t:            (float):
-    :param T_outdoor:    (float):  Outdoor temperature in degree C
-    :param Q_internal:   (float):  Internal heat gain in [W]
-    :param Q_solar:      (float):  Solar irradiation on window [W]
-    :param SP_T:         (float):  Setpoint tempearature from thermostat. [C]
-    :param Qinst:        (float):  Heating power delivered to the buffervessel [W]
-    :param CF:           (float):  factor of Q_solar heat transferred to the air (Unitless)
-    :param Rair_outdoor: (float):  Thermal resistance from indoor air to outdoor air [K/W]
-    :param Rair_wall:    (float):  Thermal resistance from indoor air to the wall [K/W]
-    :param Cair:         (float):  Thermal capacity of the air
-    :param Cwall:        (float):  Thermal capacity of the wall
-    :param mdot:         (float):  waterflow in the radiator [kg/s]
-    :param UAradiator    (float):  Heat transfer coeffiecient of the radiator 
-    :return:             (array):  Difference over of the variables in x      
+    Args:
+        t:
+        T_vector:
+        SP_T:
+        cap_mat_inv:
+        cond_mat_minus:
+        q_vector:
 
-    x,t: ode input function func : callable(x, t, ...) or callable(t, x, ...)
-    Computes the derivative of y at t.
-    If the signature is ``callable(t, y, ...)``, then the argument tfirst` must be set ``True``.
+    Returns:
+        (array):  Differentials of the variables in T_vector
     """
     index = int(t/3600)
-    # States :
-    Tair = x[0]
-    Twall = x[1]
-    Treturn = x[2]
-    Tbuffervessel = x[3]
-    
-    # Parameters :
-        
     setpointRoomTemperature = SP_T[index]
     setpointBuffervessel = 80
-    
+
     # Control :
-        
-    Qinst, mdot = controllerTemperatureandBuffervessel(setpointRoomTemperature, setpointBuffervessel, Tair, Tbuffervessel)
+    Qinst, mdot = control_temp_buffer(setpointRoomTemperature,
+                                      setpointBuffervessel,
+                                      T_vector[0], T_vector[3])
  
     # Equations :
-    dTdt = (-1.0 * np.dot(np.linalg.inv(cap_mat), np.dot(cond_mat, T_vector.T)) +
-            np.dot(np.linalg.inv(cap_mat), q_vector(index))
+    dTdt = np.dot(cond_mat_minus, T_vector.T) + q_vector(index)
+    dTdt = np.dot(cap_mat_inv, dTdt)
 
-    # q_vector = np.zeros
+    """
     Tairdt = ((T_outdoor[int(t/3600)] - Tair) / Rair_outdoor + (Twall - Tair) / Rair_wall + UAradiator*(Treturn-Tair) + Q_internal[int(t/3600)] + CF * Q_solar[int(t/3600)]) / Cair
     Twalldt = ((Tair - Twall) / Rair_wall + (1 - CF) * Q_solar[int(t/3600)]) / Cwall
     Treturndt = ((mdot*cpwater*(Tbuffervessel-Treturn)) + UAradiator*(Tair-Treturn)) / Crad
     Tbuffervesseldt = (Qinst + (cpwater*mdot*(Treturn-Tbuffervessel)))/Cbuffervessel
     energydt = Qinst
-    
+    """
 
-    return [Tairdt, Twalldt, Treturndt, Tbuffervesseldt, energydt]
+    return dTdt   # [Tairdt, Twalldt, Treturndt, Tbuffervesseldt, energydt]
 
 
 def house_buffervessel_matrix(T_outdoor, Q_internal, Q_solar, SP_T, time_sim, CF,
@@ -109,14 +112,14 @@ def house_buffervessel_matrix(T_outdoor, Q_internal, Q_solar, SP_T, time_sim, CF
 
     t = time_sim           # Define Simulation time with sampling time
 
-    Tair = np.ones(len(t)) * Tair0
-    Twall = np.ones(len(t)) * Twall0
-    Treturn = np.ones(len(t)) * Treturn0
-    Tbuffervessel = np.ones(len(t)) * Tbuffervessel0
+    # Tair = np.ones(len(t)) * Tair0
+    # Twall = np.ones(len(t)) * Twall0
+    # Treturn = np.ones(len(t)) * Treturn0
+    # Tbuffervessel = np.ones(len(t)) * Tbuffervessel0
 
-    inputs = (T_outdoor, Q_internal, Q_solar, SP_T, CF,
-              cap_mat, cond_mat,
-              UAradiator, Crad, Cbuffervessel, cpwater)
+    inputs = (SP_T, cap_mat_inv, cond_mat_minus,
+                              q_vector)
+
     # y = solve_ivp(model_buffervessel, [0, t[-1]], y0, args=inputs)
     result = solve_ivp(model_buffervessel_matrix, [0, t[-1]], y0,
                   method='RK45', t_eval= time_sim,

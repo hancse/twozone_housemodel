@@ -399,7 +399,7 @@ Take a house model with two stories. Each level in the building is described wit
 
 \subsection{2R-2C model with buffervessel}
 
-For the air and wall nodes the following energy balances can be set up:
+The "air" and "wall" nodes of the 2R2C model can be extended with "radiator" node. The radiator has a finite heat capacity of itself. Instead of a thermal resistance, the radiator heat exchange in $W/K$ is entered in the model. The radiator emits heat to the "air" node only. In its turn, the radiator is fed from a "buffervessel" node. The buffervessel loses heat to the radiator and is heated up by a gas boiler or alternatively a heat pump. The gas boiler does not heat the house directly, as was the case in the simplest model. A schematic view is given in Fig. \ref{fig:elecbuffer}.
 
 \begin{figure}[H]
 	\centering
@@ -407,6 +407,8 @@ For the air and wall nodes the following energy balances can be set up:
 	\caption[Short title]{2R-2C house model with radiator and buffer vessel}
 	\label{fig:elecbuffer}
 \end{figure} 
+
+The differential equations for heat transport in the model of Fig. \ref{fig:elecbuffer} are:
 
 \begin{equation}
 	\begin{aligned}
@@ -418,6 +420,8 @@ For the air and wall nodes the following energy balances can be set up:
 	\end{aligned}
 \end{equation}
 
+ A fifth equation, integrating the heat source energy is sometimes added. Re-arranging the terms in the equation gives:
+ 
 \begin{equation}
 	\begin{aligned}
 		C_{air} \frac{dT_{air}}{dt} &= \left[ \frac{-1}{R_{air_{\_}outdoor}} + \frac{-1}{R_{air_{\_}wall}} +  -1 \cdot U_{rad} \cdot A_{rad} \right] \cdot T_{air} + \frac{T_{wall}}{R_{air_{\_}wall}} + U_{rad} \cdot A_{rad} \cdot T_{return} + \\
@@ -428,7 +432,7 @@ For the air and wall nodes the following energy balances can be set up:
 		\frac{dE}{dt} &= \dot{Q}_{inst}
 	\end{aligned}
 \end{equation}
-
+Conversion of the equations to a matrix equation yields:
 \begin{equation}
 	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
 	\begin{bmatrix}
@@ -473,3 +477,38 @@ For the air and wall nodes the following energy balances can be set up:
 	\end{bmatrix}
 \end{equation}
 
+\subsection{Package "housemodel"}
+
+The repository "\textsf{twozone\_housemodel-git}" contains the modules for the house model. The customary way to organize the modules is to make a \emph{Python package} with \emph{subpackages}. This opens up the possibility of publishing the package on PyPi, so that it can be imported.
+
+See: \url{https://pypi.org/}
+
+From commit \textsf{e74ce58} the files in the \textsf{twozone\_housemodel-git} repository are organized as a package. The proposed structure, implemented in this commit, is:
+
+\dirtree{%
+	.1 twozone\_housemodel-git.
+	.2 housemodel.
+	.3 \_\_init\_\_.py.
+	.3 controls.
+	.4 \_\_init\_\_.py.
+	.3 solvers.
+	.4 \_\_init\_\_.py.
+	.3 sourcesink.
+	.4 \_\_init\_\_.py.
+	.3 tools.
+	.4 \_\_init\_\_.py.
+	.2 tests.
+	.3 \_\_init\_\_.py.
+	.3 context1.py.
+	.3 test\_*.py.
+} 
+
+\begin{itemize}
+	\item the \emph{repository root} \textsf{twozone\_housemodel-git} contains the simulation scripts and configuration files (for now) 
+	\item the \emph{package root} \textsf{housemodel} contains the complete package. This can be seen since it contains an (empty) \textsf{\_\_init\_\_.py} module.
+	\item the \emph{subpackage} folders contain the modules with common functions and classes for all simulations. They each contain an (empty) \textsf{\_\_init\_\_.py} module.
+	\item a \textsf{tests} folder is placed carefully as a subfolder of the \emph{repository root}. 
+	See: \url{https://docs.python-guide.org/writing/structure/} for the underlying philosophy. Here, testing modules (scripts) can be placed. If the names of the test scripts start with \textsf{test\_}, they can be automatically run with the \textsf{pytest} Python package.
+\end{itemize}
+
+\textit{Note}: Running the simulations and tests is best done from the \emph{repository root}. All simulations and tests have been updated to find the package, subpackages and configuration files from this directory.

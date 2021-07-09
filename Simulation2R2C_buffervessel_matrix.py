@@ -9,8 +9,8 @@ from housemodel.solvers.house_buffervessel import house_buffervessel  # exposed 
 
 # from housemodel.tools.configurator import load_config, calculateRCOne
 from housemodel.tools.new_configurator import (load_config,
-                                               make_c_matrix,
-                                               make_k_matrix)
+                                               make_c_inv_matrix,
+                                               make_k_minus_matrix)
 
 from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun, run_qsun_new
 
@@ -43,10 +43,10 @@ def main(show=False):
     print(1.0/Rair_outdoor, Cair, 1.0/Rair_wall, Cwall)
     print(days_sim)
 
-    c_matrix = make_c_matrix(house_param['thermal']['capacity'])
+    c_matrix = make_c_inv_matrix(house_param['thermal']['capacity'])
     logger.info(f"C matrix: \n {c_matrix}")
 
-    k_matrix = make_k_matrix(house_param['thermal']['conductance'])
+    k_matrix = make_k_minus_matrix(house_param['thermal']['conductance'])
     logger.info(f"K matrix: \n {k_matrix}")
 
     #Loading the radiator and buffervessel parameters

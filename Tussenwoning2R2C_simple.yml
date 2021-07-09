@@ -35,8 +35,13 @@ timing:
     unit : ss
 
 thermal:
-    conductance: [214.97182405625463, 1360.0]  
-    capacity: [7472373.6, 7140000.0]
+    conductance: [214.97182405625463, 1360.0, 300, 0]
+    capacity: [7472373.6, 7140000.0, 209000, 627000]
+
+    [0,                  214.97182405625463, 1360.0, 300, 0]
+    [214.97182405625463,           0, 1360.0, 300, 0]
+    [214.97182405625463, 1360.0, 300, 0]
+    [214.97182405625463, 1360.0, 300, 0]
 
 ventilation:
     #Ventilation, air changes per hour [#/h]
@@ -44,7 +49,7 @@ ventilation:
     #convection factor (solar radiation): 
     #the convection factor is the part of the solar radiation 
     #that enters the room and is released directly convectively into the room
-    CF : 0.8
+    CF : 0.8  superseded by "node partition"
 
 internal:
     # Internal heat difference between day and night [W]
@@ -62,7 +67,7 @@ control:
 
 
 controller:
-    # propotional gain
+    # proportional gain
     kp : 7000
     # intergal
     ki : 0
@@ -71,19 +76,25 @@ controller:
 
 radiator:
     # Heat transfer coefficient of the radiator
-    Urad : 30
+    # Urad : 30
     # Area of the radiator
-    Arad : 10
+    # Arad : 10
+    # Urad * Arad is the "conductance" from the Crad compartment to Cair, see there
     # Cp value of water
-    cpwater : 4180
+    # cpwater : 4180
+    # cpwater is a constant.
+    # The product of mdot*cpwater is the conductance between compartment Cbuffervessel and Crad
     #Volume of the radiator
-    volume_rad : 0.050
+    # volume_rad : 0.050
+    # Crad =  cpwater*volumeRadiator*rhowater
     #density of the water
-    rhowater : 1000
+    # rhowater : 1000
     #Volume of the buffervessel
-    volume_buffervessel : 0.150
+    # volume_buffervessel : 0.150
+    # Cbuffervessel = cpwater*volumeBuffervessel*rhowater
     #Waterflow through the radiator
-    mdot : 0.150     
+    # mdot : 0.150
+    # mdot * cpwater is the conductance between Crad and Cbuffer in the K matrix
      
     
 

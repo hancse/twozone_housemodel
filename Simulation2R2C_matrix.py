@@ -7,7 +7,9 @@ Created on Tue Nov 10 12:05:19 2020
 from housemodel.solvers.house_buffervessel_newyaml import house_buffervessel  # exposed function "house" in house module
 # function "model" in module house is private
 
-from housemodel.tools.new_configurator import load_config, calculateRC
+from housemodel.tools.new_configurator import (load_config,
+                                            make_c_matrix,
+                                            make_k_matrix)
 from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun_new
 
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
@@ -20,7 +22,6 @@ import numpy as np
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
-from scipy.sparse import diags, spdiags
 
 import logging
 logging.basicConfig()
@@ -28,61 +29,46 @@ logger = logging.getLogger('matrix')
 logger.setLevel(logging.INFO)
 
 def main():
-    # house_param = load_config("Tussenwoning_alt.yaml")
-    house_param = load_config("Tussenwoning16april.yaml")
-    chain = house_param['chains'][0]
-    num_nodes = len(chain['links'])
-    logger.info(f'Simulation nodes: {num_nodes}')
-
-    # make C matrix
-    c_list = [ l['Capacity'] for l in chain['links'] ]
-    c_matrix = np.diag(c_list, k=0)
-    logger.info(f"C matrix: \n {c_matrix}")
-
-    # make K matrix
-    conductance = np.array([l['Conductance'] for l in chain['links']])
-    up_low = conductance[1:]
-    up_low_padded = np.pad(up_low, (0,1))
-    # adding [0] for now, more elegant solution? numpy.pad?
-    main_diag = np.add(conductance, up_low_padded)
-    diagonals = [main_diag, -1.0*up_low, -1.0*up_low]
-    k_matrix = diags(diagonals, [0, 1, -1]).toarray()
 
     # make 8760 Q vectors
-    num_sim = house_param['Duration']
-    logger.info(f'Simulation points: {num_sim}')
+    q_vector = np.zeros((num_nodes, 8760))
     # T_ambient
-
-    #Loading the radiator and buffervessel parameters
-    #Heat transfer coefficient of the radiator and het capacity
-    cpwater = house_param['radiator']['cpwater']
-    rhowater = house_param['radiator']['rhowater']
-    Urad = house_param['radiator']['Urad']
-    Arad = house_param['radiator']['Arad']
-    volumeRadiator = house_param['radiator']['volume_rad']
-    UAradiator = Urad * Arad
-    Crad =  cpwater*volumeRadiator*rhowater
-    
-    #Heat capacity of the buffervessel
-    volumeBuffervessel = house_param['radiator']['volume_buffervessel']
-    Cbuffervessel = cpwater*volumeBuffervessel*rhowater
-
-    df_nen = nen5060_to_dataframe()
+    T_outdoor = df_nen.loc[:, 'temperatuur'].values / 10.0  # temperature
+    q_vector[0,:] = conductance[0] * T_outdoor.T
 
     Qsolar = np.zeros((8760, num_nodes))  # 8760 rows x 2 cols
-    for s in house_param['chains'][0]['Solar_irradiation']:
+    for s in chain['Solar_irradiation']:
         descr = s['Designation']
         az = s['Azimuth']
         tlt = s['Tilt']
-        print("Azimuth {0} and Tilt {1} for {2}".format(az, tlt, descr))
+
         df_irr = run_qsun_new(df_nen, az, tlt, north_is_zero=True)
-        area = s['Effective Area']
-        partfactor = s['Node_partition']
+        # area =  s['Effective Area']
+        # partfactor = s['Node_partition'] # list of num_nodes elements 0<x<1
+        # logger.info(f"Window area {area} @ Azimuth {az} and Tilt {tlt} for {descr}, divided {partfactor[0]} {partfactor[1]}")
         for n in range(num_nodes):
             Qsolar[:, n] += (df_irr.total_irr).values * area * partfactor[n]
 
         time_year = df_irr.iloc[:, 0].values  # 8760 rows 1D
 
+    time_hr = time_year / 3600
+    # plot the results
+    # plt.figure(figsize=(15, 5))         # key-value pair: no spaces
+    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True,
+                                                  figsize=(15,
+                                                           12))  # 3 rijen en 1 kolom. x-axis will be shared among all subplots.
+    ax1.plot(time_hr, Qsolar[:,0], label='0')
+    ax1.set_ylabel('Irradiation ($W/m^2$)')
+    # ax1.set_ylim(-100, 1200)
+    ax1.legend()
+
+    ax2.plot(time_hr, Qsolar[:,1], label='1')
+    ax2.set_ylabel('Irradiation ($W/m^2$)')
+    # ax2.set_ylim(-100, 1200)
+    ax2.legend()
+    plt.show()
+
+    """
     sources = house_param['chains'][0]['Sources']
     for src in sources:
         if src['name'] == 'Internal_load':
@@ -92,7 +78,7 @@ def main():
                                                   src['Set_time'][0],
                                                   src['Set_time'][1])
 
-    T_outdoor = df_nen.loc[:, 'temperatuur'].values / 10.0  # temperature
+
 
     t_on = house_param['chains'][0]['Control']['Set_time'][0]
     t_off = house_param['chains'][0]['Control']['Set_time'][1]
@@ -107,10 +93,10 @@ def main():
     T_outdoor_sim = T_outdoor[0:num_sim].flatten()  # 480 cols 1D
     SP_sim = SP[0:num_sim]  # 480 cols 1D
 
+
     # solve ODE
-    data = house_buffervessel(T_outdoor_sim, Qinternal_sim, Qsolar_sim,
+    data = house_buffervessel(c_matrix, k_matrix, q_vector,
                               SP_sim, time_sim,
-                              Rair_outdoor, Rair_wall, Cair, Cwall,
                               UAradiator, Crad, Cbuffervessel, cpwater)
 
     # df_out = pd.DataFrame(data[4], columns=['Timestep'])
@@ -168,7 +154,7 @@ def main():
     ax2.legend()
     ax3.legend()
     plt.show()
-
+    """
 
 if __name__ == "__main__":
     main()  # temporary solution, recommended syntax
