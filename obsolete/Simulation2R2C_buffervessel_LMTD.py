@@ -4,7 +4,7 @@ Created on Tue Nov 10 12:05:19 2020
 
 @author: TrungNguyen, PvK, MvdB
 """
-from housemodel.solvers.house_buffervessel_LMTD import house_buffervessel  # exposed function "house" in house module
+from obsolete.house_buffervessel_LMTD import house_buffervessel  # exposed function "house" in house module
 # function "model" in module house is private
 
 from housemodel.tools.configurator import load_config, calculateRCOne

@@ -10,7 +10,7 @@ matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from housemodel.solvers.house_buffervessel_LMTD import house_buffervessel  # exposed function "house" in house module
+from obsolete.house_buffervessel_LMTD import house_buffervessel  # exposed function "house" in house module
 # function "model" in module house is private
 
 from housemodel.tools.new_configurator import load_config, calculateRC
