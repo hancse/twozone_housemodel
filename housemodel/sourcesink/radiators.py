@@ -6,6 +6,8 @@ import matplotlib
 matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 from scipy import interpolate
+from housemodel.tools.house_tools import LMTD
+import numpy as np
 
 def calc_corr_fact(delta_t):
     dt_model = [5, 10, 15,20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75]
@@ -14,8 +16,22 @@ def calc_corr_fact(delta_t):
     cf = f(delta_t)
     return cf
 
+def calc_log_mean_diff(Tinlet, Treturn, Tamb):
+    lm = LMTD(Tinlet, Treturn, Tamb, Tamb,
+              flowpattern='cross')
+    return lm
+
+def calc__mean_diff(Tinlet, Treturn, Tamb):
+    lm = np.mean([Tinlet, Treturn]) - Tamb
+    return lm
 
 if __name__ == "__main__":
+
+    lm_ref = calc_log_mean_diff(75, 65, 20)
+    print(f"Reference LMTD: {lm_ref}")
+    dt_ref = calc__mean_diff(75, 65, 20)
+    print(f"Reference Delta_T: {dt_ref}")
+
     Delta_T = [20, 25, 30, 35, 40, 45, 50]
     cf = [0.3, 0.41, 0.52, 0.63, 0.75, 0.87, 1.0]
 
