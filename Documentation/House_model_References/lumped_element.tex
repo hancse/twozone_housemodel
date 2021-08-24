@@ -438,7 +438,7 @@ Conversion of the equations to a matrix equation yields:
 	\begin{bmatrix}
 		C_{0} & 0 & 0 & 0\\
 		0 &  C_{1} & 0 & 0 \\
-		0 & 0 & C_{1} & 0\\
+		0 & 0 & C_{2} & 0\\
 		0 & 0 & 0 & C_{3}
 	\end{bmatrix}
 	\cdot
@@ -518,58 +518,50 @@ The differential equations for heat transport in the model of Fig.~\ref{fig:2R2C
 
 \begin{equation}
 	\begin{aligned}
-		C_{air} \frac{dT_{air}}{dt} &= \frac{T_{outdoor}-T_{air}}{R_{air_{\_}outdoor}} + \frac{T_{wall}-T_{air}}{R_{air_{\_}wall}} + U_{rad} \cdot A_{rad} \cdot (T_{return} - T_{air}) + \dot{Q}_{internal} + \dot{Q}_{solar, 0} \\
+		C_{air} \frac{dT_{air}}{dt} &= \frac{T_{outdoor}-T_{air}}{R_{air_{\_}outdoor}} + \frac{T_{wall}-T_{air}}{R_{air_{\_}wall}} + U_{rad} \cdot A_{rad} \cdot (T_{rad} - T_{air}) + \dot{Q}_{internal} + \dot{Q}_{solar, 0} \\
 		C_{wall} \frac{dT_{wall}}{dt} &= \frac{T_{air}-T_{wall}}{R_{air_{\_}wall}} + \dot{Q}_{solar, 1} \\
-		C_{rad} \frac{dT_{return}}{dt} &= \dot{m} \cdot c_{p, water} \cdot (T_{buffer} - T_{return}) + U_{rad} \cdot A_{rad} \cdot (T_{air} - T_{return}) \\
-		C_{buffer} \frac{dT_{buffer}}{dt} &= \dot{m} \cdot c_{p, water} \cdot ( T_{return} - T_{buffer} ) + \dot{Q}_{inst} \\
-		\frac{dE}{dt} &= \dot{Q}_{inst}
+		C_{rad} \frac{dT_{rad}}{dt} &= \dot{Q}_{inst} + U_{rad} \cdot A_{rad} \cdot (T_{air} - T_{rad}) \\
 	\end{aligned}
 \end{equation}
 
-A fifth equation, integrating the heat source energy is sometimes added. Re-arranging the terms in the equation gives:
+Re-arranging the terms in the equation gives:
 
 \begin{equation}
 	\begin{aligned}
-		C_{air} \frac{dT_{air}}{dt} &= \left[ \frac{-1}{R_{air_{\_}outdoor}} + \frac{-1}{R_{air_{\_}wall}} +  -1 \cdot U_{rad} \cdot A_{rad} \right] \cdot T_{air} + \frac{T_{wall}}{R_{air_{\_}wall}} + U_{rad} \cdot A_{rad} \cdot T_{return} + \\
+		C_{air} \frac{dT_{air}}{dt} &= \left[ \frac{-1}{R_{air_{\_}outdoor}} + \frac{-1}{R_{air_{\_}wall}} +  -1 \cdot U_{rad} \cdot A_{rad} \right] \cdot T_{air} + \frac{T_{wall}}{R_{air_{\_}wall}} +  U_{rad} \cdot A_{rad} \cdot T_{rad} + \\
 		& \frac{T_{outdoor}}{R_{air_{\_}outdoor}}  + \dot{Q}_{internal} + \dot{Q}_{solar, 0} \\
 		C_{wall} \frac{dT_{wall}}{dt} &= \frac{1}{R_{air_{\_}wall}} \cdot T_{air} + \frac{-1}{R_{air_{\_}wall}} \cdot T_{wall} + \dot{Q}_{solar, 1} \\
-		C_{rad} \frac{dT_{return}}{dt} &=  U_{rad} \cdot A_{rad} \cdot T_{air} + \left[- U_{rad} \cdot A_{rad} -\dot{m} \cdot c_{p, water}\right] \cdot T_{return} + \dot{m} \cdot c_{p, water} \cdot T_{buffer}\\
-		C_{buffer} \frac{dT_{buffer}}{dt} &= \dot{m} \cdot c_{p, water} \cdot T_{return} - \dot{m} \cdot c_{p, water} \cdot T_{buffer} + \dot{Q}_{heat, 3} \\
-		\frac{dE}{dt} &= \dot{Q}_{inst}
+		C_{rad} \frac{dT_{rad}}{dt} &=  U_{rad} \cdot A_{rad} \cdot T_{air} - U_{rad} \cdot A_{rad} \cdot T_{rad} + \dot{Q}_{heat, 2}\\
 	\end{aligned}
 \end{equation}
 Conversion of the equations to a matrix equation yields:
 \begin{equation}
 	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
 	\begin{bmatrix}
-		C_{0} & 0 & 0 & 0\\
-		0 &  C_{1} & 0 & 0 \\
-		0 & 0 & C_{1} & 0\\
-		0 & 0 & 0 & C_{3}
+		C_{0} & 0 & 0 \\
+		0 &  C_{1} & 0  \\
+		0 & 0 & C_{2} 
 	\end{bmatrix}
 	\cdot
 	\begin{bmatrix}
 		\frac{dT_{0}}{dt} \\
 		\frac{dT_{1}}{dt} \\
-		\frac{dT_{2}}{dt} \\
-		\frac{dT_{3}}{dt} 
+		\frac{dT_{2}}{dt} 
 	\end{bmatrix}
 \end{equation}
 
 \begin{equation}
 	\mathbf{K} \cdot \boldsymbol{\theta} =
 	\begin{bmatrix}
-		\frac{1}{R_{0, amb}} + \frac{1}{R_{01}} + U \cdot A & \frac{-1}{R_{01}} & -U \cdot A & 0 \\
-		\frac{-1}{R_{01}} &  \frac{1}{R_{01}}  & 0 & 0 \\
-		-U \cdot A & 0 & U \cdot A + \frac{1}{R_{23}}  & \frac{-1}{R_{23}}\\
-		0 & 0 & \frac{-1}{R_{23}} &  \frac{1}{R_{23}} \\
+		\frac{1}{R_{0, amb}} + \frac{1}{R_{01}} + U \cdot A & \frac{-1}{R_{01}} & -U \cdot A  \\
+		\frac{-1}{R_{01}} &  \frac{1}{R_{01}}  & 0  \\
+		-U \cdot A & 0 & U \cdot A 
 	\end{bmatrix}
 	\cdot
 	\begin{bmatrix}
 		T_{0} \\
 		T_{1} \\
-		T_{2} \\
-		T_{3}
+		T_{2}
 	\end{bmatrix}
 \end{equation}
 
@@ -577,9 +569,8 @@ Conversion of the equations to a matrix equation yields:
 	\mathbf{\dot{q}} =
 	\begin{bmatrix}
 		\frac{1}{R_{0, amb}} \cdot T_{amb} + \dot{Q}_{int, 0} + \dot{Q}_{solar, 0} \\
-		\dot{Q}_{solar, 0} \\
-		0 \\
-		\dot{Q}_{heat, 3}
+		\dot{Q}_{solar, 1} \\
+		\dot{Q}_{heat, 2}
 	\end{bmatrix}
 \end{equation}
 
