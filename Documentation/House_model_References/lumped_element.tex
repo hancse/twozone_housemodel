@@ -358,7 +358,7 @@ Take a house model with two stories. Each level in the building is described wit
 	\begin{bmatrix}
 		C_{0} & 0 & 0 & 0\\
 		0 &  C_{1} & 0 & 0 \\
-		0 & 0 & C_{1} & 0\\
+		0 & 0 & C_{2} & 0\\
 		0 & 0 & 0 & C_{3}
 	\end{bmatrix}
 	\cdot
@@ -397,6 +397,116 @@ Take a house model with two stories. Each level in the building is described wit
 	\end{bmatrix}
 \end{equation}
 
+\subsection{Alternative representation of 5R-4C model}
+
+The 5R4C model of the previous section can be built from two 2R2C models, one for the ground floor and one for the first floor. The thermal resistance between the construction nodes of the ground and first floor is then added, $R_{13}$ in the figure:
+ 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\columnwidth]{Pictures/5R4C_alternative.png}
+	\caption[Short title]{5R-4C house model, alternative representation}
+	\label{fig:alt5R4C}
+\end{figure}
+
+As can be seen in the matrices below, adding $R_{13}$ to the ground floor and first floor "chains" results in a non-symmetric matrix. It has to determined if this disadvantage outweighs the benefit of adding "chains".
+
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{0} & 0 & 0 & 0\\
+		0 &  C_{1} & 0 & 0 \\
+		0 & 0 & C_{2} & 0\\
+		0 & 0 & 0 & C_{3}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{0}}{dt} \\
+		\frac{dT_{1}}{dt} \\
+		\frac{dT_{2}}{dt} \\
+		\frac{dT_{3}}{dt} 
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}} + \frac{1}{R_{01}} & \frac{-1}{R_{01}} & 0 & 0 \\
+		\frac{-1}{R_{01}} &  \frac{1}{R_{01}} + \color{red} \frac{1}{R_{13}} & 0 & \color{red} \frac{-1}{R_{13}} \\
+		0 & 0 & \frac{1}{R_{2, amb}} + \frac{1}{R_{23}} & \frac{-1}{R_{23}} \\
+		0 & \color{red}\frac{-1}{R_{13}} & \frac{-1}{R_{23}}  & \frac{1}{R_{23}} + \color{red}\frac{1}{R_{13}}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{0} \\
+		T_{1} \\
+		T_{2} \\
+		T_{3}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}} \cdot T_{amb} + \dot{Q}_{heat, 0} + \dot{Q}_{int, 0} + \dot{Q}_{solar, 0} \\
+		\dot{Q}_{solar, 1} \\
+		\frac{1}{R_{2, amb}} \cdot T_{amb} + \dot{Q}_{heat, 2} + \dot{Q}_{int, 2} + \dot{Q}_{solar, 2} \\
+		\dot{Q}_{solar, 3} 
+	\end{bmatrix}
+\end{equation}
+
+Renumbering restores the matrices to a symmetric representation:
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.6\columnwidth]{Pictures/5R4C_renumbered.png}
+	\caption[Short title]{5R-4C house model, alternative representation, renumbered}
+	\label{fig:renum5R4C}
+\end{figure}
+
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{0} & 0 & 0 & 0\\
+		0 &  C_{1} & 0 & 0 \\
+		0 & 0 & C_{2} & 0\\
+		0 & 0 & 0 & C_{3}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{0}}{dt} \\
+		\frac{dT_{1}}{dt} \\
+		\frac{dT_{2}}{dt} \\
+		\frac{dT_{3}}{dt} 
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}} + \frac{1}{R_{01}} & \frac{-1}{R_{01}} & 0 & 0 \\
+		\frac{-1}{R_{01}} &  \frac{1}{R_{01}} + \color{red}\frac{1}{R_{12}} & \color{red}\frac{-1}{R_{12}} & 0 \\
+		0 & \color{red} \frac{-1}{R_{12}} & \frac{1}{R_{23}} + \color{red}\frac{1}{R_{12}}   & \frac{-1}{R_{23}}\\
+		0 & 0 & \frac{-1}{R_{23}} &  \frac{1}{R_{3, amb}} + \frac{1}{R_{23}} \\
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{0} \\
+		T_{1} \\
+		T_{2} \\
+		T_{3}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}} \cdot T_{amb} + \dot{Q}_{heat, 0} + \dot{Q}_{int, 0} + \dot{Q}_{solar, 0} \\
+		\dot{Q}_{solar, 1} \\
+		\dot{Q}_{solar, 2} \\
+		\frac{1}{R_{3, amb}} \cdot T_{amb} + \dot{Q}_{heat, 3} + \dot{Q}_{int, 3} + \dot{Q}_{solar, 3}
+	\end{bmatrix}
+\end{equation}
+		
 \subsection{2R-2C model with buffervessel}
 
 The "air" and "wall" nodes of the 2R2C model can be extended with "radiator" node. The radiator has a finite heat capacity of itself. Instead of a thermal resistance, the radiator heat exchange in $W/K$ is entered in the model. The radiator emits heat to the "air" node only. In its turn, the radiator is fed from a "buffervessel" node. The buffervessel loses heat to the radiator and is heated up by a gas boiler or alternatively a heat pump. The gas boiler does not heat the house directly, as was the case in the simplest model. A schematic view is given in Fig. \ref{fig:elecbuffer}.
