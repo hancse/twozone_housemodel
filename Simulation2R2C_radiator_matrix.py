@@ -4,7 +4,7 @@ Created on Tue Nov 10 12:05:19 2020
 
 @author: TrungNguyen, PvK, MvdB
 """
-from housemodel.solvers.house_radiator import house_radiator  # exposed function "house" in house module
+from housemodel.solvers.house_radiator_matrix import house_radiator  # exposed function "house" in house module
 # function "model" in module house is private
 
 # from housemodel.tools.configurator import load_config, calculateRCOne
