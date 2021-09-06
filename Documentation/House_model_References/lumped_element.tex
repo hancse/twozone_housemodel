@@ -574,6 +574,94 @@ Conversion of the equations to a matrix equation yields:
 	\end{bmatrix}
 \end{equation}
 
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\columnwidth]{Pictures/2R2C_radiator_chains.png}
+	\caption[Short title]{2R-2C house model with radiator in 3 chains}
+	\label{fig:2R2Cradiator_chains}
+\end{figure} 
+
+Starting with the basic 2R2C model we write down the matrices. Note that the heat source for the house is omitted at first. Solar energy entering the house is partitioned between air and wall, Heat generated due to the presence and activities of inhabitants is added to the air node:
+
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{0} & 0 \\
+		0 &  C_{1}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{0}}{dt} \\
+		\frac{dT_{1}}{dt}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}} + \frac{1}{R_{01}} & \frac{-1}{R_{01}} \\
+		\frac{-1}{R_{01}} &  \frac{1}{R_{01}}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{0} \\
+		T_{1}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}} \cdot T_{amb} + \dot{Q}_{int, 0} + \dot{Q}_{solar, 0} \\
+		\dot{Q}_{solar, 1}
+	\end{bmatrix}
+\end{equation}
+
+As a third link in the chain, a radiator is added, with a heat capacity $C_{rad}$ and a heat delivery $U \cdot A \cdot (T_{rad} - T_{air})$ to the air node. The heat source $\dot{Q}_{inst}$ is now connected to the radiator.
+
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{0} & 0 & \color{red} 0 \\
+		0 &  C_{1} & \color{red} 0  \\
+		\color{red} 0 & \color{red} 0 & \color{red} C_{2} 
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{0}}{dt} \\
+		\frac{dT_{1}}{dt} \\
+		\color{red}\frac{dT_{2}}{dt} 
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}} + \frac{1}{R_{01}} {\color{red}+ U \cdot A} & \frac{-1}{R_{01}} & {\color{red}-U \cdot A}  \\
+		\frac{-1}{R_{01}} &  \frac{1}{R_{01}}  & \color{red} 0  \\
+		{\color{red}-U \cdot A} & \color{red} 0 & {\color{red}U \cdot A }
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{0} \\
+		T_{1} \\
+	   \color{red}T_{2}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}} \cdot T_{amb} + \dot{Q}_{int, 0} + \dot{Q}_{solar, 0} \\
+		\dot{Q}_{solar, 1} \\
+		\color{red} \dot{Q}_{heat, 2}
+	\end{bmatrix}
+\end{equation}
+
+In this example, it becomes visible (in red) that the rank of the $C$- and $K$-matrix, and the $\dot{q}$-vector is extended by 1. The heat capacity of the radiator is included as an extra \emph{diagonal} element in the $C$-matrix. The heat delivery from the radiator to the indoor air is added to or subtracted from the {00}, {22}, {02} and {20} elements of th $K$-matrix, so that it remains a \emph{symmetric} matrix. The heater is connected to the radiator, represented by element {2} of the $\dot{q}$-vector. 
+%\usepackage{xcolor}
+
 \subsection{Package "housemodel"}
 
 The repository "\textsf{twozone\_housemodel-git}" contains the modules for the house model. The customary way to organize the modules is to make a \emph{Python package} with \emph{subpackages}. This opens up the possibility of publishing the package on PyPi, so that it can be imported.
