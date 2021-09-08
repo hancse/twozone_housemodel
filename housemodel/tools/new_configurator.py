@@ -14,7 +14,7 @@ the module performs the following tasks:
 """
 import numpy as np
 import yaml
-from scipy.sparse import diags, spdiags
+from scipy.sparse import diags  # , spdiags
 
 """
 The predefined variables are now defined in a configuration file
@@ -62,6 +62,7 @@ the parameters c_internal_mass, th_internal_mass and rho_internal_mass
                the indices to these lists are N_internal_mass an N_facade
 """
 
+
 # It is assumed that furniture and the surface part of the walls have the same temperature
 # as the air and the wall mass is divided between the air and wall mass.
 # Thus, the Heat capacity of the air node consists of the air heat capacity,
@@ -91,13 +92,14 @@ def calculateRC(hp: dict):
 
     return Rair_wall, Cwall, Rair_outdoor, Cair
 
+
 def make_c_matrix(capacity_list: list):
     """make the diagonal C matrix.
 
     Args:
         capacity_list: list of node thermal capacities
     Returns:
-        (ndarray): diagonal 2d array with thermal capacities
+        (array): diagonal 2d array with thermal capacities
     """
     cap_array = np.array(capacity_list)
     return np.diag(cap_array, k=0)
@@ -109,12 +111,13 @@ def make_c_inv_matrix(capacity_list: list):
     Args:
         capacity_list: list of node thermal capacities
     Returns:
-        (ndarray): diagonal 2d array with thermal capacities
+        (array): diagonal 2d array with thermal capacities
     """
 
     cap_array = np.array(capacity_list)
     cap_array_reciprocal = np.reciprocal(cap_array)
     return np.diag(cap_array_reciprocal, k=0)
+
 
 def make_k_matrix(conductance_list):
     """make the K matrix.
@@ -123,7 +126,7 @@ def make_k_matrix(conductance_list):
         conductance_list: list of connecting thermal conductances
 
     Returns:
-       (ndarray): diagonal 2d array with thermal conductances
+       (array): diagonal 2d array with thermal conductances
 
     Hint: use numpy.negative or unary minus operator (-)
     """
@@ -143,7 +146,7 @@ def make_k_minus_matrix(conductance_list):
         conductance_list: list of connecting thermal conductances
 
     Returns:
-       (ndarray): diagonal 2d array with thermal conductances
+       (array): diagonal 2d array with thermal conductances
 
     Hint: use numpy.negative or unary minus operator (-)
     """
@@ -152,34 +155,39 @@ def make_k_minus_matrix(conductance_list):
     up_low_padded = np.pad(up_low, (0, 1))
     # adding [0] for now, more elegant solution? numpy.pad?
     main_diag = np.add(cond_array, up_low_padded)
-    diagonals = [-1.0*main_diag, up_low, -up_low]
+    diagonals = [-1.0 * main_diag, up_low, -up_low]
     return diags(diagonals, [0, 1, -1]).toarray()
 
 
-def add_chain(C_mat, new_c,
-              K_mat, new_k, anchor,
-              q_vect, new_q):
+def add_chain(C_mat, new_c_element,
+              K_mat, new_k_element, anchor,
+              q_vect, new_q_element):
     """
 
     Args:
         C_mat:
+        new_c_element: 
         K_mat:
+        new_k_element:
+        anchor:
         q_vect:
+        new_q_element:
 
     Returns:
 
     """
     new_c_mat = np.block([[C_mat, np.zeros((2, 1))],
-                  [np.zeros((1, 2)), new_c]])
+                          [np.zeros((1, 2)), new_c_element]])
     new_k_mat = np.block([[K_mat, np.zeros((2, 1))],
-                  [np.zeros((1, 2)), 0]])
-    idx = new_k_mat.shape[0]-1
-    new_k_mat[anchor, anchor] += new_k
-    new_k_mat[idx, idx] += new_k
-    new_k_mat[anchor, idx] = new_k
-    new_k_mat[idx, anchor] = new_k
-    new_q_vect = np.vstack((q_vect, new_q))
+                          [np.zeros((1, 2)), 0]])
+    idx = new_k_mat.shape[0] - 1
+    new_k_mat[anchor, anchor] += new_k_element
+    new_k_mat[idx, idx] += new_k_element
+    new_k_mat[anchor, idx] = -new_k_element
+    new_k_mat[idx, anchor] = -new_k_element
+    new_q_vect = np.vstack((q_vect, new_q_element))
     return new_c_mat, new_k_mat, new_q_vect
+
 
 if __name__ == "__main__":
     C = np.array([[1.0, 0.0],
@@ -194,15 +202,20 @@ if __name__ == "__main__":
 
     for row in C:
         print('  '.join(map(str, row)))
+    print()
     for row in new_C:
         print('  '.join(map(str, row)))
+    print()
 
     for row in K:
         print('  '.join(map(str, row)))
+    print()
     for row in new_K:
         print('  '.join(map(str, row)))
+    print()
 
     for row in q:
         print('  '.join(map(str, row)))
+    print()
     for row in new_q:
         print('  '.join(map(str, row)))
