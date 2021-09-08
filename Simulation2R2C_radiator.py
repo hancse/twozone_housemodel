@@ -101,6 +101,7 @@ def main(show=False):
         plt.plot(time_sim, SP_sim, label='SP_Temperature')
         plt.plot(time_sim,T_outdoor_sim,label='Toutdoor')
         plt.legend(loc='best')
+        plt.title("Simulation2R2C_radiator")
         plt.show()
 
     return time_sim, SP_sim, T_outdoor_sim, data
