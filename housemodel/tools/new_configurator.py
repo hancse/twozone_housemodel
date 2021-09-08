@@ -166,7 +166,7 @@ def add_chain(C_mat, new_c_element,
 
     Args:
         C_mat:
-        new_c_element: 
+        new_c_element:
         K_mat:
         new_k_element:
         anchor:
@@ -187,6 +187,27 @@ def add_chain(C_mat, new_c_element,
     new_k_mat[idx, anchor] = -new_k_element
     new_q_vect = np.vstack((q_vect, new_q_element))
     return new_c_mat, new_k_mat, new_q_vect
+
+def add_chain_to_k(K_mat, new_k_element, anchor):
+    """
+
+    Args:
+        K_mat:
+        new_k_element:
+        anchor:
+
+    Returns:
+
+    """
+    rank = K_mat.shape[0]
+    new_k_mat = np.block([[K_mat, np.zeros((rank, 1))],
+                          [np.zeros((1, rank)), 0]])
+    idx = new_k_mat.shape[0] - 1
+    new_k_mat[anchor, anchor] += new_k_element
+    new_k_mat[idx, idx] += new_k_element
+    new_k_mat[anchor, idx] = -new_k_element
+    new_k_mat[idx, anchor] = -new_k_element
+    return new_k_mat
 
 
 if __name__ == "__main__":

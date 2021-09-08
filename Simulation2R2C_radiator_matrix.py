@@ -4,17 +4,21 @@ Created on Tue Nov 10 12:05:19 2020
 
 @author: TrungNguyen, PvK, MvdB
 """
-from housemodel.solvers.house_radiator_matrix import house_radiator  # exposed function "house" in house module
+# from housemodel.solvers.house_radiator import house_radiator  # exposed function "house" in house module
+from housemodel.solvers.house_radiator_matrix import house_radiator_m  # exposed function "house" in house module
 # function "model" in module house is private
 
 # from housemodel.tools.configurator import load_config, calculateRCOne
-from housemodel.tools.new_configurator import load_config, calculateRC
+from housemodel.tools.new_configurator import (load_config, calculateRC,
+                                               make_c_matrix, make_k_matrix,
+                                               add_chain_to_k, make_c_inv_matrix)
 from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun
 
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
 from housemodel.controls.Temperature_SP import simple_thermostat
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from pathlib import Path
 CONFIGDIR = Path(__file__).parent.absolute()
@@ -24,16 +28,23 @@ def main(show=False):
     days_sim = 365 # house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
     Rair_wall, Cwall, Rair_outdoor, Cair = calculateRC(house_param)
+    cap_list = []
+    for n in range(len(house_param["chains"][0]["links"])):
+        cap_list.append(house_param["chains"][0]["links"][n]["Capacity"])
+    cap_mat = make_c_matrix(cap_list)
+
+    cond_list = []
+    for n in range(len(house_param["chains"][0]["links"])):
+        cond_list.append(house_param["chains"][0]["links"][n]["Conductance"])
+    # cond_mat = make_k_matrix(cond_list)
+
+    cond_mat = add_chain_to_k(np.array([cond_list[0]]), cond_list[1], 0)
+    cond_mat = add_chain_to_k(cond_mat, cond_list[2], 0)
     print(days_sim)
-    
     #Loading the radiator and buffervessel parameters
     #Heat transfer coefficient of the radiator and het capacity
     UAradiator = house_param["chains"][0]["links"][2]["Conductance"]
     Crad =  house_param["chains"][0]["links"][2]["Capacity"]
-    
-    #Heat capacity of the buffervessel
-    # volumeBuffervessel = house_param['radiator']['volume_buffervessel']
-    # Cbuffervessel = house_param["chains"][0]["links"][3]["Capacity"]
 
     df_nen = nen5060_to_dataframe()
     df_irr = run_qsun(df_nen)
@@ -64,8 +75,13 @@ def main(show=False):
     SP = simple_thermostat(8, 23, 20, 17)
     SP_sim = SP[0:days_sim * 24]
     # solve ODE
-    data = house_radiator(T_outdoor_sim, Qinternal_sim, Qsolar_sim, SP_sim, time_sim,
-                 CF, Rair_outdoor, Rair_wall, Cair, Cwall, UAradiator, Crad)
+    # data = house_radiator(T_outdoor_sim, Qinternal_sim, Qsolar_sim, SP_sim, time_sim,
+                 # CF, Rair_outdoor, Rair_wall, Cair, Cwall, UAradiator, Crad)
+
+    cap_mat_inv = make_c_inv_matrix(cap_list)
+    data = house_radiator_m(cap_mat_inv, cond_mat,
+                            T_outdoor_sim, Qinternal_sim, Qsolar_sim, SP_sim,
+                            time_sim, CF)
 
     # if show=True, plot the results
     if show:
