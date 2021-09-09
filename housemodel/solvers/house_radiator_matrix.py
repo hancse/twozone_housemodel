@@ -55,11 +55,7 @@ def model_radiator_m(t, x, cap_mat_inv, cond_mat,
     dTdt = (-cond_mat @ x.T) + q_vector
     dTdt = np.dot(cap_mat_inv, dTdt)
 
-    dTair = float(dTdt[0])
-    dTwall = float(dTdt[1])
-    dTRadiator = float(dTdt[2])
-
-    return [dTair, dTwall, dTRadiator]
+    return dTdt.flatten().tolist()
 
 
 def house_radiator_m(cap_mat_inv, cond_mat,
