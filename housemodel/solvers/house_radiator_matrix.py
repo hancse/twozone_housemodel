@@ -50,8 +50,10 @@ def model_radiator_m(t, x, cap_mat_inv, cond_mat,
     q_vector[1,0] = (1 - CF) * Q_solar[int(t/3600)]
     q_vector[2,0] = Qinst
 
-    dTdt = (x @ -cond_mat) + q_vector
-    dTdt = np.dot(dTdt, cap_mat_inv)
+    x = np.array(x)[np.newaxis] #Converts 1D array to a 2D array; https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
+
+    dTdt = (-cond_mat @ x.T)  + q_vector
+    dTdt = np.dot(cap_mat_inv, dTdt)
 
     return dTdt
 
