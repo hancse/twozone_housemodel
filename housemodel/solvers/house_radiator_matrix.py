@@ -14,23 +14,20 @@ def controllerTemperature_m(setpointTemperature, Tair, Kp = 7000):
     return Qinst
     
 
-def model_radiator_m(t, x, cap_mat_inv, cond_mat,
-                     T_outdoor, Q_internal, Q_solar, SP_T, CF):
+def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
+                     SP_T):
     """model function for scipy.integrate.odeint.
 
     Args:
-        t:          (array):   variable array dependent on time with the vairable Air temperature, Wall temperature Radiator
-        x:          (float):
-        cap_mat:    (float):  Outdoor temperature in degree C
-        cond_mat:   (float):  Internal heat gain in [W]
-        T_outdoor:  (float):  Solar irradiation on window [W]
-        Q_internal: (float):  Setpoint temperature from thermostat. [C]
-        Q_solar:    (float):  Heating power delivered to the buffervessel [W]
-        SP_T:
-        CF:         (float):  factor of Q_solar heat transferred to the air (Unitless)
+        t:           (array):   variable array dependent on time with the vairable Air temperature, Wall temperature Radiator
+        x:           (float):
+        cap_mat_inv: (float):  diagonal heat capacity matrix
+        cond_mat:    (float):  symmetric conductance matrix
+        q_vector:    (float):  external heat sources and sinks
+        SP_T:        (float): thermostat setpoints
 
     Returns:
-
+        (list): vector elements of dx/dt
     """
     # States :
     Tair = x[0]
@@ -45,36 +42,37 @@ def model_radiator_m(t, x, cap_mat_inv, cond_mat,
     Qinst = controllerTemperature_m(setpointRoomTemperature, Tair)
  
     # Equations :
-    q_vector = np.zeros((3,1))
-    q_vector[0,0] = (T_outdoor[int(t/3600)] * 214.9718240562546253373451579691) + Q_internal[int(t/3600)] + CF * Q_solar[int(t/3600)]
-    q_vector[1,0] = (1 - CF) * Q_solar[int(t/3600)]
-    q_vector[2,0] = Qinst
+    local_q_vector = np.zeros((3,1))
+    local_q_vector[0,0] = q_vector[0,int(t/3600)]
+    local_q_vector[1,0] = q_vector[1,int(t/3600)]
+    local_q_vector[2,0] = Qinst
+    # q_vector[0,0] = (T_outdoor[int(t/3600)] * 214.9718240562546253373451579691) + Q_internal[int(t/3600)] + CF * Q_solar[int(t/3600)]
+    # q_vector[1,0] = (1 - CF) * Q_solar[int(t/3600)]
+    # q_vector[2,0] = Qinst
 
-    x = np.array(x)[np.newaxis] #Converts 1D array to a 2D array; https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
+    # Conversion of 1D array to a 2D array
+    # https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
+    x = np.array(x)[np.newaxis]
 
-    dTdt = (-cond_mat @ x.T) + q_vector
+    dTdt = (-cond_mat @ x.T) + local_q_vector
     dTdt = np.dot(cap_mat_inv, dTdt)
 
     return dTdt.flatten().tolist()
 
 
-def house_radiator_m(cap_mat_inv, cond_mat,
-                     T_outdoor, Q_internal, Q_solar, SP_T,
-                     time_sim, CF):
+def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
+                     SP_T, time_sim):
     """Compute air and wall temperature inside the house.
 
     Args:
-        cap_mat:
-        cond_mat:
-        T_outdoor_sim: (array):  Outdoor temperature in degree C
-        Qinternal_sim: (array):  Internal heat gain in w.
-        Qsolar_sim:    (array):  Solar irradiation on window [W]
-        SP_sim:        (array):  Setpoint temperature from thermostat.
-        time_sim:      (array)  :  simulation time
-        CF:
+        cap_mat:    (float):  diagonal heat capacity matrix
+        cond_mat:   (float):  symmetric conductance matrix
+        q_vector:   (float):  external heat sources and sinks
+        SP_T:       (array):  Setpoint temperature from thermostat.
+        time_sim:   (array)  :  simulation time
 
     Returns:
-        tuple :  Tuple containing (Tair, Twall, Tradiator):
+        tuple :  (array) containing Tair, Twall, Tradiator and evaluation time:
 
     Note:
         - Tair (float):   air temperature inside the house in degree C.
@@ -95,8 +93,7 @@ def house_radiator_m(cap_mat_inv, cond_mat,
     # Twall = np.ones(len(t)) * Twall0
     # Tradiator = np.ones(len(t)) * Tradiator0
 
-    inputs = (cap_mat_inv, cond_mat,
-              T_outdoor, Q_internal, Q_solar, SP_T, CF)
+    inputs = (cap_mat_inv, cond_mat, q_vector, SP_T)
     # print(T_outdoor[1], Q_internal[1], Q_solar[1], SP_T[1], CF)
     result = solve_ivp(model_radiator_m, [0, t[-1]], y0,
                   method='RK45', t_eval= time_sim,
