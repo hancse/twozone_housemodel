@@ -96,7 +96,7 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     inputs = (cap_mat_inv, cond_mat, q_vector, SP_T)
     # print(T_outdoor[1], Q_internal[1], Q_solar[1], SP_T[1], CF)
     result = solve_ivp(model_radiator_m, [0, t[-1]], y0,
-                  method='RK45', t_eval= time_sim,
+                  method='RK23', t_eval= time_sim,
                   args=inputs)
 
     Tair = result.y[0, :]
