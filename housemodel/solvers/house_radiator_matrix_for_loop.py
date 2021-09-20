@@ -34,9 +34,7 @@ def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
 
     # Parameters :
     index = int(t/3600)
-    if index >= 8760:
-        index = 8759
-    # print(t, index)
+    # print(f"t: {t}, index: {index}")
     setpointRoomTemperature = SP_T[index]
     #setpointRoomTemperature = SP_T[int(t/3600)]
 
@@ -90,20 +88,27 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     y0 = [Tair0, Twall0, Tradiator0]
 
     t = time_sim           # Define Simulation time with sampling time
-
+    print(f"t: {t[0]} - {t[-1]}")
     Tair = np.ones(len(t)) * Tair0
     Twall = np.ones(len(t)) * Twall0
     Tradiator = np.ones(len(t)) * Tradiator0
 
     inputs = (cap_mat_inv, cond_mat, q_vector, SP_T)
-    # print(T_outdoor[1], Q_internal[1], Q_solar[1], SP_T[1], CF)
-    #result = solve_ivp(model_radiator_m, [0, t[-1]], y0,
-     #              method='RK23', t_eval= time_sim,
-      #            args=inputs)
+    # Note: the algorithm can take an initial step
+    # larger than the time between two elements of the "t" array
+    # this leads to an "index-out-of-range" error in the last evaluation
+    # of the model function, where e.g SP_T[8760] is called.
+    # Therefore set "first_step" equal or smaller than the spacing of "t".
+    # https://github.com/scipy/scipy/issues/9198
     for i in range(len(t)-1):
+
+        # here comes the controller
+
         ts = [t[i], t[i+1]]
+        # print(f"index: {i}, ts: {ts[0]} {ts[1]}")
         result = solve_ivp(model_radiator_m, (t[i], t[i+1]), y0,
-                        method='RK23', args=inputs)
+                        method='RK45', args=inputs,
+                        first_step=3600)
 
         Tair[i+1] = result.y[0, -1]
         Twall[i+1] = result.y[1, -1]
