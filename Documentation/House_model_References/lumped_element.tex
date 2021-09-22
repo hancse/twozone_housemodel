@@ -772,6 +772,67 @@ As a third link in the chain, a radiator is added, with a heat capacity $C_{rad}
 In this example, it becomes visible (in red) that the rank of the $C$- and $K$-matrix, and the $\dot{q}$-vector is extended by 1. The heat capacity of the radiator is included as an extra \emph{diagonal} element in the $C$-matrix. The heat delivery from the radiator to the indoor air is added to or subtracted from the {00}, {22}, {02} and {20} elements of th $K$-matrix, so that it remains a \emph{symmetric} matrix. The heater is connected to the radiator, represented by element {2} of the $\dot{q}$-vector. 
 %\usepackage{xcolor}
 
+\subsection{2R2C revisited: 2R3C}
+The 2R2C model as represented in \ref{fig:elec2R2C} treats the node of the outside temperature ($T_{amb}$) differently from the other nodes, $T_{air}$ and $T_{walls}$.  This representation is inconsistent, and actually incomplete. Implicitly, the model links a source/sink to the node that controls the outdoor temperature. In literature, one can find models in which this source has been made explicit, such as in \cite{achterbos}. It seems that this representation has been lost over time. 
+
+In order to complete the analogy with the other nodes in the model we can connect an additional capacitor ($C_amb$). The capacity will be tending to infinity, as we assume the outside temperature not to change due to heat exchange with the house.
+
+\todo{todo:figure including a source and capacitor}
+
+Adding the capacitor and the source also will change the equations. Actually, it results in a more structured set of equations. The equations will be as follows:
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{amb} & 0 & 0\\
+		0 &  C_{air} & 0   \\
+		0 & 0 & C_{wall} 
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{amb}}{dt} \\
+		\frac{dT_{air}}{dt} \\
+		\frac{dT_{wall}}{dt} 
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{0, amb}}  & \frac{-1}{R_{amb,air}} & 0  \\
+		\frac{-1}{R_{amb, air}} &  \frac{1}{R_{01}} + \frac{1}{R_{air,wall}} &  \frac{-1}{R_{air,wall}} \\
+		 0 & \frac{-1}{R_{air, wall}}  & \frac{1}{R_{air,wall}} 
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{amb} \\
+		T_{air} \\
+		T_{wall}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\dot{Q}_{amb}\\
+		\dot{Q}_{air} \\
+		\dot{Q}_{wall} 
+	\end{bmatrix}
+\end{equation}
+
+In the equations we now see that the matrix $K$ represents the interaction between the different heat capacitors. The structure of $K$ is such that the sum over the rows will always be zero, where the diagonal elements equal the negative sum of the off-diagonal elements. The off-diagonal elements are equal to (minus) conductance factor $\frac{-1}{R}$ between the respective connected nodes. 
+
+The vector $\dot{q}$ contains all heat sources (and sinks). 
+
+Generalizing the idea above, alternative models can be easily constructed using a graph. In the graph each node is labelled with a heat capacity $C_i$, and temperature $T_i$. Nodes $i$ and $j$ can be connected by an edge labelled with $R_{i,j}$, where $\frac{1}{R_{i,j}}$ represents the heat conductance between the two nodes. The $K$-matrix is the connectivity matrix of the graph, where $K_{i,j} = \frac{-1}{R_{i,j}}$. The diagonal elements, $K{i,i}$ are set such that the sums over the rows will be equal to zero.
+ 
+
+Additionally, each node can be connected to a source or sink. The heat generated or absorbed at each node will be added through the vector $\dot{q}$.
+
+\subsubsection{example: 2R-2C house with buffer}
+
+   
+
+
 \subsection{Package "housemodel"}
 
 The repository "\textsf{twozone\_housemodel-git}" contains the modules for the house model. The customary way to organize the modules is to make a \emph{Python package} with \emph{subpackages}. This opens up the possibility of publishing the package on PyPi, so that it can be imported.
