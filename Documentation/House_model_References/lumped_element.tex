@@ -798,7 +798,7 @@ Adding the capacitor and the source also will change the equations. Actually, it
 \begin{equation}
 	\mathbf{K} \cdot \boldsymbol{\theta} =
 	\begin{bmatrix}
-		\frac{1}{R_{0, amb}}  & \frac{-1}{R_{amb,air}} & 0  \\
+		\frac{1}{R_{amb, air}}  & \frac{-1}{R_{amb,air}} & 0  \\
 		\frac{-1}{R_{amb, air}} &  \frac{1}{R_{01}} + \frac{1}{R_{air,wall}} &  \frac{-1}{R_{air,wall}} \\
 		 0 & \frac{-1}{R_{air, wall}}  & \frac{1}{R_{air,wall}} 
 	\end{bmatrix}
@@ -819,14 +819,16 @@ Adding the capacitor and the source also will change the equations. Actually, it
 	\end{bmatrix}
 \end{equation}
 
-In the equations we now see that the matrix $K$ represents the interaction between the different heat capacitors. The structure of $K$ is such that the sum over the rows will always be zero, where the diagonal elements equal the negative sum of the off-diagonal elements. The off-diagonal elements are equal to (minus) conductance factor $\frac{-1}{R}$ between the respective connected nodes. 
+In the equations we now see that the matrix $K$ represents the interaction between the different heat capacities.  The off-diagonal elements are equal to (minus) conductance factor $\frac{-1}{R}$ between the respective connected nodes. The structure of $K$ is such that the sum over the rows will always be zero, where the diagonal elements equal the negative sum of the off-diagonal elements.
 
 The vector $\dot{q}$ contains all heat sources (and sinks). 
 
-Generalizing the idea above, alternative models can be easily constructed using a graph. In the graph each node is labelled with a heat capacity $C_i$, and temperature $T_i$. Nodes $i$ and $j$ can be connected by an edge labelled with $R_{i,j}$, where $\frac{1}{R_{i,j}}$ represents the heat conductance between the two nodes. The $K$-matrix is the connectivity matrix of the graph, where $K_{i,j} = \frac{-1}{R_{i,j}}$. The diagonal elements, $K{i,i}$ are set such that the sums over the rows will be equal to zero.
+Generalizing the idea above, alternative models can be easily constructed using an underlying graph. In the graph each node is labeled with a heat capacity $C_i$, and temperature $T_i$. Nodes $i$ and $j$ can be connected by an edge labeled with $R_{i,j}$, where $\frac{1}{R_{i,j}}$ represents the heat conductance between the two nodes. The $K$-matrix is the connectivity matrix of the graph, where $K_{i,j} = \frac{-1}{R_{i,j}}$. The diagonal elements, $K{i,i}$ are set such that the sums over the rows will be equal to zero.
  
 
-Additionally, each node can be connected to a source or sink. The heat generated or absorbed at each node will be added through the vector $\dot{q}$.
+Additionally, each node can be connected to a source (or sink). Two types of sources are available. A "temperature source" represents a source that will keep the temperature of the connected node constant. This source type can be used to set the ambient temperature.   
+
+A heat source represents a source that will provide a continuous constant energy flow into the node. This source type can be used to represent the inflow of energy by for example the sun. 
 
 \subsubsection{example: 2R-2C house with buffer}
 
