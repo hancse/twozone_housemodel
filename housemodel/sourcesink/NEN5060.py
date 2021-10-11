@@ -6,6 +6,43 @@ from housemodel.sourcesink.qsun import qsun
 
 from typing import List
 
+# Determine the directory where the weather data files are located:
+NEN5060DIR = Path(__file__).absolute().parent.parent.parent / 'NEN_data'
+# The directory where the NEN 5060 data files
+# are located is two levels higher
+# as where this Python file sits
+
+def nen5060_to_dataframe_stamped(xl_tab_name: str = "nen5060 - energie") -> pd.DataFrame:
+    """ conversion from NEN5060 spreadsheet tab into Dataframe
+        with timestamps.
+
+    Args:
+        xl_tab_name: (str) tabname from NEN5060 spreadsheet ("nen5060 - energie", "ontwerp 1%" or "ontwerp 5%")
+
+    Returns:
+        pandas Dataframe with contents of NEN5060 tabsheet
+
+    """
+    try:
+        xls = pd.ExcelFile(NEN5060DIR.joinpath('NEN5060-2018.xlsx'))
+        print(xls.sheet_names)  # Check sheet names
+    except Exception as e:
+        print(e)
+        exit(1)
+
+    # select sheet "nen5060 - energie" by NEN default
+    df5060 = pd.DataFrame()
+    # NEN5060-2018.xlsx has two lines with column headers
+    # first line is column name, second line is measurement unit
+    df5060 = pd.read_excel(xls,
+                           xl_tab_name,
+                           header=[0, 1])  # this file is part of NEN 5060 2018
+    print(df5060.index.values)
+    print(df5060.head())
+    print(df5060.columns)
+
+    return df5060  # pandas Dataframe
+
 
 def nen5060_to_dataframe(xl_tab_name: str = "nen5060 - energie") -> pd.DataFrame:
     """ conversion from NEN5060 spreadsheet tab into Dataframe.
@@ -193,6 +230,7 @@ def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt, north_is_zero=False):
 
 
 if __name__ == "__main__":
+    df_nen = nen5060_to_dataframe_stamped()
     df_nen = nen5060_to_dataframe()
     df_irr = run_qsun(df_nen)
     print(df_irr.head())
