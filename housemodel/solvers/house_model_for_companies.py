@@ -43,7 +43,7 @@ def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
     return dTdt.flatten().tolist()
 
 def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
-                     SP_T, time_sim, control_interval):
+                     SP_T, time_sim, control_interval, control_parameters):
     """Compute air and wall temperature inside the house.
 
     Args:
@@ -77,6 +77,10 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     # Controller initialization
     # heatingPID = PID(Kp=10, Ki=100, Kd=0, beta=1, MVrange=(0, 12000), DirectAction=False)
     # heating = 0
+    kp = control_parameters[0]
+    ki = control_parameters[1]
+    kd = control_parameters[2]
+
 
     inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
     # Note: the algorithm can take an initial step
@@ -90,7 +94,7 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         # here comes the controller
 
         # Simple PID controler
-        Qinst = (SP_T[i] - Tair[i]) * 7000
+        Qinst = (SP_T[i] - Tair[i]) * kp
         Qinst = np.clip(Qinst, 0, 12000)
         q_vector[2, i] = Qinst
 

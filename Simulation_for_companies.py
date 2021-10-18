@@ -97,9 +97,15 @@ def main(show=False):
     T_outdoor_sim = interp_func_Toutdoor(np.arange(0, time_sim[-1], control_interval))
     time_sim = np.arange(0, time_sim[-1], control_interval)
 
+    # Input PID values in to control
+    control_parameters = np.zeros(3)
+    control_parameters[0] = house_param['controller']['kp']
+    control_parameters[1] = house_param['controller']['ki']
+    control_parameters[2] = house_param['controller']['kd']
+
     # solve ODE
     data = house_radiator_m(cap_mat_inv, cond_mat, q_vector,
-                            SP_sim, time_sim, control_interval)
+                            SP_sim, time_sim, control_interval, control_parameters)
 
     # if show=True, plot the results
     if show:
