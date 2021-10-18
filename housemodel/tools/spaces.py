@@ -20,6 +20,6 @@ def remove_spaces(filename: str):
         print('File is closed')
 
 if __name__ == "__main__":
-    remove_spaces("Tussenwoning16april - Copy.yaml")
+    remove_spaces("../../excel_for_companies.yaml")
 
 

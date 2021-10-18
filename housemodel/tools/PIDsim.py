@@ -1,6 +1,6 @@
 # Source: https://jckantor.github.io/CBE30338/04.11-Implementing-PID-Control-in-Nonlinear-Simulations.html
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -49,17 +49,17 @@ class PID:
         """
         dlog = np.asarray(self._log).T
         t, SP, PV, MV = dlog
-        plt.subplot(2, 1, 1)
-        plt.plot(t, PV, t, SP)
-        plt.title('Process Variable')
-        plt.xlabel('Time')
-        plt.legend(['PV', 'SP'])
-        plt.subplot(2, 1, 2)
-        plt.plot(t, MV)
-        plt.title('Manipulated Variable')
-        plt.xlabel('Time')
-        plt.tight_layout()
-        plt.show()
+        #plt.subplot(2, 1, 1)
+        #plt.plot(t, PV, t, SP)
+        #plt.title('Process Variable')
+        #plt.xlabel('Time')
+        #plt.legend(['PV', 'SP'])
+        #plt.subplot(2, 1, 2)
+        #plt.plot(t, MV)
+        #plt.title('Manipulated Variable')
+        #plt.xlabel('Time')
+        #plt.tight_layout()
+        #plt.show()
 
     @property
     def beta(self):
