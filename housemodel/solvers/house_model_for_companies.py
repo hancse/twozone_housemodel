@@ -4,7 +4,8 @@ house model base on 2R2C model with a buffervessel and a radiator
 
 from scipy.integrate import solve_ivp       # ODE solver
 import numpy as np                       # linear algebra
-from housemodel.tools.PIDsim import PID
+# from housemodel.tools.PIDsim import PID
+from simple_pid import PID
 
 def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
                      control_interval):
@@ -75,8 +76,8 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     Tradiator = np.ones(len(t)) * Tradiator0
 
     # Controller initialization
-    heatingPID = PID(Kp=5000, Ki=0, Kd=0, beta=1, MVrange=(0, 12000), DirectAction=False)
-    heating = 0
+    # heatingPID = PID(Kp=5000, Ki=0, Kd=0, beta=1, MVrange=(0, 12000), DirectAction=False)
+    # heating = 0
     kp = control_parameters[0]
     ki = control_parameters[1]
     kd = control_parameters[2]
@@ -91,7 +92,7 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     # https://github.com/scipy/scipy/issues/9198
     for i in range(len(t)-1):
 
-        # here comes the controller
+        # here comes the "arduino style" controller
 
         # Simple PID controller
         # Qinst = (SP_T[i] - Tair[i]) * kp
@@ -100,10 +101,10 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
 
         # Velocity PID controller (not working properly)
         # heating  = heatingPID.update(t[i], SP_T[i], Tair[i], heating)
-        print(f"{heating}")
-        heating  = heatingPID.update(t[i], SP_T[i], Tair[i], heating)
-        print(f"{heating}")
-        q_vector[2, i] = heating
+        # print(f"{heating}")
+        # heating  = heatingPID.update(t[i], SP_T[i], Tair[i], heating)
+        # print(f"{heating}")
+        # q_vector[2, i] = heating
 
         ts = [t[i], t[i+1]]
         result = solve_ivp(model_radiator_m, ts, y0,
