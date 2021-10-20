@@ -110,13 +110,14 @@ def main(show=False):
     # if show=True, plot the results
     if show:
         plt.figure(figsize=(15, 5))         # key-value pair: no spaces
-        plt.plot(data [3],data[0], label='Tair')
-        plt.plot(data [3],data[1], label='Twall')
-        plt.plot(data [3],data[2], label='Tradiator')
+        plt.plot(data[0],data[1], label='Tair')
+        plt.plot(data[0],data[2], label='Twall')
+        plt.plot(data[0],data[3], label='Tradiator')
         plt.plot(time_sim, SP_sim, label='SP_Temperature')
         plt.plot(time_sim,T_outdoor_sim,label='Toutdoor')
+        plt.plot(data[0], data[4], label='Qinst')
         plt.legend(loc='best')
-        plt.title("Simulation2R2C_radiator_matrix_loop")
+        plt.title("Simulation2R2C_companies")
         plt.show()
 
     return time_sim, SP_sim, T_outdoor_sim, data

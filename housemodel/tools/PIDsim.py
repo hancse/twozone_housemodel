@@ -135,7 +135,7 @@ class PID:
 
     @property
     def MV(self):
-        """MV is the manipulated (or PID outpout) variable. It is automatically
+        """MV is the manipulated (or PID output) variable. It is automatically
         restricted to the limits given in MVrange.
         """
         return self._MV
@@ -197,4 +197,5 @@ class PID:
                                 + self.Kd * (self._errorD0 - 2 * self._errorD1 + self._errorD2) / dt
                 self.MV -= self._action * self._deltaMV
         self._logger(t, self.SP, self.PV, self.MV)
+        print(f"{self._SP}   {self._PV}   {self._MV }")
         return self.MV

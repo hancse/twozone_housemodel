@@ -89,7 +89,7 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
 
         # here comes the controller
 
-        # Simple PID controler
+        # Simple PID controller
         # Qinst = (SP_T[i] - Tair[i]) * 7000
         # Qinst = np.clip(Qinst, 0, 12000)
         # q_vector[2, i] = Qinst

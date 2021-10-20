@@ -75,8 +75,8 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     Tradiator = np.ones(len(t)) * Tradiator0
 
     # Controller initialization
-    # heatingPID = PID(Kp=10, Ki=100, Kd=0, beta=1, MVrange=(0, 12000), DirectAction=False)
-    # heating = 0
+    heatingPID = PID(Kp=5000, Ki=0, Kd=0, beta=1, MVrange=(0, 12000), DirectAction=False)
+    heating = 0
     kp = control_parameters[0]
     ki = control_parameters[1]
     kd = control_parameters[2]
@@ -93,14 +93,17 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
 
         # here comes the controller
 
-        # Simple PID controler
-        Qinst = (SP_T[i] - Tair[i]) * kp
-        Qinst = np.clip(Qinst, 0, 12000)
-        q_vector[2, i] = Qinst
+        # Simple PID controller
+        # Qinst = (SP_T[i] - Tair[i]) * kp
+        # Qinst = np.clip(Qinst, 0, 12000)
+        # q_vector[2, i] = Qinst
 
-        #Velocity PID controller (not working properly)
+        # Velocity PID controller (not working properly)
         # heating  = heatingPID.update(t[i], SP_T[i], Tair[i], heating)
-        # q_vector[2, i] = heating
+        print(f"{heating}")
+        heating  = heatingPID.update(t[i], SP_T[i], Tair[i], heating)
+        print(f"{heating}")
+        q_vector[2, i] = heating
 
         ts = [t[i], t[i+1]]
         result = solve_ivp(model_radiator_m, ts, y0,
@@ -113,6 +116,6 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
 
         y0 = result.y[:, -1]
 
-    # heatingPID.plot()
-    return Tair, Twall, Tradiator, t
+    heatingPID.plot()
+    return t, Tair, Twall, Tradiator, q_vector[2,:]/1000
 
