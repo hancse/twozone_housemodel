@@ -20,11 +20,19 @@ import matplotlib.pyplot as plt
 
 import numpy as np
 from scipy.interpolate import interp1d
+import pandas as pd
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+
+import logging
+logging.basicConfig()
+logger = logging.getLogger('matrix')
+logger.setLevel(logging.INFO)
 
 from pathlib import Path
 CONFIGDIR = Path(__file__).parent.absolute()
 
-def main(show=False):
+def main(show=False, xl=False):
     house_param = load_config(str(CONFIGDIR / "excel_for_companies.yaml"))
     days_sim = 365 # house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
@@ -89,13 +97,18 @@ def main(show=False):
     q_vector[1,:] = (1 - CF) * Qsolar_sim
 
     # Interpolation of data
-    interp_func = interp1d(time_sim, q_vector)
-    interp_func_SP = interp1d(time_sim, SP_sim)
-    interp_func_Toutdoor = interp1d(time_sim, T_outdoor_sim)
-    q_vector = interp_func(np.arange(0, time_sim[-1], control_interval))
-    SP_sim = interp_func_SP(np.arange(0, time_sim[-1], control_interval))
-    T_outdoor_sim = interp_func_Toutdoor(np.arange(0, time_sim[-1], control_interval))
-    time_sim = np.arange(0, time_sim[-1], control_interval)
+    interp_func = interp1d(time_sim, q_vector, fill_value='extrapolate')
+    interp_func_SP = interp1d(time_sim, SP_sim, fill_value='extrapolate')
+    interp_func_Q_internal = interp1d(time_sim, Qinternal_sim, fill_value='extrapolate')
+    interp_func_Toutdoor = interp1d(time_sim, T_outdoor_sim, fill_value='extrapolate')
+    q_vector = interp_func(np.arange(0, time_sim[-1]+(6*600), control_interval))
+    SP_sim = interp_func_SP(np.arange(0, time_sim[-1]+(6*600), control_interval))
+    T_outdoor_sim = interp_func_Toutdoor(np.arange(0, time_sim[-1]+(6*600), control_interval))
+    Qinternal_sim = interp_func_Q_internal(np.arange(0, time_sim[-1]+(6*600), control_interval))
+    time_sim = np.arange(0, time_sim[-1]+(6*600), control_interval)
+
+    # time_sim = np.linspace(0, time_sim[-1], (8760-1)*6, endpoint=False)
+
 
     # Input PID values in to control
     control_parameters = np.zeros(3)
@@ -120,8 +133,35 @@ def main(show=False):
         plt.title("Simulation2R2C_companies")
         plt.show()
 
-    return time_sim, SP_sim, T_outdoor_sim, data
+    if xl:
+        # df_out = pd.DataFrame(data[0], columns=['Timestep'])
+        df_out = pd.DataFrame({'Timestep': data[0]})
+        df_out['Outdoor temperature'] = T_outdoor_sim
+        for n in range(num_links):
+            nodename = house_param['chains'][0]['links'][n]['Name']
+            df_out["T_{}".format(n)] = data[n+1].tolist()
+            # df_out["Solar_{}".format(n)] = Qsolar_sim[n, :]
+            if nodename == 'Internals':
+                df_out["Internal_{}".format(n)] = Qinternal_sim
 
-    
+        df_out['Tradiator'] = data[3].tolist()
+        df_out["Heating"] = data[4].tolist()
+
+        wb = Workbook()
+        ws = wb.active
+        ws.append(['DESCRIPTION',
+                   'Resultaten HAN Dynamic Model Heat Built Environment'])
+        ws.append(['Chain number', 0])
+        ws.append(['Designation', None, '2R-2C-1-zone',
+                   None, None, None, '2R-2C-1-zone'])
+        ws.append(['Node number', None, 0, None, None, None, 1])
+        ws.append(['Designation', None,
+                   house_param['chains'][0]['links'][0]['Name'], None, None, None,
+                   house_param['chains'][0]['links'][1]['Name']])
+        for r in dataframe_to_rows(df_out, index=False):
+            ws.append(r)
+        # df_out.to_excel('tst.xlsx', index=False, startrow=10)
+        wb.save('tst.xlsx')
+
 if __name__ == "__main__":
-    main(show=True)  # temporary solution, recommended syntax
+    main(show=True, xl=True)  # temporary solution, recommended syntax
