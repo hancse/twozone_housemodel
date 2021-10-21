@@ -5,7 +5,7 @@ house model base on 2R2C model with a buffervessel and a radiator
 from scipy.integrate import solve_ivp       # ODE solver
 import numpy as np                       # linear algebra
 # from housemodel.tools.PIDsim import PID
-from simple_pid import PID
+from housemodel.controls.ivPID.PID import PID
 
 def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
                      control_interval):
@@ -82,6 +82,13 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     ki = control_parameters[1]
     kd = control_parameters[2]
 
+    pid = PID(kp, ki, kd, t[0])
+
+    pid.SetPoint=17.0
+    pid.setSampleTime(0)
+    pid.setBounds(0, 12000)
+    pid.setWindup(12000/control_interval)
+
 
     inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
     # Note: the algorithm can take an initial step
@@ -93,6 +100,9 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     for i in range(len(t)-1):
 
         # here comes the "arduino style" controller
+        pid.SetPoint = SP_T[i]
+        pid.update(Tair[i], t[i])
+        q_vector[2, i] = pid.output
 
         # Simple PID controller
         # Qinst = (SP_T[i] - Tair[i]) * kp
@@ -117,6 +127,6 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
 
         y0 = result.y[:, -1]
 
-    heatingPID.plot()
+
     return t, Tair, Twall, Tradiator, q_vector[2,:]/1000
 
