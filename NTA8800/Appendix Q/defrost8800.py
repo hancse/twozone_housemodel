@@ -8,15 +8,14 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def defrost8800(T_evap, COP_par, COP_A2W35=None ):
-    """
-    calculate reduction in COP by frosting of heat pump at evaporator
+def frost_factor_8800(T_evap, max_ff_8800=0.75):
+    """calculate reduction in COP by frosting of heat pump at evaporator
 
-    :param T_evap:     temperature at evaporator side ( outdoor temperature
-    :param COP_par:    tuple of 3 coefficients for COP of heat pump model
-    :param COP_A2W35:  COP measured at Tevap = 2 degrees and Tcond = 35 degrees, if available
-    :return: frost_factor:
+    Args:
+        T_evap:                 temperature at evaporator side ( outdoor temperature )
+        max_frost_factor_8800:
 
+    Returns:
     The  COP then becomes:
     COP_HP(T_evap, T_cond) = COP_HP_no_frost(T_evap, T_cond) * frost factor(T_evap)
     The Power becomes:
@@ -24,38 +23,54 @@ def defrost8800(T_evap, COP_par, COP_A2W35=None ):
     Remark: no separate frost factor for the power is specified. This is an approximation!
     These measurements are valid for full power
     """
-    Tevap_ref = 2 # degrees Celsius
-    Tcond_ref = 35 # degrees Celsius
-    COP_nofrost = COP_par[0] + COP_par[1] * Tevap_ref + COP_par[2] * Tcond_ref
-    if COP_A2W35:
-        frost_factor_0 = COP_A2W35 /  COP_nofrost
-    else:
-        frost_factor_0 = 0.75
-
     # The correction for frosting Frost_factor( T_air )  now becomes:
-    if (T_evap <= -7) or (T_evap >= 7):
-        frost_factor = 1.0
-    elif T_evap <= 2:
-        frost_factor = ((frost_factor_0 - 1.0) / 9.0) *T_evap + (( 7 * frost_factor_0 + 2.0) / 9.0)
-    else:
-        frost_factor = ((1.0 - frost_factor_0) / 5.0) *T_evap + (( 7 * frost_factor_0 - 2.0) / 5.0)
+    T = np.array(T_evap)
+    ff = np.ones_like(T)
+    index1 = np.where((T > -7.0) & (T <= 2.0))
+    ff[index1] = frost_factor = ((max_ff_8800 - 1.0) / 9.0) *T[index1] + (( 7 * max_ff_8800 + 2.0) / 9.0)
 
-    return frost_factor
+    index2 = np.where((T > 2.0) & (T < 7.0))
+    ff[index2] = ((1.0 - max_ff_8800) / 5.0) *T[index2] + (( 7 * max_ff_8800 - 2.0) / 5.0)
+
+    return ff
+
+def maximum_frost_factor_8800(COP_par, COP_A2W35=None ):
+    """    calculate reduction in COP by frosting of heat pump at evaporator
+
+
+    Args:
+        COP_par:    tuple of 3 coefficients for linear fit
+                    of COP in heat pump model NTA8800:2020 Appendix Q.9
+        COP_A2W35:  COP measured at Tevap = 2 degrees and Tcond = 35 degrees,
+                    if available
+
+    Returns:        maximum frost_factor @A2W35 ( default =0.75 )
+
+    """
+    if COP_A2W35 is not None:
+        # calculate COP @ A2W35 according to NTA880 model coefficients
+        Tevap_ref = 2 # degrees Celsius
+        Tcond_ref = 35 # degrees Celsius
+        COP_nofrost = COP_par[0] + COP_par[1] * Tevap_ref + COP_par[2] * Tcond_ref
+
+        # calculate maximum frost factor, occurring for @ A2W35
+        return COP_A2W35 /  COP_nofrost
+    else:
+        return 0.75 # default value from NTA8800
 
 
 if __name__ == "__main__":
-    par = np.c_[[5.0, 0.10, -0.05]]
-    Tair = np.arange(-10, 11, 1.0)
-    # ff = np.zeros(np.shape(Tair))
-    ff = np.empty(np.shape(Tair))
-    list = []
-    for T in Tair:
-        list.append(defrost8800(T, par))
+    par = np.c_[[5.0, 0.10, -0.05]] # make column vector
+    ff_max = maximum_frost_factor_8800(par)
+    print(f"maximum frost factor @ A2W35 {ff_max}")
+
+    T_air = list(np.arange(-10, 11, 1.0))
+    COP_factor = frost_factor_8800(T_air)
 
     fig = plt.figure()
     plt.suptitle("COP reduction factor due to defrosting of heat pump evaporator")
     plt.title("according to NTA8800:2020, Appendix Q (Q.18-Q.19)")
-    plt.plot(Tair, list)
+    plt.plot(T_air, COP_factor, marker='o')
     plt.xlim(-10, 10)
     plt.xticks(np.arange(-10, 12, step=2.0))
     plt.grid()

@@ -10,6 +10,8 @@ matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
+from defrost8800 import (frost_factor_8800,
+                         maximum_frost_factor_8800)
 
 
 def calc_WP_general(X_val, Y_val, Z_val, order=1):
@@ -193,6 +195,18 @@ if __name__ == "__main__":
     P_35 = P_coef[0] + P_coef[1]*Tin_space + P_coef[2]*35.0
     P_45 = P_coef[0] + P_coef[1]*Tin_space + P_coef[2]*45.0
     P_55 = P_coef[0] + P_coef[1]*Tin_space + P_coef[2]*55.0
+
+    # COP defrost correction
+    frost_factor = frost_factor_8800(Tin_space)
+    COP_35 = COP_35 * frost_factor
+    COP_45 = COP_45 * frost_factor
+    COP_55 = COP_55 * frost_factor
+
+    # Pmax defrost correction
+    frost_factor = frost_factor_8800(Tin_space)
+    P_35 = P_35 * frost_factor
+    P_45 = P_45 * frost_factor
+    P_55 = P_55 * frost_factor
 
     plot_lines(Tin_space, COP_35, COP_45, COP_55, P_35, P_45, P_55)
 
