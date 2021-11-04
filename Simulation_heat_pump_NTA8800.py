@@ -31,6 +31,8 @@ logger = logging.getLogger('matrix')
 logger.setLevel(logging.INFO)
 
 from pathlib import Path
+
+from pathlib import Path
 CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False, xl=False):
@@ -132,7 +134,7 @@ def main(show=False, xl=False):
         plt.plot(data[0], data[4], label='Qinst')
         plt.plot(data[0], data[5], label='Water temp')
         plt.legend(loc='best')
-        plt.title("Simulation2R2C_companies")
+        plt.title(Path(__file__).stem)
         plt.show()
 
     if xl:
