@@ -57,6 +57,7 @@ class Heatpump_NTA():
         frost_factor = frost_factor_8800([Te]) # input = list or 1-dim array
         cop *= frost_factor
         p_max *= frost_factor
+        p_max = np.clip(p_max, 0, 10)
 
         return cop, p_max
 
