@@ -13,30 +13,33 @@ def frost_factor_8800(T_evap, max_ff_8800=0.75):
 
     Args:
         T_evap:                 temperature at evaporator side ( outdoor temperature )
-        max_frost_factor_8800:
+        max_frost_factor_8800:  COP reduction factor @ A2W35
 
-    Returns:
-    The  COP then becomes:
+    Returns: (array): frost factor for all input temperatures
+                      according to NTA8800 Appendix Q
+
+    The COP then becomes:
     COP_HP(T_evap, T_cond) = COP_HP_no_frost(T_evap, T_cond) * frost factor(T_evap)
+
     The Power becomes:
     Power_HP(T_evap, T_cond)  = Power_HP_no_frost(T_evap, T_cond)  * frost factor(T_evap)
-    Remark: no separate frost factor for the power is specified. This is an approximation!
-    These measurements are valid for full power
+
+    Notes: - no separate frost factor for the power is specified.
+           - this is an approximation!
+           - these measurements are valid for full power
     """
-    # The correction for frosting Frost_factor( T_air )  now becomes:
-    T = np.array(T_evap)
+    # The correction for frosting Frost_factor( T_air ) now becomes:
+    T = np.array(T_evap)   # input type can be list or numpy array
     ff = np.ones_like(T)
     index1 = np.where((T > -7.0) & (T <= 2.0))
     ff[index1] = frost_factor = ((max_ff_8800 - 1.0) / 9.0) *T[index1] + (( 7 * max_ff_8800 + 2.0) / 9.0)
-
     index2 = np.where((T > 2.0) & (T < 7.0))
     ff[index2] = ((1.0 - max_ff_8800) / 5.0) *T[index2] + (( 7 * max_ff_8800 - 2.0) / 5.0)
-
     return ff
+
 
 def maximum_frost_factor_8800(COP_par, COP_A2W35=None ):
     """    calculate reduction in COP by frosting of heat pump at evaporator
-
 
     Args:
         COP_par:    tuple of 3 coefficients for linear fit
@@ -60,7 +63,7 @@ def maximum_frost_factor_8800(COP_par, COP_A2W35=None ):
 
 
 if __name__ == "__main__":
-    par = np.c_[[5.0, 0.10, -0.05]] # make column vector
+    par = np.c_[[5.0, 0.10, -0.05]] # make column vector of
     ff_max = maximum_frost_factor_8800(par)
     print(f"maximum frost factor @ A2W35 {ff_max}")
 

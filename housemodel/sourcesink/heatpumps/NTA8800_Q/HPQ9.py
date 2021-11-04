@@ -10,8 +10,8 @@ matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
-from defrost8800 import (frost_factor_8800,
-                         maximum_frost_factor_8800)
+from housemodel.sourcesink.heatpumps.NTA8800_Q.defrost8800 import (frost_factor_8800,
+                                                                   maximum_frost_factor_8800)
 
 
 def calc_WP_general(X_val, Y_val, Z_val, order=1):
