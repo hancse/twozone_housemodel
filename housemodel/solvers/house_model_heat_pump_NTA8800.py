@@ -94,6 +94,7 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
 
     # Heat pump initialization
     nta = Heatpump_NTA()
+    nta.Pmax = 8
     nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
 
     nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,

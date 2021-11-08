@@ -31,6 +31,7 @@ class Heatpump_NTA():
         self.p_coeff = np.zeros_like(self.cal_T_cond)
         self.COP_A2W35 = None
         self.Pmax_A2W35 = None
+        self.Pmax = None
 
     def set_cal_val(self, cop_val: list, pmax_val: list):
         self.cal_COP_val = np.array(cop_val)
@@ -57,7 +58,7 @@ class Heatpump_NTA():
         frost_factor = frost_factor_8800([Te]) # input = list or 1-dim array
         cop *= frost_factor
         p_max *= frost_factor
-        p_max = np.clip(p_max, 0, 10)
+        p_max = np.clip(p_max, 0, self.Pmax)
 
         return cop, p_max
 
