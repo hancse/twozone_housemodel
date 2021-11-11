@@ -7,7 +7,7 @@ import numpy as np                       # linear algebra
 # from housemodel.tools.PIDsim import PID
 from housemodel.controls.ivPID.PID import PID
 from housemodel.sourcesink.heatpumps.Heatpump_HM import Heatpump_NTA
-from housemodel.controls.heating_curves import outdoor_reset
+from housemodel.controls.heating_curves import hyst, outdoor_reset
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
 
 def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
@@ -106,8 +106,8 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     water_temp = np.zeros_like(T_outdoor_sim)
     cop_hp = np.zeros_like(T_outdoor_sim)
 
-    hysteresis_state = True
-    hysteresis_band = 0.5
+    # define hysteresis object for heat pump
+    hp_hyst = hyst(dead_band=0.5, state=True)
 
     inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
     # Note: the algorithm can take an initial step
@@ -136,26 +136,15 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         # q_vector[2, i] = heating
 
         # Heat pump NTA800
+        # p_hp = 0
+        # determine new setting for COP and heat pump power
+        water_temp[i] = outdoor_reset(T_outdoor_sim[i], 0.7, 20)
+        cop_hp[i], p_hp = nta.update(T_outdoor_sim[i], water_temp[i])
 
-        # If temperature is below dead band, enable heat pump
-        if Tair[i] < (SP_T[i] - hysteresis_band):
-            water_temp[i] = outdoor_reset(T_outdoor_sim[i], 0.7, 20)
-            cop_hp[i], p_hp = nta.update(T_outdoor_sim[i], water_temp[i])
-            hysteresis_state = True
+        # incorporate hysteresis to control
+        p_hp = hp_hyst.update(Tair[i], SP_T[i], p_hp)
 
-        # If the temperature has decreased from above into the dead band, zero power
-        elif ((SP_T[i] - hysteresis_band) <= Tair[i] <= (SP_T[i] + hysteresis_band)) & (hysteresis_state is False):
-            if hysteresis_state is False:
-                p_hp = 0
-            elif hysteresis_state is True:
-                water_temp[i] = outdoor_reset(T_outdoor_sim[i], 0.7, 20)
-                cop_hp[i], p_hp = nta.update(T_outdoor_sim[i], water_temp[i])
-
-        #If temperature has increase above deadband, disable heat pump
-        elif Tair[i] > (SP_T[i] + hysteresis_band):
-            p_hp = 0
-            hysteresis_state = False
-
+        # update q_vector
         q_vector[2, i] = p_hp*1000
 
         ts = [t[i], t[i+1]]
