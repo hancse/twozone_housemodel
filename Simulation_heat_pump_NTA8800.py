@@ -37,7 +37,7 @@ CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False, xl=False):
     house_param = load_config(str(CONFIGDIR / "excel_for_companies.yaml"))
-    days_sim = 365 # house_param['timing']['days_sim']
+    days_sim = 50 # house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
 
     num_links = len(house_param["chains"][0]["links"])
@@ -125,6 +125,7 @@ def main(show=False, xl=False):
 
     # if show=True, plot the results
     if show:
+        """
         plt.figure(figsize=(15, 5))         # key-value pair: no spaces
         plt.plot(data[0],data[1], label='Tair')
         plt.plot(data[0],data[2], label='Twall')
@@ -136,6 +137,38 @@ def main(show=False, xl=False):
         #plt.plot(data[0], data[6], label='COP')
         plt.legend(loc='best')
         plt.title(Path(__file__).stem)
+        plt.show()
+        """
+        fig, ax = plt.subplots(2, 2, sharex=True)
+        ax[0, 0].plot(data[0],data[1], label='Tair')
+        ax[0, 0].plot(data[0],data[2], label='Twall')
+        ax[0, 0].plot(data[0], data[3], label='Tradiator')
+        ax[0, 0].plot(data[0], SP_sim, label='SP_Temperature')
+        ax[0, 0].plot(data[0], T_outdoor_sim, label='Toutdoor')
+        ax[0, 0].legend(loc='upper right')
+        ax[0, 0].set_title('Nodal Temperatures')
+        ax[0, 0].set_xlabel(('Time (s)'))
+        ax[0, 0].set_ylabel(('Temperature (°C)'))
+
+        ax[0, 1].plot(data[0], data[6], label='COP', color='r')
+        ax[0, 1].legend(loc='upper right')
+        ax[0, 1].set_title('COP')
+        ax[0, 1].set_xlabel(('Time (s)'))
+        ax[0, 1].set_ylabel(('COP'))
+
+        ax[1, 0].plot(data[0], data[4], label='Power', color='c')
+        ax[1, 0].legend(loc='upper right')
+        ax[1, 0].set_title('Power')
+        ax[1, 0].set_xlabel(('Time (s)'))
+        ax[1, 0].set_ylabel(('Power (kW)'))
+
+        ax[1, 1].plot(data[0], data[5], label='Water temp',color='b')
+        ax[1, 1].legend(loc='upper right')
+        ax[1, 1].set_title('Water Temperature')
+        ax[1, 1].set_xlabel(('Time (s)'))
+        ax[1, 1].set_ylabel(('Temperature (°C)'))
+        plt.tight_layout()
+        plt.suptitle(Path(__file__).stem)
         plt.show()
 
     if xl:
