@@ -49,7 +49,7 @@ def data_preprocess(filename, seq_length):
     df = pd.read_csv(data_dir/file,index_col ='Time')
     #c_data=data[['Q']]   
     df = df[['Q','T','Ta','Qsolar','QInternal','SP']] #SP
-    #df.head(10)
+    df.head(10)
     
     # Define traning inputs and prediction value.
     training_set_X = df.iloc[:,0:6].values
