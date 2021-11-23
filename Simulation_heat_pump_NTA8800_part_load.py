@@ -151,6 +151,7 @@ def main(show=False, xl=False):
         ax[0, 0].set_ylabel(('Temperature (°C)'))
 
         ax[0, 1].plot(data[0], data[6], label='COP', color='r')
+        ax[0, 1].plot(data[0], data[8], label='COP corrected', color='b')
         ax[0, 1].legend(loc='upper right')
         ax[0, 1].set_title('COP')
         ax[0, 1].set_xlabel(('Time (s)'))

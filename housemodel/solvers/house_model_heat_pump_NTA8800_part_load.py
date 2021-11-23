@@ -94,7 +94,7 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
 
     # Heat pump initialization
     nta = Heatpump_NTA()
-    nta.Pmax = 8
+    nta.Pmax = 12
     nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
 
     nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
@@ -106,6 +106,7 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     water_temp = np.zeros_like(T_outdoor_sim)
     cop_hp = np.zeros_like(T_outdoor_sim)
     p_hp = np.zeros_like(T_outdoor_sim)
+    cop_hp_corrected = np.zeros_like(T_outdoor_sim)
 
     # define hysteresis object for heat pump
     hp_hyst = hyst(dead_band=0.5, state=True)
@@ -146,11 +147,16 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         pid.SetPoint = SP_T[i]
         pid.update(Tair[i], t[i])
         controlled_value = pid.output
-        controlled_value = np.clip(controlled_value, 2000, p_hp[i])
+        controlled_value = np.clip(controlled_value, p_hp[i]/2, p_hp[i])
 
         # incorporate hysteresis to control
         controlled_value = hp_hyst.update(Tair[i], SP_T[i], controlled_value)
 
+        #Calculate Part Load Ratio, and Part Load Factor for COP correction SOurce: The impact of the work under partial load on the energy efficiency of an air-to-water heat pump
+        PLR = controlled_value/p_hp[i]
+        Cc = 0.9
+        PLF = PLR/(PLR*Cc+(1-Cc))
+        cop_hp_corrected[i] = PLF*cop_hp[i]
 
         # update q_vector
         q_vector[2, i] = controlled_value
@@ -167,5 +173,5 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         y0 = result.y[:, -1]
 
 
-    return t, Tair, Twall, Tradiator, q_vector[2,:], water_temp, cop_hp, p_hp
+    return t, Tair, Twall, Tradiator, q_vector[2,:], water_temp, cop_hp, p_hp, cop_hp_corrected
 
