@@ -8,3 +8,9 @@ conda install openpyxl
 conda install pyyaml
 conda install holidays
 
+conda install -c pytorch pytorch
+conda install joblib
+conda install scikit-learn  # scikit-learn-intelex
+
+
+
