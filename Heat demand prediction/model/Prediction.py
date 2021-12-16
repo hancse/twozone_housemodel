@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 from joblib import load
 
 
-def predict(pred_input,seq_length,input_size,hidden_size,
-            num_layers,num_classes,bidirectional,PATH):
+def predict(pred_input, seq_length, input_size, hidden_size,
+            num_layers, num_classes, bidirectional, model_file):
     
     ''' Function to predict the heat demand needed for the next hour.
     
@@ -39,7 +39,7 @@ def predict(pred_input,seq_length,input_size,hidden_size,
     
    
     model = LSTM(num_classes, input_size, hidden_size, num_layers,bidirectional,seq_length)
-    model.load_state_dict(torch.load(PATH))
+    model.load_state_dict(torch.load(model_file))
     
     #dataX, dataY, trainX, trainY, testX, testY = data_preprocess(filename,seq_length)
     

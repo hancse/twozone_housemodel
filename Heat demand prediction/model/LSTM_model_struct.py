@@ -51,7 +51,7 @@ class LSTM(nn.Module):
 
     def __init__(self, num_classes, input_size, hidden_size, 
                  num_layers,bidirectional,seq_length):
-        
+
         super(LSTM, self).__init__()
         
         self.num_classes = num_classes
@@ -83,7 +83,11 @@ class LSTM(nn.Module):
           
       
         """
-        
+        # description above states that if the LSTM is bidirectional the size of h_0 and c_0 is different, i.e.,
+        # the first dimension should be multiplied by 2. This is currently not done. The bidirectionality is not used.
+        # This implies that the LSTM is not bidirectional. Why is this set as True in the input?
+
+
         h_0 = Variable(torch.zeros(
             self.num_layers, x.size(0), self.hidden_size))
         

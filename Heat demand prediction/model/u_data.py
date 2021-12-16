@@ -48,11 +48,11 @@ def data_preprocess(filename, seq_length):
         TestY:       test prediction data.
         
     """
-    
+    DATA_DIR = Path(__file__).parent.absolute() / 'data'
     data_dir = Path.cwd() / 'data'    
     file = filename
   
-    df = pd.read_csv(data_dir/file,index_col ='Time')
+    df = pd.read_csv(DATA_DIR/file,index_col ='Time')
     #c_data=data[['Q']]   
     df = df[['Q','T','Ta','SP']] #SP
     #df.head(10)

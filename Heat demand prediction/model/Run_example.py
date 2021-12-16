@@ -10,7 +10,6 @@ Created on Thu Apr 15 17:55:58 2021
 
 @author: TrungNguyen
 """
-
 import torch
 from LSTM_model_struct import LSTM
 from read_data import data_preprocess
@@ -18,14 +17,16 @@ import matplotlib.pyplot as plt
 from joblib import load
 from train_model import train
 from Prediction import predict
+from pathlib import Path
 
 def main():
-    
+    DATA_DIR = Path(__file__).parent.absolute() / 'data'
+
     #filename = 'Heavy_weight.txt' #Dettached_M_weight
     filename = 'Light_weight.txt'
     seq_length = 12
     # Prepare the data.
-    dataX, dataY, trainX, trainY, testX, testY = data_preprocess(filename,seq_length)
+    dataX, dataY, trainX, trainY, testX, testY = data_preprocess(DATA_DIR.joinpath(filename), seq_length)
         
     input_size = 6
     hidden_size = 20
@@ -33,21 +34,22 @@ def main():
     num_classes = 1  
     bidirectional = True
             
-    # name of the save model 
-    PATH = "heat_demand.pt"
+    # name of the save model
+    MODEL_DIR = Path(__file__).parent.absolute()
+    model_filename = "heat_demand.pt"
     
     # uncomment lines below to re-train the model
-    #num_epochs = 2000
+    num_epochs = 2500
     # learning rate
-    #learning_rate = 0.01
+    learning_rate = 0.01
     #train(filename,seq_length,num_epochs,learning_rate,
-    #             input_size,hidden_size,num_layers,num_classes,bidirectional,PATH)
+     #            input_size,hidden_size,num_layers,num_classes,bidirectional,MODEL_DIR.joinpath(model_filename))
     
     
  
     # call prediction function.
-    data_predict = predict(testX,seq_length,input_size,hidden_size,
-                           num_layers,num_classes,bidirectional,PATH)
+    data_predict = predict(testX, seq_length, input_size, hidden_size,
+                           num_layers, num_classes, bidirectional, MODEL_DIR.joinpath(model_filename))
     
     dataY_plot   = testY.data.numpy()    
     sc_Y=load('sc_Y.bin')

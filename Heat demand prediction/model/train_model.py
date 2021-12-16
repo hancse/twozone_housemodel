@@ -51,7 +51,7 @@ def train(filename,seq_length,num_epochs,learning_rate,
     
     # Train the model
     for epoch in range(num_epochs):
-        outputs = lstm(trainX)
+        outputs = lstm(trainX) #lstm.forward(trainX)
         optimizer.zero_grad()
         
         # obtain the loss function
