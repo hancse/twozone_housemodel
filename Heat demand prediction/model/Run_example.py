@@ -18,6 +18,8 @@ from joblib import load
 from train_model import train
 from Prediction import predict
 from pathlib import Path
+import matplotlib
+matplotlib.use("Qt5Agg")
 
 def main():
     DATA_DIR = Path(__file__).parent.absolute() / 'data'
