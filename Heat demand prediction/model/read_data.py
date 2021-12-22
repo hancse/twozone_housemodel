@@ -51,7 +51,7 @@ def data_preprocess(filename, seq_length):
     df = df[['Q','T','Ta','Qsolar','QInternal','SP']] #SP
     df.head(10)
     
-    # Define traning inputs and prediction value.
+    # Define training inputs and prediction value.
     training_set_X = df.iloc[:,0:6].values
     training_set_Y = df.iloc[:,0:1].values
     
