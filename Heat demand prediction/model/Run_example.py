@@ -21,15 +21,17 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Qt5Agg")
 
+
 def main():
     DATA_DIR = Path(__file__).parent.absolute() / 'data'
 
-    #filename = 'Heavy_weight.txt' #Dettached_M_weight
+    # filename = 'Heavy_weight.txt' #Dettached_M_weight
     filename = 'Light_weight.txt'
     seq_length = 12
     # Prepare the data.
     dataX, dataY, trainX, trainY, testX, testY = data_preprocess(DATA_DIR.joinpath(filename), seq_length)
-        
+
+    # define network parameters
     input_size = 6
     hidden_size = 20
     num_layers = 1
@@ -44,20 +46,18 @@ def main():
     num_epochs = 2500
     # learning rate
     learning_rate = 0.01
-    #train(filename,seq_length,num_epochs,learning_rate,
-     #            input_size,hidden_size,num_layers,num_classes,bidirectional,MODEL_DIR.joinpath(model_filename))
-    
-    
+    # train(filename,seq_length,num_epochs,learning_rate,
+    #       input_size,hidden_size,num_layers,num_classes,bidirectional,MODEL_DIR.joinpath(model_filename))
  
     # call prediction function.
     data_predict = predict(testX, seq_length, input_size, hidden_size,
                            num_layers, num_classes, bidirectional, MODEL_DIR.joinpath(model_filename))
     
-    dataY_plot   = testY.data.numpy()    
+    dataY_plot = testY.data.numpy()
     sc_Y=load('sc_Y.bin')
     data_predict = sc_Y.inverse_transform(data_predict)
     data_predict[data_predict < 0] = 0
-    dataY_plot   = sc_Y.inverse_transform(dataY_plot)
+    dataY_plot = sc_Y.inverse_transform(dataY_plot)
     
     # plot the results
     
@@ -69,7 +69,7 @@ def main():
     axs[0].title.set_text('Zoom_in')
     axs[1].title.set_text('Heat demand')
     axs[0].set_xlim([1500,2000])
-    #axs[1].set_xlim([500,1000])
+    # axs[1].set_xlim([500,1000])
     axs[0].legend()
     axs[1].legend()
     plt.show()

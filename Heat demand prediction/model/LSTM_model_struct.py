@@ -55,14 +55,15 @@ class LSTM(nn.Module):
         super(LSTM, self).__init__()
         
         self.num_classes = num_classes
-        self.num_layers  = num_layers
-        self.input_size  = input_size
+        self.num_layers = num_layers
+        self.input_size = input_size
         self.hidden_size = hidden_size
-        self.seq_length  = seq_length
-        
+        self.seq_length = seq_length
+
+        # create a LSTM layer with input_size input features and hidden_size hidden neurons
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
                             num_layers=num_layers, batch_first=True)
-        
+        # connect a fully connected layer to the lstm layer
         self.fc = nn.Linear(hidden_size, num_classes)
 
     def forward(self, x):
@@ -98,7 +99,8 @@ class LSTM(nn.Module):
         ula, (h_out, _) = self.lstm(x, (h_0, c_0))
         
         h_out = h_out.view(-1, self.hidden_size)
-        
+        # feed the output of the lstm layer to the fully connected layer,
+        # out is the final output of the forward propagation of the data.
         out = self.fc(h_out)
         
         return out

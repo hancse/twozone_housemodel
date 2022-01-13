@@ -7,16 +7,15 @@ Created on Thu Apr 15 14:16:53 2021
 from read_data import data_preprocess
 from LSTM_model_struct import LSTM
 import torch
-#import torch.nn as nn
-#from torch.autograd import Variable
-
-
+# import torch.nn as nn
+# from torch.autograd import Variable
 
 # PATH = "heat_demand.pt"
+
 def train(filename,seq_length,num_epochs,learning_rate,
           input_size,hidden_size,num_layers,num_classes,bidirectional,PATH):
-    
-    ''' Function to train and save the model for prediction.
+    """
+    Function to train and save the model for prediction.
     
      Args:
         
@@ -37,56 +36,55 @@ def train(filename,seq_length,num_epochs,learning_rate,
     Returns:
        
         lstm:           A train lstm models with the structure define as input.   
-    
-    '''
-    
-    
+    """
+
     dataX, dataY, trainX, trainY, testX, testY = data_preprocess(filename,seq_length)
       
     lstm = LSTM(num_classes, input_size, hidden_size, num_layers,bidirectional,seq_length)
     
     criterion = torch.nn.MSELoss()    # mean-squared error for regression
     optimizer = torch.optim.Adam(lstm.parameters(), lr=learning_rate)
-    #optimizer = torch.optim.SGD(lstm.parameters(), lr=learning_rate)
+    # optimizer = torch.optim.SGD(lstm.parameters(), lr=learning_rate)
     
     # Train the model
     for epoch in range(num_epochs):
-        outputs = lstm(trainX) #lstm.forward(trainX)
-        optimizer.zero_grad()
+        outputs = lstm(trainX)  # lstm.forward(trainX) propagate all data through the network
+        optimizer.zero_grad()  # reset the optimizer to zero
         
         # obtain the loss function
         loss = criterion(outputs, trainY)
         
-        loss.backward()
+        loss.backward()  # backward propagate the losses
         
-        optimizer.step()
+        optimizer.step()  # do one optimization step for updating the parameters
         if epoch % 100 == 0:
             print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
     
     # Save the model for prediction.
     
-    #PATH = PATH
-    torch.save(lstm.state_dict(), PATH)
+    # PATH = PATH
+    torch.save(lstm.state_dict(), PATH)  # save the obtained model
     
     return lstm
-    
+
+
 if __name__ == "__main__":
     
     # data file name
-    #filename = 'Heavy_weight.txt'
+    # filename = 'Heavy_weight.txt'
     filename = 'Light_weight.txt'
 
     seq_length = 12
         
-    # number of tranning cycle.
+    # number of training cycle.
     num_epochs = 2000
     # learning rate
     learning_rate = 0.01
     # Train the model 
     
-    input_size  = 6
+    input_size = 6
     hidden_size = 20
-    num_layers  = 1
+    num_layers = 1
     num_classes = 1
     bidirectional = True
     
