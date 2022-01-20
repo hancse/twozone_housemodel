@@ -71,10 +71,10 @@ def preprocess_training(np_data, sequence_length):
     y = []
 
     for i in range(len(scaled_input_data) - sequence_length - 1):
-        _x = scaled_input_data[i:(i + sequence_length)]
-        _y = scaled_output_data[i + sequence_length]
-        x.append(_x)
-        y.append(_y)
+        x_i = scaled_input_data[i:(i + sequence_length)]
+        y_i = scaled_output_data[i + sequence_length]
+        x.append(x_i)
+        y.append(y_i)
 
     x, y = np.array(x), np.array(y)
 
@@ -124,8 +124,8 @@ def preprocess_use_model(test_data, input_scale, seq_length):
     test_input = []
 
     for i in range(len(scaled_test_data) - seq_length - 1):
-        _x = scaled_test_data[i:(i + seq_length)]
-        test_input.append(_x)
+        x_i = scaled_test_data[i:(i + seq_length)]
+        test_input.append(x_i)
 
     test_input = np.array(test_input)
     test_output = test_data[seq_length:-1, 0] # use the unscaled data to create a matching output vector

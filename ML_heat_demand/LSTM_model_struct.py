@@ -85,10 +85,11 @@ class LSTM(nn.Module):
         # the first dimension should be multiplied by 2. This is currently not done. The bidirectionality is not used.
         # By default the bidirectionality is set to False
 
-
+        # initialize the hidden state with all zeros (this should also be the default)
         h_0 = Variable(torch.zeros(
             self.num_layers, x.size(0), self.hidden_size))
-        
+
+        # initialize the cell state with all zeros (this should also be the default)
         c_0 = Variable(torch.zeros(
             self.num_layers, x.size(0), self.hidden_size))
         
