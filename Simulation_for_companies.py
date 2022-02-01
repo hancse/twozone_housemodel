@@ -105,6 +105,17 @@ def main(show=False, xl=False):
     SP_sim = interp_func_SP(np.arange(0, time_sim[-1]+(6*600), control_interval))
     T_outdoor_sim = interp_func_Toutdoor(np.arange(0, time_sim[-1]+(6*600), control_interval))
     Qinternal_sim = interp_func_Q_internal(np.arange(0, time_sim[-1]+(6*600), control_interval))
+
+    glob = df_nen['globale_zonnestraling'].values
+    glob = glob.flatten()
+    interp_func_glob = interp1d(time_sim, glob, fill_value='extrapolate')
+    glob_interp = interp_func_glob(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
+
+    cloud = df_nen['bewolkingsgraad'].values
+    cloud = cloud.flatten()
+    interp_func_cloud = interp1d(time_sim, cloud, fill_value='extrapolate')
+    cloud_interp = interp_func_cloud(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
+
     time_sim = np.arange(0, time_sim[-1]+(6*600), control_interval)
 
     # time_sim = np.linspace(0, time_sim[-1], (8760-1)*6, endpoint=False)
@@ -137,6 +148,11 @@ def main(show=False, xl=False):
         # df_out = pd.DataFrame(data[0], columns=['Timestep'])
         df_out = pd.DataFrame({'Timestep': data[0]})
         df_out['Outdoor temperature'] = T_outdoor_sim
+        df_out['NEN5060_global'] = glob_interp
+        df_out['cloud_cover'] = cloud_interp
+        df_out["Heating"] = data[4].tolist()
+        df_out['Setpoint'] = SP_sim
+
         for n in range(num_links):
             nodename = house_param['chains'][0]['links'][n]['Name']
             df_out["T_{}".format(n)] = data[n+1].tolist()
@@ -145,23 +161,22 @@ def main(show=False, xl=False):
                 df_out["Internal_{}".format(n)] = Qinternal_sim
 
         df_out['Tradiator'] = data[3].tolist()
-        df_out["Heating"] = data[4].tolist()
 
         wb = Workbook()
         ws = wb.active
-        ws.append(['DESCRIPTION',
-                   'Resultaten HAN Dynamic Model Heat Built Environment'])
-        ws.append(['Chain number', 0])
-        ws.append(['Designation', None, '2R-2C-1-zone',
-                   None, None, None, '2R-2C-1-zone'])
-        ws.append(['Node number', None, 0, None, None, None, 1])
-        ws.append(['Designation', None,
-                   house_param['chains'][0]['links'][0]['Name'], None, None, None,
-                   house_param['chains'][0]['links'][1]['Name']])
+        # ws.append(['DESCRIPTION',
+        #            'Resultaten HAN Dynamic Model Heat Built Environment'])
+        # ws.append(['Chain number', 0])
+        # ws.append(['Designation', None, '2R-2C-1-zone',
+        #            None, None, None, '2R-2C-1-zone'])
+        # ws.append(['Node number', None, 0, None, None, None, 1])
+        # ws.append(['Designation', None,
+        #            house_param['chains'][0]['links'][0]['Name'], None, None, None,
+        #            house_param['chains'][0]['links'][1]['Name']])
         for r in dataframe_to_rows(df_out, index=False):
             ws.append(r)
         # df_out.to_excel('tst.xlsx', index=False, startrow=10)
-        wb.save('tst.xlsx')
+        wb.save('tst_ML.xlsx')
 
 if __name__ == "__main__":
     main(show=True, xl=True)  # temporary solution, recommended syntax
