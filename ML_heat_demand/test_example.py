@@ -1,5 +1,7 @@
 
 import matplotlib.pyplot as plt
+import numpy as np
+
 from train_model import train
 from load_and_preprocess_training import load_excel_data, preprocess_training
 from LSTM_model_struct import LSTM
@@ -11,7 +13,7 @@ matplotlib.use("Qt5Agg")
 def main():
     # set the input directory and file name
     data_dir = Path(__file__).parent.absolute() / 'data'
-    input_filename = 'test_excel.xlsx'  # this file is based on the simulink version of the house model
+    input_filename = 'tst_ML.xlsx'  # this file is based on the simulink version of the house model
 
     # set the output directory and model filename
     model_dir = Path(__file__).parent.absolute() / 'data'  # now the same as input
@@ -19,13 +21,13 @@ def main():
 
 
     # define modeling parameters
-    sequence_length = 12         # choice of 12 is based on Trung's observations, now fixed, can be determined time based
+    sequence_length = 144        # choice of 12 is based on Trung's observations, now fixed, can be determined time based
     number_input_features = 5          # now set fixed, can be obtained from the train_input tensor
     hidden_size = 20        # choice of 20 is based on Trung's observations
     number_layers = 1  # number LSTM layers, 1 layer should be sufficient for the problem, more would make the model overly complex
     number_classes = 1         # number of output classes, only heat demand
-    # bidirectional = False  # is false by default, and actually may not be used
-    num_epochs = 200
+    # bidirectional = False  # is false by default, and actually is not used at this moment
+    num_epochs = 50
     learning_rate = 0.01
 
     # read the data
@@ -52,6 +54,9 @@ def main():
     rescaled_prediction = output_scale.inverse_transform(prediction_np)
     rescaled_test_out = output_scale.inverse_transform(test_out_np)
 
+    # compute mean squared error MSE
+    mse_test = np.square(rescaled_test_out-rescaled_prediction).mean()
+    print("MSE: ", mse_test)
     # plot the results
 
     fig, axs = plt.subplots(2, figsize=(20, 12))

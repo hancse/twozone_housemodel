@@ -42,10 +42,14 @@ def train(model_network, num_epochs, learning_rate, input_data, output_data, mod
         optimizer.step()  # do one optimization step for updating the parameters
         if epoch % 100 == 0:
             print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
-    
+        if epoch == num_epochs-1:
+            print("Epoch: %d, loss: %1.5f" % (epoch, loss.item()))
+
+    model_output = model_network(input_data)
+    final_loss = criterion(model_output,output_data)
+    print("final loss: ", final_loss.item())
     # Save the model for prediction.
-    
-    # PATH = PATH
+
     torch.save(model_network.state_dict(), model_file)  # save the obtained model
     
     return model_network

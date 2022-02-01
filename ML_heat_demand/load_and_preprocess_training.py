@@ -23,8 +23,10 @@ def load_excel_data(filename):
 
     """
     data_xls = pd.read_excel(filename)  # read the excel file
-    data_selection = data_xls[['heat_demand', 'temperature_house', 'temperature_outside', 'setpoint_temperature',
-                               'heat_solar']]  # select the columns to use for machine learning
+    # data_selection = data_xls[['heat_demand', 'temperature_house', 'temperature_outside', 'setpoint_temperature',
+    #                            'heat_solar']]  # select the columns to use for machine learning
+    data_selection = data_xls[['Heating', 'T_0', 'Outdoor temperature', 'Setpoint',
+                               'NEN5060_global']]  # select the columns to use for machine learning
     data_selection_np = data_selection.to_numpy()  # conversion of the data to numpy array
 
     return data_selection_np  # numpy arrays containing the data used for training and testing
