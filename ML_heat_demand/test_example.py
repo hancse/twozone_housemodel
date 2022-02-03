@@ -13,21 +13,21 @@ matplotlib.use("Qt5Agg")
 def main():
     # set the input directory and file name
     data_dir = Path(__file__).parent.absolute() / 'data'
-    input_filename = 'tst_ML.xlsx'  # this file is based on the simulink version of the house model
+    # input_filename = 'test_excel.xlsx'  # this file is based on the simulink version of the house model
+    input_filename = 'tst_ML.xlsx'
 
     # set the output directory and model filename
     model_dir = Path(__file__).parent.absolute() / 'data'  # now the same as input
     model_filename = 'test_model.pt'
 
-
     # define modeling parameters
-    sequence_length = 144        # choice of 12 is based on Trung's observations, now fixed, can be determined time based
+    sequence_length = 18       # choice of 12 is based on Trung's observations, now fixed, can be determined time based
     number_input_features = 5          # now set fixed, can be obtained from the train_input tensor
     hidden_size = 20        # choice of 20 is based on Trung's observations
     number_layers = 1  # number LSTM layers, 1 layer should be sufficient for the problem, more would make the model overly complex
     number_classes = 1         # number of output classes, only heat demand
     # bidirectional = False  # is false by default, and actually is not used at this moment
-    num_epochs = 50
+    num_epochs = 1000
     learning_rate = 0.01
 
     # read the data
@@ -66,14 +66,14 @@ def main():
     axs[1].plot(rescaled_prediction[:, 0], label='ML predict')
     axs[0].title.set_text('Zoom_in')
     axs[1].title.set_text('Heat demand')
-    axs[0].set_xlim([1500, 2000])
+    # axs[0].set_xlim([7500, 8000])
+    axs[0].set_xlim([1500, 1600])
     # axs[1].set_xlim([500,1000])
     axs[0].legend()
     axs[1].legend()
     plt.show()
 
 
-
-
 if __name__ == "__main__":
+
      main()  # temporary solution, recommended syntax

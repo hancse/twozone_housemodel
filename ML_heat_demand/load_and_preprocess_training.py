@@ -23,6 +23,7 @@ def load_excel_data(filename):
 
     """
     data_xls = pd.read_excel(filename)  # read the excel file
+    # this line is for the old file from the simulink model (test_excel.xlsx)
     # data_selection = data_xls[['heat_demand', 'temperature_house', 'temperature_outside', 'setpoint_temperature',
     #                            'heat_solar']]  # select the columns to use for machine learning
     data_selection = data_xls[['Heating', 'T_0', 'Outdoor temperature', 'Setpoint',
