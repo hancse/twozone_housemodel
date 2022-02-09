@@ -13,6 +13,9 @@ conda install -c pytorch pytorch
             
 conda install scikit-learn  # scikit-learn-intelex
 
+pip install solarenergy
+
+
 
 
 
