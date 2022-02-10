@@ -1,0 +1,12 @@
+
+\begin{thenomenclature} 
+\nomgroup{A}
+  \item [{$\lambda$}]\begingroup Heat conductivity [W/mK]\nomeqref {0}\nompageref{2}
+  \item [{\(\dot{m}\)}]\begingroup Mass flow [kg/s]\nomeqref {0}\nompageref{2}
+  \item [{\(A\)}]\begingroup Area [\(m^2\)]\nomeqref {0}\nompageref{2}
+  \item [{\(C_w\)}]\begingroup Specific heat of water [J/kg]\nomeqref {0}\nompageref{2}
+  \item [{\(m\)}]\begingroup Mass [kg]\nomeqref {0}\nompageref{2}
+  \item [{\(T\)}]\begingroup Temperature [C]\nomeqref {0}\nompageref{2}
+  \item [{\(U\)}]\begingroup Thermal transmittance [W/K]\nomeqref {0}\nompageref{2}
+
+\end{thenomenclature}
