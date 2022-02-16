@@ -2,9 +2,9 @@
 
 In the house model, energy supply from solar irradition plays an important role. Firstly, solar energy enters the building through windows and poorly isolated surfaces. In winter, this reduces the cost of heating the building. in summer, however, this leads to an extra energy expenditure for cooling the building, which may attain uncomfortable indoor temperature levels in case of large window surfaces or poor isolation.
 
-A second issue is that the yield of PV and PVT panels, which are often installed nowadays, depends on the solar irradiation. Weather conditions, especially the cloud cover density have astrong influence on the electric power and energy yield of these installations.
+A second issue is that the yield of PV and PVT panels, which are often installed nowadays, depends on the solar irradiation. Weather conditions, especially the cloud cover density have a strong influence on the electric power and energy yield of these installations.
 
-Therefore, it is important to be able to calculate the solar irradiation quantity, spectral distribution and spatial properties. Only then, a reliable estimation of the energy supply, and of the useful fraction of solar irradiation can be made.
+Therefore, it is important to be able to calculate the solar irradiation quantity, spectral distribution and spatial properties. Only then, a reliable estimation of the energy demand, and of the useful fraction of solar irradiation can be made.
 
 \subsection{Solar software}
 
@@ -25,8 +25,9 @@ Software for calculation of solar irradiation on the surface of the earth exists
 Among the packages available for solar irradiation calculations, we find:
 
 \begin{itemize}
-	\item PV\_LIB Toolbox: available for Matlab and Python \cite{PV_LIB_main, PV_LIB_Python, PV_LIB_ReadTheDocs, PV_LIB_GitHub}.
-	\item solarenergy: available as Python package \cite{SolarEnergy_ReadTheDocs, SolarEnergy_GitHub}
+	\item \textsf{PV\_LIB Toolbox}: available for Matlab and Python \cite{PV_LIB_main, PV_LIB_Python, PV_LIB_ReadTheDocs, PV_LIB_GitHub}.
+	\item \textsf{solarenergy}: available as Python package \cite{SolarEnergy_ReadTheDocs, SolarEnergy_GitHub}
+	\item \textsf{qsun}: available as Matlab function or Python function.
 \end{itemize}
 
 \subsection{Geolocation}
@@ -34,6 +35,12 @@ Among the packages available for solar irradiation calculations, we find:
 The location of a building or installation needs to be given in \emph{latitude} and \emph{longitude}, in units of degrees with a decimal point. Division in arcminutes and arcseconds is less common nowadays, since the introduction of GPS. Latitude is positive for the northern hemisphere, negative to the south of the equator. The equator itself is zero latitude. Longitude is positive to the east of the Royal Observatory in Greenwich, London, UK, negative to the west of London. The Meridian of Greenwich runs from the North pole to the South Pole through London and has zero longitude. At the poles, latitude is $\pm 90$ degrees and longitude is undefined.
 
 For \textbf{Arnhem}, NL, a \textbf{latitude of 52.0 degrees} and a \textbf{longitude of 6.0 degrees} may be used as an approximation to the geolocation. In reality this geolocation is found in a field between Velp and Rheden, NL.
+
+\begin{itemize}
+	\item \textsf{PV\_LIB Toolbox} has a  module \textsf{location.py}. In this module, a class \textsf{Location} is defined, with attributes  \emph{latitude} and \emph{longitude}. These attributes are in \emph{decimal degrees} \textit{i.e.} 52.0 and 6.0. 
+	\item \textsf{solarenergy} has a module \textsf{radiation.py} with  a function \textsf{sun\_position\_from\_date\_and\_time}. Input parameters to this function are \emph{longitude} and \emph{latitude} in \emph{radians}. The \textsf{solarenergy} has a conversion constant \textsf{d2r} to convert from decimal degrees to radians. 
+	\item \textsf{qsun}: longitude and latitude are not input parameters. They are fixed: the chosen location is for De Bilt, NL (52.1 N, 5.1 E).
+\end{itemize}
 
 \subsection{Time and timezones}
 
@@ -45,11 +52,13 @@ In many programming languages, a \textsf{datetime} object exists. The basic func
 	\item timezone awareness and daylight savings options.
 \end{itemize}
 
+\subsubsection{Time formats and conventions}
+
 Many conventions are currently in use. The most "universal" is the UNIX Timestamp. Its \emph{epoch}, the "zero" time is 1 January 1970, 00:00:00 (UTC). The time is represented by an \emph{integer} which counts the \emph{seconds} elapsed since the epoch. Originally, the representation was an \textsf{int32}, which would mean that the computer time is up in the year 2038. Backwards, the beginning of computer time would be in 1901.
 Fortunately, 64-bit computer registers now also use an \textsf{int64} for UNIX timestamp representation, which alleviates this shortcoming for all practical situations.
 
 The \textsf{int64} representation stretches so far into the future and past, that it makes room for improvement. Microsoft Windows maintains a FILETIME
-structre, built from two DWORD (uint32) entries, which taken together to a 64-bit value represent the number of 100-ns intervals since January 1, 1601 00:00:00.0000000 (UTC).
+structure, built from two DWORD (uint32) entries, which taken together to a 64-bit value represent the number of 100-ns intervals since January 1, 1601 00:00:00.0000000 (UTC).
 
 typedef struct \_FILETIME \{ \\
 	DWORD dwLowDateTime; \\
@@ -61,7 +70,46 @@ The \textsf{datetime} class has members: \textsf{year} (1-9999), \textsf{month} 
 
 However, the Python package \textsf{pandas} has an alternative \textsf{Timestamp} class, which uses a \textsf{int64}, representing the number of 1-ns intervals since 1 January 1970. This makes it compatible with UNIX timestamps (divide by 1e9) and with classical Python datetime objects. The type is given as \textsf{datetime64[ns, Europe/Amsterdam]}. This reveals that, apart from the timestamp in UTC, a timezone may be stored. This is done with the helper package \textsf{pytz}, which is installed as a dependency of \textsf{pandas}. It is strongly recommended to always use timezone-aware timestamps, even if UTC is meant. The pytz package also handles daylight savings times smoothly in timezone-aware timestamps.
 
+\subsubsection{Examples in Python}
+
+The standard Python \textsf{datetime} object is defined in the module \textsf{datetime.py}. On import, it is recommended to also include the \textsf{timedelta} object fom the same module. The use of \textsf{datetime} and \textsf{timedelta} objects without setting timezone information is shown in Listing~\ref*{lst:naive}.
+
+\lstinputlisting[label=lst:naive, linerange={11-24}, 
+caption=Naive time]
+{C:/Data/PROJECTS_NOVA/MCSE@BTO/FUTUREFACTORY/solarstuff/solar-git/Datetime_excercises/dt.py}
+
+In combination with geolocation, however, it is recommended to use \emph{timezone-aware} \textsf{datetime} objects. This is demonstrated in Listing~\ref*{lst:aware}. Note that the \emph{attribute} of the \textsf{datetime} class is named \textsf{tzinfo}. The input argument for the \emph{method} \textsf{datetime.now} is named \textsf{tz}. The value of this input argument sets \textsf{datetime.tzinfo} from \textsf{None} to a meaningful \textsf{timezone} value.
+
+\lstinputlisting[label=lst:aware, linerange={28-59}, 
+caption=Timezone-aware time]
+{C:/Data/PROJECTS_NOVA/MCSE@BTO/FUTUREFACTORY/solarstuff/solar-git/Datetime_excercises/dt.py}
+
+\lstinputlisting[label=lst:aware, linerange={61-78}, 
+caption=Pandas datetime]
+{C:/Data/PROJECTS_NOVA/MCSE@BTO/FUTUREFACTORY/solarstuff/solar-git/Datetime_excercises/dt.py}
+
+\url{https://www.alpharithms.com/generating-artificial-time-series-data-with-pandas-in-python-272321/}
+
+\url{https://stackoverflow.com/questions/993358/creating-a-range-of-dates-in-python}
+
+\url{https://stackoverflow.com/questions/1060279/iterating-through-a-range-of-dates-in-python/1060330#1060330}
+
+\url{https://stackoverflow.com/questions/13445174/date-ranges-in-pandas}
+
+\url{https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html}
+
+\url{https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html}
+
+\url{https://www.w3resource.com/pandas/date_range.php}
+
+
 Voorbeeld timestamp and date\_range in Pandas.
+
+\begin{itemize}
+	\item \textsf{PV\_LIB Toolbox} has a  module \textsf{location.py}. In this module, a class \textsf{Location} is defined, with attributes  \emph{latitude} and \emph{longitude}. These attributes are in \emph{decimal degrees} \textit{i.e.} 52.0 and 6.0. 
+	\item \textsf{solarenergy} has a module \textsf{radiation.py} with  a function \textsf{sun\_position\_from\_date\_and\_time}. Input parameters to this function are \emph{longitude} and \emph{latitude} in \emph{radians}. The \textsf{solarenergy} has a conversion constant \textsf{d2r} to convert from decimal degrees to radians. 
+	\item \textsf{qsun}: longitude and latitude are not input parameters. They are fixed: the chosen location is for De Bilt, NL (52.1 N, 5.1 E).
+\end{itemize}
 
 \subsubsection{Gregorian and Julian time}
 
