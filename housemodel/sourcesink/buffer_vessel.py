@@ -128,7 +128,7 @@ def stratified_buffervessel(U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, md
     """
     # initial values for odeint
     inputs = (U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdotsupply, mdotd, mass_water, z)
-    result = solve_ivp(model_stratified_buffervessel, [0, 3600*24], [80, 80, 80, 80, 80, 80, 80, 80], args=inputs)
+    result = solve_ivp(model_stratified_buffervessel, [0, 3600*2], [80, 80, 80, 80, 80, 80, 80, 80], args=inputs)
     return [result.t, result.y[0, :], result.y[1, :], result.y[2, :], result.y[3, :], result.y[4, :], result.y[5, :], result.y[6, :], result.y[7, :]]
 
 
@@ -148,7 +148,8 @@ if __name__ == "__main__":
 
 
     #me = ms - md
-    stratified_vessel = stratified_buffervessel(0.12, 20, 40, 10, 80, 40, 4190, 0.644, 0,  10, 200000/8, 10/8)
+    stratified_vessel = stratified_buffervessel(0.12, 0.196, 0.196, 10, 80, 20, 4190, 0.644, 0, 0.02, 150 / 8, 1 / 8)
+
     plt.figure(figsize=(15, 5))  # key-value pair: no spaces
     plt.plot(stratified_vessel[0]/3600, stratified_vessel[1], label='T1')
     plt.plot(stratified_vessel[0]/3600, stratified_vessel[2], label='T2')
