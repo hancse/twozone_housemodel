@@ -74,19 +74,19 @@ However, the Python package \textsf{pandas} has an alternative \textsf{Timestamp
 
 The standard Python \textsf{datetime} object is defined in the module \textsf{datetime.py}. On import, it is recommended to also include the \textsf{timedelta} object fom the same module. The use of \textsf{datetime} and \textsf{timedelta} objects without setting timezone information is shown in Listing~\ref*{lst:naive}.
 
-\lstinputlisting[label=lst:naive, linerange={11-24}, 
-caption=Naive time]
-{C:/Data/PROJECTS_NOVA/MCSE@BTO/FUTUREFACTORY/solarstuff/solar-git/Datetime_excercises/dt.py}
+%\lstinputlisting[label=lst:naive, linerange={11-24}, 
+%caption=Naive time]
+%{C:/Data/PROJECTS_NOVA/MCSE@BTO/FUTUREFACTORY/solarstuff/solar-git/Datetime_excercises/dt.py}
 
 In combination with geolocation, however, it is recommended to use \emph{timezone-aware} \textsf{datetime} objects. This is demonstrated in Listing~\ref*{lst:aware}. Note that the \emph{attribute} of the \textsf{datetime} class is named \textsf{tzinfo}. The input argument for the \emph{method} \textsf{datetime.now} is named \textsf{tz}. The value of this input argument sets \textsf{datetime.tzinfo} from \textsf{None} to a meaningful \textsf{timezone} value.
 
-\lstinputlisting[label=lst:aware, linerange={28-59}, 
-caption=Timezone-aware time]
-{C:/Data/PROJECTS_NOVA/MCSE@BTO/FUTUREFACTORY/solarstuff/solar-git/Datetime_excercises/dt.py}
+%\lstinputlisting[label=lst:aware, linerange={28-59}, 
+%caption=Timezone-aware time]
+%{C:/Data/PROJECTS_NOVA/MCSE@BTO/FUTUREFACTORY/solarstuff/solar-git/Datetime_excercises/dt.py}
 
-\lstinputlisting[label=lst:aware, linerange={61-78}, 
-caption=Pandas datetime]
-{C:/Data/PROJECTS_NOVA/MCSE@BTO/FUTUREFACTORY/solarstuff/solar-git/Datetime_excercises/dt.py}
+%\lstinputlisting[label=lst:aware, linerange={61-78}, 
+%caption=Pandas datetime]
+%{C:/Data/PROJECTS_NOVA/MCSE@BTO/FUTUREFACTORY/solarstuff/solar-git/Datetime_excercises/dt.py}
 
 \url{https://www.alpharithms.com/generating-artificial-time-series-data-with-pandas-in-python-272321/}
 
