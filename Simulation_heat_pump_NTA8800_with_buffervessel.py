@@ -36,7 +36,7 @@ from pathlib import Path
 CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False, xl=False):
-    house_param = load_config(str(CONFIGDIR / "excel_for_companies.yaml"))
+    house_param = load_config(str(CONFIGDIR / "Simulation_heat_pump_NTA8800_with_buffervessel.yaml"))
     days_sim = 100 # house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
 
