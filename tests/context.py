@@ -16,6 +16,7 @@ sys.path.insert(0, str(root_dir))
 print(f"current_file: {current_file}")
 print(f"current_dir: {current_dir}")
 print(f"root_dir: {root_dir}")
-print(sys.path)
+print()
+[print(p) for p in sys.path]
 
 import housemodel

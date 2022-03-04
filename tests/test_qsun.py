@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-import context1
+import context
 
 import logging
 logging.basicConfig()

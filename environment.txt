@@ -1,21 +1,25 @@
-conda create -n house python=3.8
-activate house
+conda config --add channels conda_forge
+conda config --set channel_priority strict
+
+conda create -n futurefactory python=3.8
+activate futurefactory
+conda info -e
+
 conda install matplotlib
 conda install scipy
-conda install jupyter notebook
 conda install pandas
 conda install openpyxl
 conda install pyyaml
 conda install holidays
 
-conda install joblib    # downgrades pytorch to 1.4.0, not good, also downgrades mkl to 2020.4conda insta
-conda install -c pytorch pytorch
-            
-conda install scikit-learn  # scikit-learn-intelex
-
 pip install solarenergy
+conda install -c conda-forge pvlib-python  # downgrades pytorch to 1.4.0, so install pytorch after pvlib
 
+conda install scikit-learn-intelex                  
+conda install -c pytorch pytorch          
 
-
+conda install pytest
+conda install colored-traceback
+conda list
 
 

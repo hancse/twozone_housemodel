@@ -46,7 +46,7 @@ def nen5060_to_dataframe_stamped(xl_tab_name: str = "nen5060 - energie") -> pd.D
 
 def nen5060_to_dataframe(xl_tab_name: str = "nen5060 - energie") -> pd.DataFrame:
     """ conversion from NEN5060 spreadsheet tab into Dataframe.
-
+        TO BE SUPERSEDED by functions in weather_solar subpackage
     Args:
         xl_tab_name: (str) tabname from NEN5060 spreadsheet ("nen5060 - energie", "ontwerp 1%" or "ontwerp 5%")
 

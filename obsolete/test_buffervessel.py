@@ -4,7 +4,7 @@ matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-import context1
+import context
 
 import logging
 logging.basicConfig()
