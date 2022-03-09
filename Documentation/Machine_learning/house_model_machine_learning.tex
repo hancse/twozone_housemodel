@@ -62,11 +62,11 @@ Arnhem, The Netherlands}
 %\newpage
 
 \section{Introduction}\label{s:introduction}
-The developed house model [put a ref here to the house model] allows to simulate the heating process of a given house. Based on weather information such as the outside temperature and solar irradiation, house specifications, and other input factors it is possible to compute the details on the temperature evolution. 
+The developed house model [\url{https://hancse@github.com/hancse/twozone_housemodel.git}] allows to simulate the heat demand of a given house. Based on weather information such as the outside temperature and solar irradiation, house specifications, and other input factors it is possible to compute the details of the temperature evolution. 
 
 The model needs many details to run. These details will be hard to get a hold of in practice.
 
-It would be interesting to see whether it is possible to use machine learning to abstract from the details of that are used to create the model and use only limited amount of input data to create a model that can predict the heat demand of a house. 
+It would be interesting to see whether it is possible to use machine learning to abstract from the details that are used to create the model and use only limited amount of input data to create a model that can predict the heat demand of a house. 
 
  
 
@@ -78,7 +78,8 @@ It would be interesting to see whether it is possible to use machine learning to
 
 
 \subsection{LSTM network}
-We create a Long Short-Term Memory (LSTM) network for predicting the heat demand. An LSTM network is a type of recurrent neural network (RNN). These models are widely used in, for example, the field of speech recognition, language modeling, machine translation. LSTM networks are also well suited for time series data, as we have here. In a RNN the output of a layer in the network can be fed back to be used as input of an earlier layer in the network. In this way, dependencies on the data history can be taken into account in the model. LSTM networks are a specific type of RNNs, designed such that the network learns which historical data is needed to \"remember\" using the memory cell, and which data can be \"forgotten\" using a so-termed forget-gate, in order to predict the next output. More background on the working of the LSTM can be found in \cite{LSTM}, a blog by Christopher Olah with a comprehensive explanation of the ideas behind the LSTM network. 
+We create a Long Short-Term Memory (LSTM) network for predicting the heat demand. An LSTM network is a type of recurrent neural network (RNN). These models are widely used in, for example, the field of speech recognition, language modeling, and machine translation. LSTM networks are also well suited for time series data, as we have here. In a RNN the output of a layer in the network can be fed back to be used as input of an earlier layer in the network. In this way, dependencies on the data history can be taken into account in the model. LSTM networks are a specific type of RNNs, designed such that the network learns which historical data is needed to 
+"remember" using the memory cell, and which data can be "forgotten" using a so-termed forget-gate, in order to predict the next output. More background on the working of the LSTM can be found in \cite{LSTM}, a blog by Christopher Olah with a comprehensive explanation of the ideas behind the LSTM network. 
 
 The full network that will be used consists of an LSTM-layer, that is used to learn the dependencies on the historic data, and a fully connected linear layer that applies a linear transformation to the output from the LSTM-layer to obtain the final output, the predicted heat demand. 
 
@@ -88,12 +89,12 @@ The full network that will be used consists of an LSTM-layer, that is used to le
 
 In this first exploration of the potential of using a machine learning model to predict the heat demand of a household we make use of data generated with the house model. The house model can provide a heat demand profile for a full year. The heat demand is based on weather data, temperature and solar irradiation, construction parameters of the house, and some behavioral parameters, such as the number of people present in the house and the thermostat setting.   
 
-The model is described in detail in [ref to document of the house model]. The house is modeled as a network of heat capacitors, between which energy can be exchanged. The most simple house model uses 2 heat capacitors, one for the air in the house and one for the walls. Heat can be exchanged between the two capacitors, and the outside air. Essentially this model approximates the house as a single compartment with its walls. 
+The model is described in detail in [ref to document of the house model]. The house is modeled as a network of thermal capacitors, between which energy can be exchanged. The most simple house model uses 2 thermal capacitors, one for the air in the house and one for the walls. Heat can be exchanged between the two capacitors, and the outside air. Essentially this model approximates the house as a single compartment with its walls. 
 
 A more detailed representation of the house can be made by using multiple heat capacitors, for example one for each floor or room.   
 Several versions of the specific model have been developed. A first version is created in Matlab-Simulink, and a more elaborate version is under development using Python. 
 
-Initially we make use of the data generated by the Matlab-Simulink implementation, which has a time granularity of one hour. Later we shift to the more detailed Python implementation of the model, which has more flexibility and a higher time granularity.
+Initially, we have made use of the data generated by the Matlab-Simulink implementation, which has a time granularity of one hour. Later we have shifted to the more detailed Python implementation of the model, which has more flexibility and a finer time granularity.
 
 The input features we want to use for our model are the same for both the Matlab-Simulink model and the Python model. These should also be easily available in practice. The input features we select to create our model are:
 \begin{itemize}
@@ -109,7 +110,7 @@ More features could be available from the house model, such as the heat generate
 \textit{NOTE: It might be interesting to also look at the capabilities to predict the house temperature as well. For the other inputs a future value may be obtained from either the weather forecast or the thermostat program. Taking the temperature predictions into account might be helpful for a model predictive control approach?}
 
 \subsection{data preprocessing steps}
-The input data is loaded from an Excel sheet that contains all the hourly values. When we want to create a model the data needs to be spit in a training and a test set. As we are dealing with a time series the order of the data needs to be retained. The first $70\%$ of the data will be used for training the mode and the last $30\%$ will be used for testing. 
+The input data is loaded from an Excel sheet that contains all the hourly values. When we want to create a model the data needs to be split in a training and a test set. As we are dealing with a time series the order of the data needs to be retained. The first $70\%$ of the data will be used for training the mode and the last $30\%$ will be used for testing. 
 
 Next to splitting the data, the data set needs to be normalized, by subtracting the mean of all feature values ($\mu$) and dividing by the standard deviation ($\sigma$) (using the \texttt{standardscaler}),$x_{norm}= \frac{x-\mu}{\sigma}$. The output is normalized as well.
 
@@ -123,14 +124,14 @@ In order to train the network, we pass all input data through the network. The m
  
 The steps of passing the data through the network and further optimization are repeated for several iterations, or epochs.
  
-
-\begin{itemize}
-\item What are the options for settings for the learning process?
-\item Adam learning algorithm
-\item number of epochs
-\item \ldots
-\end{itemize}
-
+%
+%\begin{itemize}
+%\item What are the options for settings for the learning process?
+%\item Adam learning algorithm
+%\item number of epochs
+%\item \ldots
+%\end{itemize}
+%
 
 
 \subsection{model testing}
@@ -178,7 +179,7 @@ The dataset contains hourly values for the features:
 \item heat\_demand: average power demand to heat the house (in W)
 \item setpoint\_temperature: thermostat setpoint (in degrees centigrade)
 \item temperature\_outside: the outdoor temperature (in degrees centigrade)
-\item heat\_solar: ? Is this the heat delivered by the sun to the house (not fully clear what this is exactly), this is not the NEN-5060. 
+\item heat\_solar: the heat added to the house by the sun (in W), based on the NEN-5060 \cite{NEN5060}. 
 \item temperature\_wall: temperature of the walls (in degrees centigrade)
 \item heat\_internals: estimate for heat from people and devices present in the house (in W) 
 \end{itemize}
@@ -224,7 +225,7 @@ We see that the ML-model matches the general trend of the Matlab-Simulink model.
 
 
 \subsection{Python house model}
-In this analysis we train the data on the Python house model. The data is generated with the version \texttt{Simulation\_for\_companies.py}. This model has a time granularity of 10 minutes, thus 6 values per hour. An excel-file, \texttt{tst\_ML.xlxs}, with output data from the model is generated. The same features as for the Matlab-Simulink model are used: House temperature, thermostat setpoint, outside temperature, solar irradiation and heat demand. Note that, here the solar irradiation is derived from the NEN-5060 global irradiation values. By interpolation the hourly values from the NEN-5060 are converted to values for every 6 minutes.  
+In this analysis we train the data on the Python house model. The data is generated with the version \texttt{Simulation\_for\_companies.py}. This model has a time granularity of 10 minutes, thus 6 values per hour. An excel-file, \texttt{tst\_ML.xlxs}, with output data from the model is generated. The same features as for the Matlab-Simulink model are used: House temperature, thermostat setpoint, outside temperature, solar irradiation and heat demand. Note that, here the solar irradiation is derived from the NEN-5060 global irradiation values \cite{NEN5060}. By interpolation the hourly values from the NEN-5060 are converted to values for every 10 minutes.  
 
 Due to the finer time granularity the ML learning process takes much longer than for the Matlab-Simulink based dataset. First of all, the data set is ten times larger. Furthermore, a larger number of datapoints needs to be used to build the same time span of historical values. Both have a big impact on the computation time. Where the Matlab-Simulink data is trained in a couple of minutes, the Python data takes hours to process on my laptop. 
 
@@ -258,7 +259,7 @@ Some explorative experiments have been performed for which the results are summa
 	\label{fig:python_seq84}
 \end{figure}
 
-In figure \ref{fig:python_seq84} we see the plot of the heat demand according to the Python model and the predictions from the ML-model. Again, the prediction matches the general trend well. However, due to the smaller time granularity, the heat demands contains more variation during the day. This behavior is harder to learn for the ML-model. In some cases the ML-model seems to trail the original data with one time step. Further investigation is needed to see whether the ML-model in these cases mainly reacts on the last value of the heat demand or not. In addition it would be interesting to see whether it is possible to predict the heat demand for a larger time span than only 6 minutes. 
+In figure \ref{fig:python_seq84} we see the plot of the heat demand according to the Python model and the predictions from the ML-model. Again, the prediction matches the general trend well. However, due to the smaller time granularity, the heat demands contains more variation during the day. This behavior is harder to learn for the ML-model. In some cases the ML-model seems to trail the original data with one time step. Further investigation is needed to see whether the ML-model in these cases mainly reacts on the last value of the heat demand or not. In addition it would be interesting to see whether it is possible to predict the heat demand for a larger time span than only 10 minutes. 
 
 \section{conclusion}
 The LSTM-network has potential to learn a model that mimics the behavior of the Python house model. However, further research is needed after the initial investigations to get more insight in what the model really can do. Training for over more epochs and with longer historic sequences could give better results.  Also further optimization over the different model parameters is possible. 
