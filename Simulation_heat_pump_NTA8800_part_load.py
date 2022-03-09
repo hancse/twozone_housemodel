@@ -9,10 +9,13 @@ from housemodel.solvers.house_model_heat_pump_NTA8800_part_load import house_rad
 
 from housemodel.tools.new_configurator import (load_config,
                                                add_chain_to_k, make_c_inv_matrix)
-from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun
+from housemodel.sourcesink.NEN5060 import run_qsun
 
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
 from housemodel.controls.Temperature_SP import simple_thermostat
+
+from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
+                                                  NENdatehour2datetime)
 
 # import matplotlib
 # matplotlib.use('qt5agg')
@@ -59,7 +62,11 @@ def main(show=False, xl=False):
     UAradiator = house_param["chains"][0]["links"][2]["Conductance"]
     Crad =  house_param["chains"][0]["links"][2]["Capacity"]
 
-    df_nen = nen5060_to_dataframe()
+    # read NEN5060 data from spreadsheet NEN5060-2018.xlsx into pandas DataFrame
+    df_nen = read_nen_weather_from_xl()
+    # generate and insert timezone-aware UTC and local timestamps (with DST)
+    df_nen = NENdatehour2datetime(df_nen)
+
     df_irr = run_qsun(df_nen)
     print(df_irr.head())
 

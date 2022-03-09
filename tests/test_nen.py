@@ -163,6 +163,22 @@ def test_5060_distance():
     plt.suptitle('Validation of NEN5060 AU distance for SE.sun_position_from_datetime vs. PVLIB.get_solarposition (apparent_elevation)')
     plt.show()
 
+def test_5060_airmass():
+    # read NEN5060 data from spreadsheet NEN5060-2018.xlsx "as is" into pandas DataFrame
+    # use first header line as column names
+    df_xl = read_nen_weather_from_xl()
+    # generate and insert timezone-aware UTC and local timestamps (with DST)
+    df_xl = NENdatehour2datetime(df_xl)
+
+    times5060 = df_xl['local_time']
+    # Location of my solar panels:
+    lon_deg = 5.0
+    lat_deg = 52.0
+    lon_rad = 5.0 * se.d2r  # Geographic longitude (>0 for eastern hemisphere; ° -> rad)
+    lat_rad = 52.0 * se.d2r  # Geographic latitude  (>0 for northern hemisphere; ° -> rad)
+
+
+
 
 if __name__ == "__main__":
      test_5060_timestamps()
