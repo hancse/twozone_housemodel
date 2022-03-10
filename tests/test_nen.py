@@ -10,6 +10,9 @@ import numpy as np
 
 import solarenergy as se
 from pvlib.solarposition import get_solarposition, nrel_earthsun_distance
+from pvlib.atmosphere import get_relative_airmass, alt2pres, get_absolute_airmass
+from pvlib.irradiance import get_extra_radiation
+
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Qt5Agg")
@@ -19,7 +22,6 @@ def test_5060_timestamps():
     # read NEN5060 data from spreadsheet NEN5060-2018.xlsx "as is" into pandas DataFrame
     # use first header line as column names
     df_xl = read_nen_weather_from_xl()
-
     # generate and insert timezone-aware UTC and local timestamps (with DST)
     df_xl = NENdatehour2datetime(df_xl)
 
@@ -177,10 +179,51 @@ def test_5060_airmass():
     lon_rad = 5.0 * se.d2r  # Geographic longitude (>0 for eastern hemisphere; ° -> rad)
     lat_rad = 52.0 * se.d2r  # Geographic latitude  (>0 for northern hemisphere; ° -> rad)
 
+    # VALIDATION of solar intensity calculations in PVLIB and solarenergy
+    # PVLIB
+    pos_pv = get_solarposition(times5060, lat_deg, lon_deg, method='nrel_numpy')
+    apparent_zenith = pos_pv['apparent_zenith']
+    am_pv = get_relative_airmass(apparent_zenith, model='young1994')
+    I_extra_pv = get_extra_radiation(times5060, solar_constant=1361.5, epoch_year=2020, method='asce')
 
+    # solarenergy
+    sunAz, sunAlt, sunDist = se.sun_position_from_datetime(lon_rad, lat_rad, times5060)
+    se.airmass(sunAlt)
+    am_se = se.airmass(sunAlt)                 # Air mass for this Sun altitude
+    extFac = se.extinction_factor(am_se)       # Extinction factor at sea level for this air mass
+    I_extra_se = se.sol_const / sunDist ** 2   # Extraterrestrial radiation = Solar constant, scaled with distance
+    DNI_se = I_extra_se / extFac               # DNI for a clear sky
+
+# plot
+    index = range(len(I_extra_se))
+    se_style = dict(linestyle='none', marker='o',
+                    markerfacecolor='none', markeredgecolor='g', markersize=5)
+    pv_style = dict(linestyle='none', marker='.',
+                    markerfacecolor='r', markeredgecolor='r', markersize=3)
+    fig, ax = plt.subplots(3,figsize=(15, 8), sharex=True)
+    ax[0].set_ylabel('Airmass')
+    ax[0].plot(index, am_pv, '.-r', label='PVLIB', **pv_style)
+    ax[0].plot(index, am_se, '.g', label='SE', **se_style)
+
+    ax[1].set_ylabel('DNI [$W/m^2$]')
+    ax[1].plot(index, cs['dni'], '.r')
+    ax[1].plot(index, DNI_cs, '.g')
+
+    ax[2].plot(times2020, dni_extra, '-r')
+    ax[2].plot(times2020, I_ext, '--g')
+    ax[2].set_ylabel('Extra')
+
+    ax[0].legend()
+    # ax[2].legend()
+    # ax[2].set_ylim(-1, 1)
+    # ax[2].set_xlabel('Time')
+    plt.suptitle('Validation of Airmass and DNI SE vs. PVLIB')
+    plt.show()
 
 
 if __name__ == "__main__":
-     test_5060_timestamps()
-     test_5060_positions()
-     test_5060_distance()
+    pass
+    # test_5060_timestamps()
+    # test_5060_positions()
+    # test_5060_distance()
+    # test_5060_airmass()

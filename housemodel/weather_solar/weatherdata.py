@@ -7,20 +7,23 @@ from pytz import timezone
 
 import requests
 from io import StringIO  # , BytesIO
-from typing import Tuple, List
+from typing import Tuple
 
 # Determine the directory where the weather data files are located:
 from pathlib import Path
+
 WEATHERFILEDIR = Path(__file__).absolute().parent
 # The directory where the weather data files are located is the same
 # as where this Python file sits
 NEN5060DIR = Path(__file__).absolute().parent.parent.parent / 'NEN_data'
+
+
 # The directory where the NEN 5060 data files are located is two levels higher
-# as where this Python file sits
+# than where this Python file sits
 
 
 def get_hourly_knmi_weather_from_api(stations: str = '260', vars_to_get: str = 'ALL',
-                    start: str ='2020010101', end: str ='2020020124') -> Tuple:
+                                     start: str = '2020010101', end: str = '2020020124') -> Tuple:
     """get weather data from KNMI hourly data website.
 
     Args:
@@ -43,7 +46,7 @@ def get_hourly_knmi_weather_from_api(stations: str = '260', vars_to_get: str = '
     """
 
     # url knmi hourly data
-    URL= "https://www.daggegevens.knmi.nl/klimatologie/uurgegevens"
+    URL = "https://www.daggegevens.knmi.nl/klimatologie/uurgegevens"
 
     # defining a params dict for the parameters to be sent to the API
     # stns=235:280:260&vars=VICL:PRCP&start=197001001&end=2009081824
@@ -65,14 +68,14 @@ def get_hourly_knmi_weather_from_api(stations: str = '260', vars_to_get: str = '
 
     # conversion to float
     if vars_to_get == 'TEMP' or vars_to_get == 'ALL':
-        df.loc[:, 'T'] /= 10                                # Convert the temperature from 0.1°C -> °C
-        df.loc[:, 'T10N'] /= 10                             # Convert the temperature from 0.1°C -> °C
-        df.loc[:, 'TD'] /= 10                               # Convert the temperature from 0.1°C -> °C
+        df.loc[:, 'T'] /= 10  # Convert the temperature from 0.1°C -> °C
+        df.loc[:, 'T10N'] /= 10  # Convert the temperature from 0.1°C -> °C
+        df.loc[:, 'TD'] /= 10  # Convert the temperature from 0.1°C -> °C
     if vars_to_get == 'SUNR' or vars_to_get == 'ALL':
-        df.loc[:, 'Q'] *= 10000 / 3600                      # Convert the global radiation from J/cm^2 -> W/m^2:
-        df.loc[:, 'SQ'] /= 10                               # convert sunshine from tenths to a fraction between 0 and 1
+        df.loc[:, 'Q'] *= 10000 / 3600  # Convert the global radiation from J/cm^2 -> W/m^2:
+        df.loc[:, 'SQ'] /= 10  # convert sunshine from tenths to a fraction between 0 and 1
     if vars_to_get == 'ALL':
-        df.loc[:,'P'] /= 10
+        df.loc[:, 'P'] /= 10
     return df, explanation
 
 
@@ -100,33 +103,36 @@ def read_hourly_knmi_weather_from_csv(filename, start_date, end_date):
         - datetime (datetime)  Date and time of the entry (UT).
           
     """
-    
+
     # Read the data as a Pandas DataFrame with entries from the start to the end date:
     try:
         knmi_data = pd.read_csv(WEATHERFILEDIR.joinpath(filename), header=28, sep=r'\s*,\s*', engine='python')
     except Exception as e:
         print(e)
         exit(1)
-    
+
     # Convert the YYYYMMDD and HH columns into a datetime-object column with hours in [0,23] rather than
     # in [1,24]:
     knmi_data = KNMIdatehour2datetime(knmi_data)
-    
+
     # Select the data for the desired date range.  Add one hour, since datetime contains the time at which the hour ENDS!
     knmi_data = knmi_data[knmi_data['datetime'] >= start_date + dt.timedelta(hours=1)]  # Date must be >= start_date
-    knmi_data = knmi_data[knmi_data['datetime'] <    end_date + dt.timedelta(hours=1)]  # Date must be < end_date
-    knmi_data = knmi_data.reset_index(drop=True)  # Reset the index so that it starts at 0 again.  Don't keep the original index as a column.
-    
+    knmi_data = knmi_data[knmi_data['datetime'] < end_date + dt.timedelta(hours=1)]  # Date must be < end_date
+    knmi_data = knmi_data.reset_index(
+        drop=True)  # Reset the index so that it starts at 0 again.  Don't keep the original index as a column.
+
     # Slicing below produces a warning telling us to use .loc[], which we are using already(!)
     # - https://stackoverflow.com/a/20627316/1386750
-    pd.options.mode.chained_assignment = None    # Default='warn'
-    knmi_data.loc[:, 'T']  /= 10                 # Convert the temperature at 1.50 m from 0.1°C -> °C.
-    knmi_data.loc[:, 'SQ'][knmi_data.loc[:, 'SQ'] == -1] = 0.25  # Sunshine time == -1 indicates 0 - 0.05 hours, so assume 0.025 hours, expressed in [0.1 hours]
-    knmi_data.loc[:, 'SQ'] /= 10                 # Convert the sunshine time from [0.1 hours] to a fraction (0-1)
-    knmi_data.loc[:, 'Q']  /= 0.36               # Convert the global horizontal radiation from [J/cm2/h] to [W/m2]
+    pd.options.mode.chained_assignment = None  # Default='warn'
+    knmi_data.loc[:, 'T'] /= 10  # Convert the temperature at 1.50 m from 0.1°C -> °C.
+    knmi_data.loc[:, 'SQ'][knmi_data.loc[:,
+                           'SQ'] == -1] = 0.25  # Sunshine time == -1 indicates 0 - 0.05 hours, so assume 0.025 hours, expressed in [0.1 hours]
+    knmi_data.loc[:, 'SQ'] /= 10  # Convert the sunshine time from [0.1 hours] to a fraction (0-1)
+    knmi_data.loc[:, 'Q'] /= 0.36  # Convert the global horizontal radiation from [J/cm2/h] to [W/m2]
     pd.options.mode.chained_assignment = 'warn'  # Back to default
-    
+
     return knmi_data
+
 
 def read_nen_weather_from_xl(xl_tab_name: str = "nen5060 - energie") -> pd.DataFrame:
     """ conversion from NEN5060 spreadsheet tab into Dataframe.
@@ -161,6 +167,7 @@ def read_nen_weather_from_xl(xl_tab_name: str = "nen5060 - energie") -> pd.DataF
 
     return df5060  # pandas Dataframe
 
+
 def read_nen_weather_from_csv():
     """Read the weather data from the NEN 5060 standard.
     
@@ -175,20 +182,21 @@ def read_nen_weather_from_csv():
         - H         (int):    Time in hours, the hourly division 05 runs from 04.00 UT to 5.00 UT.
         - T         (float):  Temperature at 1.50 m at the time of observation (°C).
     """
-    
+
     try:
-        nen_weather_data = pd.read_csv(WEATHERFILEDIR.joinpath('NEN5060-A2a.csv'), header=5, sep=r'\s*,\s*', engine='python')
+        nen_weather_data = pd.read_csv(WEATHERFILEDIR.joinpath('NEN5060-A2a.csv'), header=5, sep=r'\s*,\s*',
+                                       engine='python')
     except Exception as e:
         print(e)
         exit(1)
-    
+
     # Read the data and convert into an array from the start till end date
     nen_weather_data["YYYYMD"] = (nen_weather_data['Y'].astype(str) + nen_weather_data['M'].astype(str)
                                   + nen_weather_data['D'].astype(str))
     nen_weather = nen_weather_data.set_index("YYYYMD", drop=False)
-    
+
     nen_weather['T'] /= 10.0
-    
+
     return nen_weather
 
 
@@ -207,21 +215,21 @@ def calculate_degree_days(mode, temperature_base, weather_range):
     Returns:
         float:  Number of degree days for the selected period.
     """
-    
+
     # Put the temperature in an array:
     temperature = weather_range['T'].values  # Air temperature at 1.50 m in °C.
-    
+
     # Calculate the heating degree days if a temperature is above the base temperature:
     assert mode == "heating" or "cooling", "heating or cooling mode"
-    
+
     if mode == "heating":
-        degree_days = sum(temperature_base  - temperature[temperature<temperature_base])/24   # Number of degree days
-    
+        degree_days = sum(temperature_base - temperature[temperature < temperature_base]) / 24  # Number of degree days
+
     # Calculate the cooling degree hour if a temperature is below the input base temperature
     elif mode == "cooling":
-        
-        degree_days =  sum(temperature[temperature>temperature_base] - temperature_base)/24   # Number of degree days
-    
+
+        degree_days = sum(temperature[temperature > temperature_base] - temperature_base) / 24  # Number of degree days
+
     return degree_days
 
 
@@ -238,30 +246,31 @@ def KNMIdatehour2datetime(knmi_data):
       (Pandas df):  KNMI weather dataframe.
     
     """
-    
+
     from astrotool.date_time import fix_date_time
-    
+
     # Split the YYYYMMDD column into separate numpy arrays:
-    ymd     = knmi_data['YYYYMMDD'].values  # Numpy array
-    years   = np.floor(ymd/1e4).astype(int)
-    months  = np.floor((ymd - years*1e4)/100).astype(int)
-    days    = np.floor(ymd - years*1e4 - months*100).astype(int)
-    
+    ymd = knmi_data['YYYYMMDD'].values  # Numpy array
+    years = np.floor(ymd / 1e4).astype(int)
+    months = np.floor((ymd - years * 1e4) / 100).astype(int)
+    days = np.floor(ymd - years * 1e4 - months * 100).astype(int)
+
     # Create numpy arrays for the time variables:
-    hours   = knmi_data['HH'].values  # Numpy array
+    hours = knmi_data['HH'].values  # Numpy array
     minutes = np.zeros(hours.size)
-    seconds = np.zeros(hours.size) + 0.001  # 1 ms past the hour, to ensure no negative round-off values occur (e.g. 2021,1,1, 0,0,-1e-5 -> 2020,12,31, 23,59,59.99999)
-    
+    seconds = np.zeros(
+        hours.size) + 0.001  # 1 ms past the hour, to ensure no negative round-off values occur (e.g. 2021,1,1, 0,0,-1e-5 -> 2020,12,31, 23,59,59.99999)
+
     # Fix the dates, e.g. turning 2020-12-31 24:00:00 to 2021-01-01 00:00:00:
-    years,months,days, hours,minutes,seconds = fix_date_time(years,months,days, hours,minutes,seconds)
-    
+    years, months, days, hours, minutes, seconds = fix_date_time(years, months, days, hours, minutes, seconds)
+
     # Combine the 1D numpy arrays into a single 2D array with the original arrays as COLUMNS, and convert it to a Pandas df:
-    dts = pd.DataFrame(np.vstack([years,months,days,hours]).transpose(), columns=['year','month','day','hour'])
-    dts = pd.to_datetime(dts, utc=True)    # Turn the columns in the df into a single datetime64[ns] column
-    
+    dts = pd.DataFrame(np.vstack([years, months, days, hours]).transpose(), columns=['year', 'month', 'day', 'hour'])
+    dts = pd.to_datetime(dts, utc=True)  # Turn the columns in the df into a single datetime64[ns] column
+
     # Add the datetime column to the KNMI weather dataframe:
     knmi_data['datetime'] = dts
-    
+
     return knmi_data
 
 
@@ -271,18 +280,15 @@ def NENdatehour2datetime(nen_df: pd.DataFrame):
     The NEN datetime information is expressed in the first four columns of the NEN5060-2018 spreadsheet,
     with names: 'jaar', 'MONTH(datum)', 'DAY(datum)', 'HOUR(uur)'.
     The hour numbering follows the KNMI convention, running from 1-24 rather than from 0-23.
-    This causes problems when converting to Python or Pandas datetime objects.
-    Moreover, the hour numbering is in NAIVE local time (CET),
-    disregarding the DST jumps to and from CEST in March and October. This causes additional problems.
+    KNMI uses NAIVE UTC timestamps. See: https://www.knmidata.nl/data-services/knmi-producten-overzicht
     Remedy:
-    - construct a NAIVE CET Pandas DateTimeIndex from the first four columns in the spreadsheet
+    - construct a NAIVE UTC Pandas DateTimeIndex from the first four columns in the spreadsheet
        Thereby:
-       - subtracting one hour to convert to NAIVE UTC
-       - subtract another hour to convert from KNMI convention (backward average)
+       - subtracting one hour to convert from KNMI convention (backward average)
          to forward average needed for modelling with ODE solver
        Thus:
-       2001 1 1 1 -> 2001-01-01 01:00:00 (NAIVE CET)
-       2001-01-01 01:00:00 -> 2001-01-01 00:00:00 (NAIVE UTC)
+       2001 1 1 1 -> 2001-01-01 01:00:00 (NAIVE UTC, backward)
+       2001-01-01 01:00:00 -> 2001-01-01 00:00:00 (NAIVE UTC, forward)
        In the KNMI tables, using the UTC timestamp at the END of the interval,
        this occurs at YYYYMMDD=20001231 and H=24, averageing the weather from
        2000-12-31 23:00:00 to 2001-01-01 00:00:00
@@ -304,11 +310,11 @@ def NENdatehour2datetime(nen_df: pd.DataFrame):
     nltz = timezone('Europe/Amsterdam')
 
     # convert columns 'jaar', 'MONTH(datum)', 'DAY(datum)', 'HOUR(uur)' into Pandas timestamps
-    # subtracting 2 hours from the 'HOUR(uur)' values (works automatically!)
+    # subtracting 1 hour from the 'HOUR(uur)' values (works automatically!)
     pdt_naive = pd.to_datetime(dict(year=nen_df['jaar'],
                                     month=nen_df['MONTH(datum)'],
                                     day=nen_df['DAY(datum)'],
-                                    hour=nen_df['HOUR(uur)']-2))
+                                    hour=nen_df['HOUR(uur)'] - 1))
     # make NAIVE UTC forward-looking timestamp AWARE
     # Note: this cannot be done inplace because Timestamps are IMMUTABLE
     # Note2: since pdt_naive is a pandas Series object, use Series.dt.tz_localize and Series.dt.tz_convert
@@ -322,15 +328,15 @@ def NENdatehour2datetime(nen_df: pd.DataFrame):
     return nen_df
 
 
-if(__name__ == "__main__"):
+if __name__ == "__main__":
     nltz = timezone('Europe/Amsterdam')
-    start_time   = nltz.localize(dt.datetime(2019,1,1))
-    end_time     = nltz.localize(dt.datetime(2019,1,2))
+    start_time = nltz.localize(dt.datetime(2019, 1, 1))
+    end_time = nltz.localize(dt.datetime(2019, 1, 2))
     weather_knmi = read_hourly_knmi_weather_from_csv("uurgeg_260_2011-2020_Bilt.csv",
-                                                     start_time,end_time)
+                                                     start_time, end_time)
     print(weather_knmi)
     print(calculate_degree_days("heating", 18, weather_knmi))
-    
+
     weather_nen = read_nen_weather_from_csv()
     print(weather_nen)
 
@@ -339,9 +345,7 @@ if(__name__ == "__main__"):
     vars_from_station = 'ALL'
     dfout, exp = get_hourly_knmi_weather_from_api(station_DeBilt, vars_from_station, '2002123101', '2003010224')
     print(dfout)
-    [print(l) for l in exp]
+    [print(line) for line in exp]
 
     df5060 = read_nen_weather_from_xl()
     print(df5060)
-    
-    

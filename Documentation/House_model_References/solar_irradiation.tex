@@ -111,6 +111,38 @@ Voorbeeld timestamp and date\_range in Pandas.
 	\item \textsf{qsun}: longitude and latitude are not input parameters. They are fixed: the chosen location is for De Bilt, NL (52.1 N, 5.1 E).
 \end{itemize}
 
+\subsubsection{Conversion of NEN5060 time information}
+
+In the spreadsheet \emph{NEN5060-2018.xlsx}, shown in Figure~\ref{fig:nen5060}, the first four colums A:D contain the timestamp information. Since the NEN 5060 data is derived from hourly KNMI weather data, it follows the convention of the KNMI records, where the diurnal HOUR data runs from 1-24.  
+The corresponding record of KNMI weather data is given in Figure~\ref{fig:knmi}. KNMI uses UTC timestamps (\url{https://www.knmidata.nl/data-services/knmi-producten-overzicht}) pointing to data from the \emph{previous} hour. These UTC timestamps are coded in the columns YYYYMMDD and H, respectively.
+
+In Listing~\ref{lst:nen2pandas} the conversion from the NEN 5060 spreadsheet colums, read into a Pandas Dataframe, is shown. The function \textsf{pandas.to\_datetime} correctly handles an offset of $-1\, h$, thereby changing the hour range to 0-23. Thus, the Pandas Timestamps refer to the \emph{following} hour period.
+The Pandas Timestamps thus obtained are still \emph{naive}. Conversion to \emph{timezone-aware} UTC Timestamps is done by the \textsf{tz\_localize} function, which uses a timezone from the \textsf{pytz} package. The \emph{timezone-aware} UTC Timestamps can be converted to the timezone "Europe/Amsterdam" by calling the \textsf{tz\_localize} function again. In the local Dutch Timestamps, the Daylight Savings Time (DST) is automatically included. columns with a Pandas UTC and local timestamp are inserted at the beginning of the NEN 5060 DataFrame.
+
+\begin{figure}[H]
+	\begin{subfigure}{.7\textwidth}
+		\centering
+		% include first image
+		\includegraphics[width=.8\linewidth]{Pictures/NEN5060.png}  
+		\caption{NEN 5060 spreadsheet (detail)}
+		\label{fig:nen5060}
+	\end{subfigure}
+	\begin{subfigure}{.3\textwidth}
+		\centering
+		% include second image
+		\includegraphics[width=.8\linewidth]{Pictures/KNMI.png}  
+		\caption{KNMI hourly data in csv format (detail)}
+		\label{fig:knmi}
+	\end{subfigure}
+	\caption{NEN 5060 spreadsheet and parent KNMI hourly weather record.}
+	\label{fig:fig}
+\end{figure}
+
+
+\lstinputlisting[label=lst:nen2pandas, linerange={277-277, 308-328}, 
+caption={Conversion of NEN5060 timestamp to timezone-aware Pandas Timestamp}] 
+{C:/Data/PROJECTS_NOVA/MCSE@BTO/FUTUREFACTORY/twozone_housemodel-git/housemodel/weather_solar/weatherdata.py}
+
 \subsubsection{Gregorian and Julian time}
 
 Today's calendar is the Gregorian calendar, introduced by pope Gregory XIII in 1582. This calendar refines the use of leap years, compared to its predecessor, the Julian calendar, introduced by Julius Caesar in 45 B.C. \cite{timeanddate}. In the transition process in October 1582, 10 days had to be skipped. It is clear that this time gap was good for society (finally, Turkey introduced the Gregorian calendar in 1926!), but not for astronomy. That is why astronomers kept using the Julian calendar - between 1582 and 1926 - and ever since. That means they have to define a new epoch every 50 years, to compensate for the imperfections of the Julian calendar. The big advantage is that the planets have kept their undisturbed orbits and that the Harmony of the Spheres is still in sync with ancient times.
