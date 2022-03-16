@@ -92,7 +92,7 @@ def main(show=False, xl=False):
     Qint = Qint.flatten()
     Qinternal_sim = Qint[0:days_sim*24]
 
-    Toutdoor = df_nen.loc[:, 'temperatuur'].values / 10.0
+    Toutdoor = df_nen.loc[:, 'temperatuur'].values
     Toutdoor = Toutdoor.flatten()   # temperature
     T_outdoor_sim = Toutdoor[0:days_sim*24]
 
