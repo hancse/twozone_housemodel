@@ -977,13 +977,8 @@ it is clear that in this example, where multiple nodes in the thermal network ar
 
 \subsection{3R3C model}
 
-The 2R2C model as represented in \ref{fig:elec2R2C} treats the node of the outside temperature ($T_{amb}$) differently from the other nodes, $T_{air}$ and $T_{walls}$.  This representation is inconsistent, and actually incomplete. Implicitly, the model links a source/sink to the node that controls the outdoor temperature. In literature, one can find models in which this source has been made explicit, such as in \cite{achterbos}. It seems that this representation has been lost over time. 
+The previous 3R2C model representation necessitates an \emph{ad hoc} term in the heat supply vector $\mathbf{\dot{q}}$. Analogous to Section~\ref{sec:2R3C}, we can include the ambient surroundings as a (large) heat capacity into the model. This will change the 3R2C model into a 3R3C model. The equations become:
 
-In order to complete the analogy with the other nodes in the model we can connect an additional capacitor ($C_{amb}$). The capacity will be tending to infinity, as we assume the outside temperature does not  change due to heat exchange with the house.
-
-\todo{todo:figure including a source and capacitor}
-
-Adding the capacitor and the source also will change the equations. Actually, it results in a more structured set of equations. The equations will be as follows:
 \begin{equation}
 	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
 	\begin{bmatrix}
@@ -999,12 +994,25 @@ Adding the capacitor and the source also will change the equations. Actually, it
 	\end{bmatrix}
 \end{equation}
 
+For $\mathbf{K}$ we can start with filling out the non-diagonal symmetic matrix elements:
+
+\begin{equation}
+		\mathbf{K} =
+	\begin{bmatrix}
+		0  & \frac{-1}{R_{amb,air}} & \frac{-1}{R_{amb,wall}}  \\
+		\frac{-1}{R_{amb, air}} &  0 &  \frac{-1}{R_{air,wall}} \\
+		\frac{-1}{R_{amb,wall}} & \frac{-1}{R_{air, wall}}  & 0 
+	\end{bmatrix}
+\end{equation}
+
+Then we can complete the diagonal elements, so that the sum over each row becomes zero:
+
 \begin{equation}
 	\mathbf{K} \cdot \boldsymbol{\theta} =
 	\begin{bmatrix}
-		\frac{1}{R_{amb, air}}  & \frac{-1}{R_{amb,air}} & 0  \\
+		\frac{1}{R_{amb, air}} + \frac{1}{R_{air,wall}}  & \frac{-1}{R_{amb,air}} & \frac{-1}{R_{amb,wall}}  \\
 		\frac{-1}{R_{amb, air}} &  \frac{1}{R_{amb, air}} + \frac{1}{R_{air,wall}} &  \frac{-1}{R_{air,wall}} \\
-		0 & \frac{-1}{R_{air, wall}}  & \frac{1}{R_{air,wall}} 
+		\frac{-1}{R_{amb,wall}} & \frac{-1}{R_{air, wall}}  & \frac{1}{R_{amb, wall}} + \frac{1}{R_{air,wall}} 
 	\end{bmatrix}
 	\cdot
 	\begin{bmatrix}
@@ -1023,16 +1031,6 @@ Adding the capacitor and the source also will change the equations. Actually, it
 	\end{bmatrix}
 \end{equation}
 
-In the equations we now see that the matrix $K$ represents the interaction between the different heat capacities.  The off-diagonal elements are equal to (minus) conductance factor $\frac{-1}{R}$ between the respective connected nodes. The structure of $K$ is such that the sum over the rows will always be zero, where the diagonal elements equal the negative sum of the off-diagonal elements.
-
-The vector $\dot{q}$ contains all heat sources (and sinks). 
-
-Generalizing the idea above, alternative models can be easily constructed using an underlying graph. In the graph each node is labeled with a heat capacity $C_i$, and temperature $T_i$. Nodes $i$ and $j$ can be connected by an edge labeled with $R_{i,j}$, where $\frac{1}{R_{i,j}}$ represents the heat conductance between the two nodes. The $K$-matrix is the connectivity matrix of the graph, where $K_{i,j} = \frac{-1}{R_{i,j}}$. The diagonal elements, $K{i,i}$ are set such that the sums over the rows will be equal to zero.
-
-
-Additionally, each node can be connected to a source (or sink). Two types of sources are available. A "temperature source" represents a source that will keep the temperature of the connected node constant. This source type can be used to set the ambient temperature.   
-
-A heat source represents a source that will provide a continuous constant energy flow into the node. This source type can be used to represent the inflow of energy by for example the sun. 
 
 
 \subsection{Package "housemodel"}
