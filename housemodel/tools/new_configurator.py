@@ -62,7 +62,6 @@ the parameters c_internal_mass, th_internal_mass and rho_internal_mass
                the indices to these lists are N_internal_mass an N_facade
 """
 
-
 # It is assumed that furniture and the surface part of the walls have the same temperature
 # as the air and the wall mass is divided between the air and wall mass.
 # Thus, the Heat capacity of the air node consists of the air heat capacity,
@@ -70,40 +69,6 @@ the parameters c_internal_mass, th_internal_mass and rho_internal_mass
 # Appendix I presents the coefficients in the dwelling model.
 # In the resistance Rair_outdoor the influence of heat transmission through the outdoor walls
 # and natural ventilation is considered.
-
-
-def calculateRC(hp: dict):
-    """
-
-    Args:
-        hp:
-
-    Returns:
-        Rair_wall :
-        Cwall :
-        Rair_outdoor :
-        Cair :
-    """
-    # assignment to local variables from hp: dict 
-    Rair_outdoor = 1.0 / hp['chains'][0]['links'][0]['Conductance']
-    Cair = hp['chains'][0]['links'][0]['Capacity']
-    Rair_wall = 1.0 / hp['chains'][0]['links'][1]['Conductance']
-    Cwall = hp['chains'][0]['links'][1]['Capacity']
-
-    return Rair_wall, Cwall, Rair_outdoor, Cair
-
-
-def make_c_matrix(capacity_list: list):
-    """make the diagonal C matrix.
-
-    Args:
-        capacity_list: list of node thermal capacities
-    Returns:
-        (array): diagonal 2d array with thermal capacities
-    """
-    cap_array = np.array(capacity_list)
-    return np.diag(cap_array, k=0)
-
 
 def make_c_inv_matrix(capacity_list: list):
     """make the reciprocal (inverse) of the diagonal C matrix.
@@ -117,46 +82,6 @@ def make_c_inv_matrix(capacity_list: list):
     cap_array = np.array(capacity_list)
     cap_array_reciprocal = np.reciprocal(cap_array)
     return np.diag(cap_array_reciprocal, k=0)
-
-
-def make_k_matrix(conductance_list):
-    """make the K matrix.
-
-    Args:
-        conductance_list: list of connecting thermal conductances
-
-    Returns:
-       (array): diagonal 2d array with thermal conductances
-
-    Hint: use numpy.negative or unary minus operator (-)
-    """
-    cond_array = np.array(conductance_list)
-    up_low = cond_array[1:]
-    up_low_padded = np.pad(up_low, (0, 1))
-    # adding [0] for now, more elegant solution? numpy.pad?
-    main_diag = np.add(cond_array, up_low_padded)
-    diagonals = [main_diag, up_low, -up_low]
-    return diags(diagonals, [0, 1, -1]).toarray()
-
-
-def make_k_minus_matrix(conductance_list):
-    """make the negative of the K matrix.
-
-    Args:
-        conductance_list: list of connecting thermal conductances
-
-    Returns:
-       (array): diagonal 2d array with thermal conductances
-
-    Hint: use numpy.negative or unary minus operator (-)
-    """
-    cond_array = np.array(conductance_list)
-    up_low = cond_array[1:]
-    up_low_padded = np.pad(up_low, (0, 1))
-    # adding [0] for now, more elegant solution? numpy.pad?
-    main_diag = np.add(cond_array, up_low_padded)
-    diagonals = [-1.0 * main_diag, up_low, -up_low]
-    return diags(diagonals, [0, 1, -1]).toarray()
 
 
 def add_chain(C_mat, new_c_element,
@@ -240,3 +165,79 @@ if __name__ == "__main__":
     print()
     for row in new_q:
         print('  '.join(map(str, row)))
+
+""" obsolete code
+
+def calculateRC(hp: dict):
+    
+    # marked for OBSOLESCENCE !!!!!!!
+    Args:
+        hp:
+
+    Returns:
+        Rair_wall :
+        Cwall :
+        Rair_outdoor :
+        Cair :
+    
+    # assignment to local variables from hp: dict 
+    Rair_outdoor = 1.0 / hp['chains'][0]['links'][0]['Conductance']
+    Cair = hp['chains'][0]['links'][0]['Capacity']
+    Rair_wall = 1.0 / hp['chains'][0]['links'][1]['Conductance']
+    Cwall = hp['chains'][0]['links'][1]['Capacity']
+
+    return Rair_wall, Cwall, Rair_outdoor, Cair
+    
+    
+def make_c_matrix(capacity_list: list):
+    # make the diagonal C matrix. marked as OBSOLETE
+
+    # Args:
+      #   capacity_list: list of node thermal capacities
+    # Returns:
+      #  (array): diagonal 2d array with thermal capacities
+    
+    cap_array = np.array(capacity_list)
+    return np.diag(cap_array, k=0)
+    
+    
+def make_k_matrix(conductance_list):
+    # make the K matrix.
+
+    # Args:
+     #   conductance_list: list of connecting thermal conductances
+
+    # Returns:
+      #  (array): diagonal 2d array with thermal conductances
+
+    # Hint: use numpy.negative or unary minus operator (-)
+    
+    cond_array = np.array(conductance_list)
+    up_low = cond_array[1:]
+    up_low_padded = np.pad(up_low, (0, 1))
+    # adding [0] for now, more elegant solution? numpy.pad?
+    main_diag = np.add(cond_array, up_low_padded)
+    diagonals = [main_diag, up_low, -up_low]
+    return diags(diagonals, [0, 1, -1]).toarray()
+    
+    
+def make_k_minus_matrix(conductance_list):
+    # make the negative of the K matrix.
+
+    # Args:
+      #  conductance_list: list of connecting thermal conductances
+
+    # Returns:
+     #  (array): diagonal 2d array with thermal conductances
+
+    # Hint: use numpy.negative or unary minus operator (-)
+
+    cond_array = np.array(conductance_list)
+    up_low = cond_array[1:]
+    up_low_padded = np.pad(up_low, (0, 1))
+    # adding [0] for now, more elegant solution? numpy.pad?
+    main_diag = np.add(cond_array, up_low_padded)
+    diagonals = [-1.0 * main_diag, up_low, -up_low]
+    return diags(diagonals, [0, 1, -1]).toarray()  
+    
+"""

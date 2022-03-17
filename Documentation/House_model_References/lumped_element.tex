@@ -773,9 +773,10 @@ In this example, it becomes visible (in red) that the rank of the $C$- and $K$-m
 %\usepackage{xcolor}
 
 \subsection{2R2C revisited: 2R3C}
+\label{sec:2R3C}
 The 2R2C model as represented in \ref{fig:elec2R2C} treats the node of the outside temperature ($T_{amb}$) differently from the other nodes, $T_{air}$ and $T_{walls}$.  This representation is inconsistent, and actually incomplete. Implicitly, the model links a source/sink to the node that controls the outdoor temperature. In literature, one can find models in which this source has been made explicit, such as in \cite{achterbos}. It seems that this representation has been lost over time. 
 
-In order to complete the analogy with the other nodes in the model we can connect an additional capacitor ($C_amb$). The capacity will be tending to infinity, as we assume the outside temperature not to change due to heat exchange with the house.
+In order to complete the analogy with the other nodes in the model we can connect an additional capacitor ($C_{amb}$). The capacity will be tending to infinity, as we assume the outside temperature does not  change due to heat exchange with the house.
 
 \todo{todo:figure including a source and capacitor}
 
@@ -799,7 +800,7 @@ Adding the capacitor and the source also will change the equations. Actually, it
 	\mathbf{K} \cdot \boldsymbol{\theta} =
 	\begin{bmatrix}
 		\frac{1}{R_{amb, air}}  & \frac{-1}{R_{amb,air}} & 0  \\
-		\frac{-1}{R_{amb, air}} &  \frac{1}{R_{01}} + \frac{1}{R_{air,wall}} &  \frac{-1}{R_{air,wall}} \\
+		\frac{-1}{R_{amb, air}} &  \frac{1}{R_{amb, air}} + \frac{1}{R_{air,wall}} &  \frac{-1}{R_{air,wall}} \\
 		 0 & \frac{-1}{R_{air, wall}}  & \frac{1}{R_{air,wall}} 
 	\end{bmatrix}
 	\cdot
@@ -833,6 +834,205 @@ A heat source represents a source that will provide a continuous constant energy
 \subsubsection{example: 2R-2C house with buffer}
 
    
+\subsection{3R2C model}
+
+For an apartment building, the simplest model has two nodes with a finite heat capacity, the interior and the building construction. Both nodes have a finite thermal resistance to the ambient environment. Finally there is a thermal resistance between the nodes. Graphically, the model is represented by Figure~\ref{fig:3R2C}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\columnwidth]{Pictures/3R2Cmodel}
+	\caption[Short title]{3R-2C house model}
+	\label{fig:3R2C}
+\end{figure} 
+
+The differential equations are:
+
+\begin{equation}
+	\begin{aligned}
+		C_{air}\frac{dT_{air}}{dt} &=\frac{T_{amb}-T_{air}}{R_{air, amb}} + \frac{T_{wall}-T_{air}}{R_{air, wall}} + \dot{Q}_{heat, air} + \dot{Q}_{int, air} + \dot{Q}_{solar, air} 
+		\\ \\
+		C_{wall}\frac{dT_{wall}}{dt} &=\frac{T_{air}-T_{wall}}{R_{air, wall}} + \frac{T_{amb}-T_{wall}}{R_{wall, amb}} +\dot{Q}_{solar, wall}
+	\end{aligned}
+\end{equation}
+
+Writing out the differential equations in the classical notation:
+
+\begin{equation}
+	\begin{aligned}
+		C_{air}\frac{dT_{air}}{dt} &= \left[ \frac{-1}{R_{air, amb}} + \frac{-1}{R_{air, wall}} \right]  \cdot T_{air}  + \frac{1}{R_{air, wall}} \cdot T_{wall} + \frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air} + \dot{Q}_{int, air} + \dot{Q}_{solar, air} 
+		\\ \\
+		C_{wall}\frac{dT_{wall}}{dt} &= \frac{1}{R_{air, wall}} \cdot T_{air} + \left[ \frac{-1}{R_{wall, amb}} + \frac{-1}{R_{air, wall}} \right]  \cdot T_{wall} + \frac{1}{R_{wall, amb}} \cdot T_{amb} + \dot{Q}_{solar, wall}
+	\end{aligned}
+\end{equation}
+
+The differential equations can be written in matrix notation as:
+
+\begin{subequations}
+	\label{eq:matnot}
+	\begin{align}
+		\mathbf{C} \cdot \boldsymbol{\dot{\theta}} = - \mathbf{K} \cdot \boldsymbol{\theta} + \mathbf{\dot{q}} \\ 
+		\mathbf{C} \cdot \boldsymbol{\dot{\theta}} + \mathbf{K} \cdot \boldsymbol{\theta} = \mathbf{\dot{q}}
+	\end{align}
+\end{subequations}
+
+with:
+
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{air} & 0 \\
+		0 &  C_{wall}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{air}}{dt} \\
+		\frac{dT_{wall}}{dt}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{air, amb}} + \frac{1}{R_{air, wall}} & \frac{-1}{R_{air, wall}} \\
+		\frac{-1}{R_{air, wall}} &  \frac{1}{R_{wall, amb}} + \frac{1}{R_{air, wall}}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{air} \\
+		T_{wall}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air} + \dot{Q}_{int, air} + \dot{Q}_{solar, air} \\
+		\frac{1}{R_{wall, amb}} \cdot T_{amb} + \dot{Q}_{solar, wall}
+	\end{bmatrix}
+\end{equation}
+
+Written out, the differential equation according to \eqref{eq:matnot} becomes:
+
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			C_{air} & 0 \\
+			0 &  C_{wall}
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			\frac{dT_{air}}{dt} \\
+			\frac{dT_{wall}}{dt}
+		\end{bmatrix}
+		=
+		\begin{bmatrix}
+			\frac{-1}{R_{air, amb}} + \frac{-1}{R_{air, wall}} & \frac{1}{R_{air, wall}} \\
+			\frac{1}{R_{air, wall}} &  \frac{-1}{R_{wall, amb}} + \frac{-1}{R_{air, wall}}
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			T_{air} \\
+			T_{wall}
+		\end{bmatrix}
+		+ \\ \\
+		\begin{bmatrix}
+			\frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air} + \dot{Q}_{int, air} + \dot{Q}_{solar, air} \\
+			\frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{solar, wall}
+		\end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+In the alternative notation:
+
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			C_{air} & 0 \\
+			0 &  C_{wall}
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			\frac{dT_{air}}{dt} \\
+			\frac{dT_{wall}}{dt}
+		\end{bmatrix}
+		+
+		\begin{bmatrix}
+			\frac{1}{R_{air, amb}} + \frac{1}{R_{air, wall}} & \frac{-1}{R_{air, wall}} \\
+			\frac{-1}{R_{air, wall}} &  \frac{1}{R_{wall, amb}} + \frac{1}{R_{air, wall}}
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			T_{air} \\
+			T_{wall}
+		\end{bmatrix}
+		= \\ \\
+		\begin{bmatrix}
+			\frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air} + \dot{Q}_{int, air} + \dot{Q}_{solar, air} \\
+			\frac{1}{R_{wall, amb}} \cdot T_{amb} + \dot{Q}_{solar, wall}
+		\end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+it is clear that in this example, where multiple nodes in the thermal network are connected to the ambient surroundings, the approach of Section~\ref{sec:2R3C} becomes more adventageous:
+
+\subsection{3R3C model}
+
+The 2R2C model as represented in \ref{fig:elec2R2C} treats the node of the outside temperature ($T_{amb}$) differently from the other nodes, $T_{air}$ and $T_{walls}$.  This representation is inconsistent, and actually incomplete. Implicitly, the model links a source/sink to the node that controls the outdoor temperature. In literature, one can find models in which this source has been made explicit, such as in \cite{achterbos}. It seems that this representation has been lost over time. 
+
+In order to complete the analogy with the other nodes in the model we can connect an additional capacitor ($C_{amb}$). The capacity will be tending to infinity, as we assume the outside temperature does not  change due to heat exchange with the house.
+
+\todo{todo:figure including a source and capacitor}
+
+Adding the capacitor and the source also will change the equations. Actually, it results in a more structured set of equations. The equations will be as follows:
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{amb} & 0 & 0\\
+		0 &  C_{air} & 0   \\
+		0 & 0 & C_{wall} 
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{amb}}{dt} \\
+		\frac{dT_{air}}{dt} \\
+		\frac{dT_{wall}}{dt} 
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{amb, air}}  & \frac{-1}{R_{amb,air}} & 0  \\
+		\frac{-1}{R_{amb, air}} &  \frac{1}{R_{amb, air}} + \frac{1}{R_{air,wall}} &  \frac{-1}{R_{air,wall}} \\
+		0 & \frac{-1}{R_{air, wall}}  & \frac{1}{R_{air,wall}} 
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{amb} \\
+		T_{air} \\
+		T_{wall}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\dot{Q}_{amb}\\
+		\dot{Q}_{air} \\
+		\dot{Q}_{wall} 
+	\end{bmatrix}
+\end{equation}
+
+In the equations we now see that the matrix $K$ represents the interaction between the different heat capacities.  The off-diagonal elements are equal to (minus) conductance factor $\frac{-1}{R}$ between the respective connected nodes. The structure of $K$ is such that the sum over the rows will always be zero, where the diagonal elements equal the negative sum of the off-diagonal elements.
+
+The vector $\dot{q}$ contains all heat sources (and sinks). 
+
+Generalizing the idea above, alternative models can be easily constructed using an underlying graph. In the graph each node is labeled with a heat capacity $C_i$, and temperature $T_i$. Nodes $i$ and $j$ can be connected by an edge labeled with $R_{i,j}$, where $\frac{1}{R_{i,j}}$ represents the heat conductance between the two nodes. The $K$-matrix is the connectivity matrix of the graph, where $K_{i,j} = \frac{-1}{R_{i,j}}$. The diagonal elements, $K{i,i}$ are set such that the sums over the rows will be equal to zero.
+
+
+Additionally, each node can be connected to a source (or sink). Two types of sources are available. A "temperature source" represents a source that will keep the temperature of the connected node constant. This source type can be used to set the ambient temperature.   
+
+A heat source represents a source that will provide a continuous constant energy flow into the node. This source type can be used to represent the inflow of energy by for example the sun. 
 
 
 \subsection{Package "housemodel"}

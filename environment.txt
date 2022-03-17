@@ -20,6 +20,9 @@ conda install -c pytorch pytorch
 
 conda install pytest
 conda install colored-traceback
+
+conda install networkx
+
 conda list
 
 
