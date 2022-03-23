@@ -15,6 +15,7 @@ the module performs the following tasks:
 import numpy as np
 import yaml
 from scipy.sparse import diags  # , spdiags
+import networkx as nx
 
 """
 The predefined variables are now defined in a configuration file
@@ -84,6 +85,26 @@ def make_c_inv_matrix(capacity_list: list):
     return np.diag(cap_array_reciprocal, k=0)
 
 
+def make_edges(edge_list):
+    """
+
+    Args:
+        e: list with edge info [source_node (int), target_node (int), weight (float)]
+
+    Returns:
+        K_matrix (ndarray):  2D matrix with conductances in network
+    """
+    G = nx.Graph()
+    for e in edge_list:
+        t = tuple(e)
+        G.add_weighted_edges_from([t])
+    A = nx.adjacency_matrix(G)
+    B = A.toarray()
+    row_sums = np.sum(B, axis=1).tolist()
+    K_matrix = B - np.diag(np.array(row_sums), k=0)
+    return K_matrix
+
+
 def add_chain(C_mat, new_c_element,
               K_mat, new_k_element, anchor,
               q_vect, new_q_element):
@@ -136,6 +157,10 @@ def add_chain_to_k(K_mat, new_k_element, anchor):
 
 
 if __name__ == "__main__":
+    lines = load_config(str("edges.yaml"))
+    Kmat = make_edges(lines['edges'])
+    print(Kmat)
+
     C = np.array([[1.0, 0.0],
                   [0.0, 2.0]])
     K = np.array([[0.1, 0.0],

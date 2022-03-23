@@ -1,0 +1,23 @@
+nodes:
+  - 
+    name: ambient
+    capacity: 1.0E+12  # J/K: C0
+  -
+    name: groundfloor
+    capacity: 8.59E+06 # J/K: C1
+  -
+    name: lowerwall
+    capacity: 4.68E+07 # J/K: C2
+  - 
+    name: firstfloor
+    capacity: 8.59E+06 # J/K: C3
+  -
+    name: upperwall
+    capacity: 4.68E+07 # J/K: C4
+    
+edges:
+  - [0, 1, 201.9611831]  # W/K : 1/R1
+  - [0, 3, 201.9611831]  # W/K : 1/R1
+  - [1, 2, 201.9611831]  # W/K : 1/R1
+  - [2, 3, 201.9611831]  # W/K : 1/R1
+  - [3, 4, 201.9611831]  # W/K : 1/R1
