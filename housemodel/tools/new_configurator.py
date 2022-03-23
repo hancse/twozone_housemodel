@@ -157,7 +157,7 @@ def add_chain_to_k(K_mat, new_k_element, anchor):
 
 
 if __name__ == "__main__":
-    lines = load_config(str("edges.yaml"))
+    lines = load_config(str("excel_for_companies_nodes_and_edges.yaml"))
     Kmat = make_edges(lines['edges'])
     print(Kmat)
 
@@ -177,6 +177,8 @@ if __name__ == "__main__":
     for row in new_C:
         print('  '.join(map(str, row)))
     print()
+    for row in new_q:
+        print('  '.join(map(str, row)))
 
     for row in K:
         print('  '.join(map(str, row)))
@@ -188,8 +190,6 @@ if __name__ == "__main__":
     for row in q:
         print('  '.join(map(str, row)))
     print()
-    for row in new_q:
-        print('  '.join(map(str, row)))
 
 """ obsolete code
 
