@@ -14,7 +14,7 @@ the module performs the following tasks:
 """
 import numpy as np
 import yaml
-from scipy.sparse import diags  # , spdiags
+# from scipy.sparse import diags  # , spdiags
 import networkx as nx
 
 """
