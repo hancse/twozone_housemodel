@@ -11,8 +11,8 @@ from housemodel.controls.heating_curves import hyst, outdoor_reset
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
 import housemodel.tools.ReturnTemperature as Tr
 q_o=1   # [kW] Desing (peak) heat demand rate
-Ts_o=50 # [°C] Design radiator supply temperature
-Tr_o=30 # [°C] Design radiator return temperature
+Ts_o=80 # [°C] Design radiator supply temperature
+Tr_o=60 # [°C] Design radiator return temperature
 Ti_o=20 # [°C] Design indoor (set) temperature
 n=1.3   # [-]  Emprical radiator constant
 
@@ -123,7 +123,8 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     y0 = [Tair0, Twall0]
     y0buffervessel = [TBuffervessel0, TBuffervessel0, TBuffervessel0, TBuffervessel0, TBuffervessel0, TBuffervessel0, TBuffervessel0, TBuffervessel0]
 
-    t = time_sim           # Define Simulation time with sampling time
+    # Define Simulation time with sampling time and get the containers for the data
+    t = time_sim
     Tair = np.ones(len(t)) * Tair0
     Twall = np.ones(len(t)) * Twall0
     Treturn = np.ones(len(t)) * Twall0
@@ -151,20 +152,6 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     pid.setBounds(0, 300000)
     pid.setWindup(300000/control_interval)
 
-    # Heat pump initialization
-    nta = Heatpump_NTA()
-    nta.Pmax = 8
-    nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
-
-    nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
-                                  nta.cal_COP_val, order=1)
-
-    nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
-                                  nta.cal_Pmax_val, order=1)
-
-    water_temp = np.zeros_like(T_outdoor_sim)
-    cop_hp = np.zeros_like(T_outdoor_sim)
-
     # define hysteresis object for heat pump
     hp_hyst = hyst(dead_band=0.5, state=True)
 
@@ -183,32 +170,19 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         pid.update(Tair[i], t[i])
         Qinst = pid.output
 
-        # Simple PID controller
-        # Qinst = (SP_T[i] - Tair[i]) * 5000
-        # Qinst = np.clip(Qinst, 0, 5000)
-        # q_vector[2, i] = Qinst
-
-        # Velocity PID controller (not working properly)
-        # heating  = heatingPID.update(t[i], SP_T[i], Tair[i], heating)
-        # print(f"{heating}")
-        # heating  = heatingPID.update(t[i], SP_T[i], Tair[i], heating)
-        # print(f"{heating}")
-        # q_vector[2, i] = heating
-
-        # Heat pump NTA800
-        # p_hp = 0
-        # determine new setting for COP and heat pump power
-        water_temp[i] = outdoor_reset(T_outdoor_sim[i], 0.7, 20)
-        cop_hp[i], p_hp = nta.update(T_outdoor_sim[i], water_temp[i])
-
         # incorporate hysteresis to control
-        p_hp = hp_hyst.update(Tair[i], SP_T[i], p_hp)
+        Qinst = hp_hyst.update(Tair[i], SP_T[i], Qinst)
         if Qinst<2500:
             Qinst = 0
 
-        Tr_GMTD = Tr.Tr_GMTD(Qinst/1000, 80, 20, 50, 80, 60, 20, 1.33)
+        # Calculate the resturn temperature
+        Tr_AMTD = Tr.Tr_AMTD(Qinst/1000, 80, 20, 300, 80, 60, 20, 1.33)
 
-
+        #Calculate the supply and demand waterflow for the buffervessel
+        toplevel = TBuffervessel1[i]
+        #Supply is
+        mdots = np.clip((80 - toplevel)*0.001*48, 0, 0.05*48)
+        mdotd = np.clip(Qinst / ((TBuffervessel1[i]-Tr_AMTD)*4180*48), 0, 0.05*48)
 
         # update q_vector
         q_vector[0, i] = q_vector[0, i] + Qinst
@@ -218,17 +192,14 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
                         method='RK45', args=inputs,
                         first_step=control_interval)
 
-        toplevel = TBuffervessel1[i]
-        mdots = np.clip((80 - toplevel)*0.001*48, 0, 0.05*48)
-        mdotd = np.clip(Qinst / ((TBuffervessel1[i]-Tr_GMTD)*4180*48), 0, 0.05*48)
-        inputs_buffervessel = (0.12, 4.1, 4, 20, 80, Tr_GMTD, 4190, 0.644, mdots, mdotd, 10000 / 8, 2.5 / 8)
+        inputs_buffervessel = (0.12, 4.1, 4, 20, 80, Tr_AMTD, 4190, 0.644, mdots, mdotd, 10000 / 8, 2.5 / 8)
         result_buffervessel = solve_ivp(model_stratified_buffervessel, ts, y0buffervessel, method='RK45', args=inputs_buffervessel,
                         first_step=control_interval)
 
-
+        # Write data into the containers
         Tair[i+1] = result.y[0, -1]
         Twall[i+1] = result.y[1, -1]
-        Treturn[i] = Tr_GMTD
+        Treturn[i] = Tr_AMTD
         Power[i] = Qinst
         TBuffervessel1[i+1] = result_buffervessel.y[0, -1]
         TBuffervessel2[i+1] = result_buffervessel.y[1, -1]
@@ -239,10 +210,10 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         TBuffervessel7[i+1] = result_buffervessel.y[6, -1]
         TBuffervessel8[i+1] = result_buffervessel.y[7, -1]
 
-
+        #Use last result as a initial value for the ext step
         y0 = result.y[:, -1]
         y0buffervessel = result_buffervessel.y[:, -1]
 
 
-    return t, Tair, Twall, Treturn, Power, water_temp, cop_hp, TBuffervessel1, TBuffervessel2, TBuffervessel3, TBuffervessel4, TBuffervessel5, TBuffervessel6, TBuffervessel7, TBuffervessel8
+    return t, Tair, Twall, Treturn, Power, TBuffervessel1, TBuffervessel8
 
