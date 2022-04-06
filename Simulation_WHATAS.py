@@ -55,12 +55,9 @@ def main(show=False, xl=False):
 
     cond_mat = add_chain_to_k(np.array([cond_list[0]]), cond_list[1], 0)
 
-    leak_contruction = 4 * house_param["chains"][0]["links"][0]["Conductance"]
+    leak_construction = 4 * house_param["chains"][0]["links"][0]["Conductance"]
 
-    cond_mat[1,1] += leak_contruction
-
-
-
+    cond_mat[1,1] += leak_construction
 
     print(days_sim)
 
