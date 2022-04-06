@@ -6,9 +6,65 @@ import matplotlib
 matplotlib.use('qt5agg')
 import matplotlib.pyplot as plt
 
+class StratifiedBuffer():
+    """parent class for cylindrical stratified buffer vessel
 
-def model_buffervessel(t, x, Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
-    """model function for scipy.integrate.odeint.
+    """
+    def __init__(self, n_layers: int, hot_node, cold_node):
+        # super.__init__()
+        self.n_layers = n_layers
+        self.hot_node = hot_node    # anchor point of hot water supply to house model
+        self.cold_node = cold_node  # anchor point of cold water return from house model
+        self.ratio = None
+        self.volume = None
+        self.uwall = None
+        self.lambda_water = 0.644  # W/mK
+        self.cp_water = 4190       # J/kgK
+        self.rho = 1000            # kg/m^3
+        self.temperatures = None
+
+    def set_ratio(self, ratio):
+        """
+
+        Args:
+            ratio: ratio between height and diameter of (cylindrical) vessel
+
+        Returns:
+            None
+        """
+        self.ratio = ratio
+
+    def set_volume(self, vol):
+        self.volume = vol
+
+    def set_uwall(self, u):
+        self.uwall = u
+
+    def set_temperatures(self, T):
+        T = np.asarray(T)
+        # check if length of array equals n_layers!
+        self.temperatures = T
+
+
+    def model_buffervessel(self, t, x, Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
+        """single-layer cylindrical buffer vessel
+
+        Args:
+            x:
+            Pin:
+            U:
+            A:
+            T_amb:
+            rho:
+            volume:
+            cp:
+            flux:
+            Twaterin:
+
+        Returns:
+
+        """
+        """model function for scipy.integrate.odeint.
 
     :param x:            (array):   variable array dependent on time with the vairable Air temperature, Wall temperature Return water temperature and buffervessel temperature
     :param t:            (float):
@@ -25,11 +81,11 @@ def model_buffervessel(t, x, Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
     If the signature is ``callable(t, y, ...)``, then the argument tfirst` must be set ``True``.
     """
 
-    # States :
+        # States :
 
-    t_buffervesseldt = (Pin + U * A * (T_amb - x[0]) + (rho * cp * flux * (Twaterin - x[0]))) / (rho * volume * cp)
+        t_buffervesseldt = (Pin + U * A * (T_amb - x[0]) + (rho * cp * flux * (Twaterin - x[0]))) / (rho * volume * cp)
 
-    return t_buffervesseldt
+        return t_buffervesseldt
 
 def model_stratified_buffervessel(t, x, U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdots, mdotd, mass_water, z):
     """model function for scipy.integrate.odeint.
