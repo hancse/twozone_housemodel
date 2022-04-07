@@ -62,6 +62,7 @@ class StratifiedBuffer():
         """
 
         mdote = mdots - mdotd
+        n = self.n_layers - 1
 
         if mdote > 0:
             deltaPlus = 1
@@ -73,6 +74,20 @@ class StratifiedBuffer():
         else:
             deltaMinus = 0
 
+        dT = np.zeros(len(x))
+
+        dT[0] = ((mdots * cp_water * (Tsupply - x[0])) + (mdote * cp_water *(x[0] - x[1]) * deltaMinus) - (self.uwall * (self.Abase + self.Awall_layer) * (x[0]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[0] - x[1])) / (self.mass_water_layer*cp_water)
+
+        for i in range(len(dT) - 2):
+            dT[i+1] = ((mdote * cp_water * (x[i] - x[i+1]) * deltaPlus) + (mdote * cp_water * (x[i+1] - x[i+2]) * deltaMinus) - (
+                        self.uwall * self.Awall_layer * (x[i+1] - Tamb)) + (
+                         (self.Abase * lambda_water) / self.layer_height) * (x[i] + x[i+2] - (2 * x[i+1]))) / (
+                        self.mass_water_layer * cp_water)
+
+        dT[n] = ((mdotd * cp_water * (Treturn - x[n])) + (mdote * cp_water * (x[n-1] - x[n]) * deltaPlus) - (self.uwall * self.Awall_layer * (x[n] - Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[n-1] - x[n])) / (self.mass_water_layer*cp_water)
+
+
+
         dT1 = ((mdots * cp_water * (Tsupply - x[0])) + (mdote * cp_water *(x[0] - x[1]) * deltaMinus) - (self.uwall * (self.Abase + self.Awall_layer) * (x[0]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[0] - x[1])) / (self.mass_water_layer*cp_water)
         dT2 = ((mdote * cp_water * (x[0] - x[1]) * deltaPlus) + (mdote * cp_water * (x[1] - x[2]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[1]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[0] + x[2] - (2*x[1]))) / (self.mass_water_layer*cp_water)
         dT3 = ((mdote * cp_water * (x[1] - x[2]) * deltaPlus) + (mdote * cp_water * (x[2] - x[3]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[2]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[1] + x[3] - (2*x[2]))) / (self.mass_water_layer*cp_water)
@@ -82,29 +97,24 @@ class StratifiedBuffer():
         dT7 = ((mdote * cp_water * (x[5] - x[6]) * deltaPlus) + (mdote * cp_water * (x[6] - x[7]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[6]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[5] + x[7] - (2*x[6]))) / (self.mass_water_layer*cp_water)
         dT8 = ((mdotd * cp_water * (Treturn - x[7])) + (mdote * cp_water * (x[6] - x[7]) * deltaPlus) - (self.uwall * self.Awall_layer * (x[7] - Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[6] - x[7])) / (self.mass_water_layer*cp_water)
 
-        return [dT1, dT2, dT3, dT4, dT5, dT6, dT7, dT8]
+        return dT
 
 if __name__ == "__main__":
 
-    test = StratifiedBuffer(8, 0, 7, 0.200,  2, 0.12)
-    print(test.height, test.radius, test.ratio, test.Awall, test.Abase)
+    test = StratifiedBuffer(4, 0, 7, 0.200,  2, 0.12)
     Tamb = 20
     Tsupply = 80
     Treturn = 20
     mdots = 0
-    mdotd = 0
+    mdotd = 0.1
+
+    initial_condition = np.ones(test.n_layers) * 80
     inputs = (Tamb, Tsupply, Treturn, mdots, mdotd)
-    result = solve_ivp(test.model_stratified_buffervessel, [0, 3600 * 2], [80, 80, 80, 80, 80, 80, 80, 80], args=inputs)
+    result = solve_ivp(test.model_stratified_buffervessel, [0, 3600 * 2], initial_condition, args=inputs)
     
     plt.figure(figsize=(15, 5))
-    plt.plot(result.t, result.y[0, :], label='T1')
-    plt.plot(result.t, result.y[1, :], label='T2')
-    plt.plot(result.t, result.y[2, :], label='T3')
-    plt.plot(result.t, result.y[3, :], label='T4')
-    plt.plot(result.t, result.y[4, :], label='T5')
-    plt.plot(result.t, result.y[5, :], label='T6')
-    plt.plot(result.t, result.y[6, :], label='T7')
-    plt.plot(result.t, result.y[7, :], label='T8')
+    for i in range(len(result.y)):
+        plt.plot(result.t, result.y[i, :], label=f'$T_{i+1}$')
     plt.legend(loc='best')
     plt.title("Stratified Buffervessel Simulation")
     plt.show()
