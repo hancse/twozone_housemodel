@@ -41,46 +41,6 @@ class StratifiedBuffer():
     def set_lateral_surface_area(self):
         self.Awall = 2*np.pi*self.radius * self.height
 
-    def model_buffervessel(self, t, x, Pin, T_amb, flux, Twaterin):
-        """single-layer cylindrical buffer vessel
-
-        Args:
-            x:
-            Pin:
-            U:
-            A:
-            T_amb:
-            rho:
-            volume:
-            cp:
-            flux:
-            Twaterin:
-
-        Returns:
-
-        """
-        """model function for scipy.integrate.odeint.
-
-    :param x:            (array):   variable array dependent on time with the vairable Air temperature, Wall temperature Return water temperature and buffervessel temperature
-    :param t:            (float):
-    :param Pin:          (float):  Power input in [W]
-    :param U:            (float):
-    :param A:            (float):  Area of
-    :param T_amb:        (float):
-    :param rho:          (float):
-    :param volume:       (float):
-    :param cp: (float):  Thermal resistance from indoor air to outdoor air [K/W]
-
-    x,t: ode input function func : callable(x, t, ...) or callable(t, x, ...)
-    Computes the derivative of y at t.
-    If the signature is ``callable(t, y, ...)``, then the argument tfirst` must be set ``True``.
-    """
-
-        # States :
-
-        t_buffervesseldt = (Pin + self.u * self.Awall * (T_amb - x[0]) + (self.rho * self.cp_water * flux * (Twaterin - x[0]))) / (self.rho * self.volume * self.cp_water)
-
-        return t_buffervesseldt
 
     def model_stratified_buffervessel(self, t, x, Tamb, Tsupply, Treturn, mdots, mdotd):
 
@@ -101,11 +61,7 @@ class StratifiedBuffer():
         If the signature is ``callable(t, y, ...)``, then the argument tfirst` must be set ``True``.
         """
 
-        mdots = 0
-        mdotd = 0.1
-
         mdote = mdots - mdotd
-
 
         if mdote > 0:
             deltaPlus = 1
@@ -127,43 +83,6 @@ class StratifiedBuffer():
         dT8 = ((mdotd * cp_water * (Treturn - x[7])) + (mdote * cp_water * (x[6] - x[7]) * deltaPlus) - (self.uwall * self.Awall_layer * (x[7] - Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[6] - x[7])) / (self.mass_water_layer*cp_water)
 
         return [dT1, dT2, dT3, dT4, dT5, dT6, dT7, dT8]
-
-
-#def buffervessel(Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
-    """Compute air and wall tempearature inside the house.
-
-    :param T_outdoor:    (array):  Outdoor temperature in degree C
-    :param Q_internal:   (array):  Internal heat gain in w.
-    :param Q_solar:      (array):  Solar irradiation on window [W]
-    :param SP_T:         (array):  Setpoint tempearature from thermostat.
-    :param time_sim:     (array)  :  simulation time
-
-    :return:             tuple :  Tuple containing (Tbuffeervessel):
-
-    """
-    # initial values for odeint
-#    inputs = (Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin)
-#    result = solve_ivp(model_buffervessel, [0, 1000], [15], args=inputs)
-#    Tbuffervessel = result.y[0, :]
-#    return [result.t, Tbuffervessel]
-
-#def stratified_buffervessel(U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdotsupply, mdotd, mass_water, z):
-    """Compute air and wall tempearature inside the house.
-
-    :param T_outdoor:    (array):  Outdoor temperature in degree C
-    :param Q_internal:   (array):  Internal heat gain in w.
-    :param Q_solar:      (array):  Solar irradiation on window [W]
-    :param SP_T:         (array):  Setpoint tempearature from thermostat.
-    :param time_sim:     (array)  :  simulation time
-
-    :return:             tuple :  Tuple containing (Tbuffeervessel):
-
-    """
-#    # initial values for odeint
-#    inputs = (U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdotsupply, mdotd, mass_water, z)
-#    result = solve_ivp(model_stratified_buffervessel, [0, 3600*2], [80, 80, 80, 80, 80, 80, 80, 80], args=inputs)
-#    return [result.t, result.y[0, :], result.y[1, :], result.y[2, :], result.y[3, :], result.y[4, :], result.y[5, :], result.y[6, :], result.y[7, :]]
-
 
 if __name__ == "__main__":
 
