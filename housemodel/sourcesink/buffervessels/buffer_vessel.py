@@ -1,6 +1,5 @@
 from scipy.integrate import solve_ivp  # ODE solver
 import numpy as np  # linear algebra
-from math import e
 import matplotlib
 
 matplotlib.use('qt5agg')
@@ -10,29 +9,25 @@ class StratifiedBuffer():
     """parent class for cylindrical stratified buffer vessel
 
     """
-    def __init__(self, n_layers: int, hot_node, cold_node):
+    def __init__(self, n_layers: int, hot_node, cold_node, volume, height, u):
         # super.__init__()
         self.n_layers = n_layers
         self.hot_node = hot_node    # anchor point of hot water supply to house model
         self.cold_node = cold_node  # anchor point of cold water return from house model
-        self.ratio = None
-        self.volume = None
-        self.uwall = None
+        self.volume = volume
+        self.height = height
+        self.uwall = u
+        self.layer_height = self.height / self.n_layers
+        self.radius = np.sqrt(self.volume / (self.height * np.pi))
+        self.ratio = self.height / (self.radius * 2)
+        self.Awall = 2 * np.pi * self.radius * self.height
+        self.Awall_layer = self.Awall / n_layers
+        self.Abase = self.radius**2 * np.pi
         self.lambda_water = 0.644  # W/mK
         self.cp_water = 4190       # J/kgK
         self.rho = 1000            # kg/m^3
         self.temperatures = None
-
-    def set_ratio(self, ratio):
-        """
-
-        Args:
-            ratio: ratio between height and diameter of (cylindrical) vessel
-
-        Returns:
-            None
-        """
-        self.ratio = ratio
+        self.mass_water = 1000
 
     def set_volume(self, vol):
         self.volume = vol
@@ -45,8 +40,10 @@ class StratifiedBuffer():
         # check if length of array equals n_layers!
         self.temperatures = T
 
+    def set_lateral_surface_area(self):
+        self.Awall = 2*np.pi*self.radius * self.height
 
-    def model_buffervessel(self, t, x, Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
+    def model_buffervessel(self, t, x, Pin, T_amb, flux, Twaterin):
         """single-layer cylindrical buffer vessel
 
         Args:
@@ -83,76 +80,77 @@ class StratifiedBuffer():
 
         # States :
 
-        t_buffervesseldt = (Pin + U * A * (T_amb - x[0]) + (rho * cp * flux * (Twaterin - x[0]))) / (rho * volume * cp)
+        t_buffervesseldt = (Pin + self.u * self.Awall * (T_amb - x[0]) + (self.rho * self.cp_water * flux * (Twaterin - x[0]))) / (self.rho * self.volume * self.cp_water)
 
         return t_buffervesseldt
 
-def model_stratified_buffervessel(t, x, U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdots, mdotd, mass_water, z):
-    """model function for scipy.integrate.odeint.
+    def model_stratified_buffervessel(self, t, x, Tamb, Tsupply, Treturn, mdots, mdotd):
 
-    :param x:            (array):   variable array dependent on time with the vairable Air temperature, Wall temperature Return water temperature and buffervessel temperature
-    :param t:            (float):
-    :param Pin:          (float):  Power input in [W]
-    :param U:            (float):
-    :param A:            (float):  Area of
-    :param T_amb:        (float):
-    :param rho:          (float):
-    :param volume:       (float):
-    :param cp: (float):  Thermal resistance from indoor air to outdoor air [K/W]
+        """model function for scipy.integrate.odeint.
 
-    x,t: ode input function func : callable(x, t, ...) or callable(t, x, ...)
-    Computes the derivative of y at t.
-    If the signature is ``callable(t, y, ...)``, then the argument tfirst` must be set ``True``.
-    """
+        :param x:            (array):   variable array dependent on time with the vairable Air temperature, Wall temperature Return water temperature and buffervessel temperature
+        :param t:            (float):
+        :param Pin:          (float):  Power input in [W]
+        :param U:            (float):
+        :param A:            (float):  Area of
+        :param T_amb:        (float):
+        :param rho:          (float):
+        :param volume:       (float):
+        :param cp: (float):  Thermal resistance from indoor air to outdoor air [K/W]
 
-    # me = ms - md
+        x,t: ode input function func : callable(x, t, ...) or callable(t, x, ...)
+        Computes the derivative of y at t.
+        If the signature is ``callable(t, y, ...)``, then the argument tfirst` must be set ``True``.
+        """
 
-    if (t/3600) > 11:
-        mdots = 2400000/(4190*(80-x[7]))
-        mdotd = 0
-        #mdote = 10
-        #mdots = 10
-        #mdotd = 0
+        # me = ms - md
 
-    if (t/3600) > 15:
-        mdots = 0
-        mdotd = 10
+        if (t/3600) > 11:
+            mdots = 2400000/(4190*(80-x[7]))
+            mdotd = 0
+            #mdote = 10
+            #mdots = 10
+            #mdotd = 0
 
-    if(t/3600) > 17.5:
-        mdots = 2400000/(4190*(80-x[7]))
-        mdotd = 10
+        if (t/3600) > 15:
+            mdots = 0
+            mdotd = 10
 
-
-    # States :
-    mdote = mdots - mdotd
+        if(t/3600) > 17.5:
+            mdots = 2400000/(4190*(80-x[7]))
+            mdotd = 10
 
 
-    if mdote > 0:
-        deltaPlus = 1
-    else:
-        deltaPlus = 0
-
-    if mdote < 0:
-        deltaMinus = 1
-    else:
-        deltaMinus = 0
+        # States :
+        mdote = mdots - mdotd
 
 
+        if mdote > 0:
+            deltaPlus = 1
+        else:
+            deltaPlus = 0
+
+        if mdote < 0:
+            deltaMinus = 1
+        else:
+            deltaMinus = 0
 
 
-    dT1 = ((mdots * cpwater * (Tsupply - x[0])) + (mdote *cpwater*(x[0] - x[1]) * deltaMinus) - (U * As * (x[0]- Tamb)) + ((Aq * lamb) / z) * (x[0] - x[1])) / (mass_water*cpwater)
-    dT2 = ((mdote *cpwater*(x[0] - x[1]) * deltaPlus) + (mdote *cpwater*(x[1] - x[2]) * deltaMinus) - (U * As * (x[1]- Tamb)) + ((Aq * lamb) / z) * (x[0] + x[2] - (2*x[1]))) / (mass_water*cpwater)
-    dT3 = ((mdote *cpwater*(x[1] - x[2]) * deltaPlus) + (mdote *cpwater*(x[2] - x[3]) * deltaMinus) - (U * As * (x[2]- Tamb)) + ((Aq * lamb) / z) * (x[1] + x[3] - (2*x[2]))) / (mass_water*cpwater)
-    dT4 = ((mdote *cpwater*(x[2] - x[3]) * deltaPlus) + (mdote *cpwater*(x[3] - x[4]) * deltaMinus) - (U * As * (x[3]- Tamb)) + ((Aq * lamb) / z) * (x[2] + x[4] - (2*x[3]))) / (mass_water*cpwater)
-    dT5 = ((mdote *cpwater*(x[3] - x[4]) * deltaPlus) + (mdote *cpwater*(x[4] - x[5]) * deltaMinus) - (U * As * (x[4]- Tamb)) + ((Aq * lamb) / z) * (x[3] + x[5] - (2*x[4]))) / (mass_water*cpwater)
-    dT6 = ((mdote *cpwater*(x[4] - x[5]) * deltaPlus) + (mdote *cpwater*(x[5] - x[6]) * deltaMinus) - (U * As * (x[5]- Tamb)) + ((Aq * lamb) / z) * (x[4] + x[6] - (2*x[5]))) / (mass_water*cpwater)
-    dT7 = ((mdote *cpwater*(x[5] - x[6]) * deltaPlus) + (mdote *cpwater*(x[6] - x[7]) * deltaMinus) - (U * As * (x[6]- Tamb)) + ((Aq * lamb) / z) * (x[5] + x[7] - (2*x[6]))) / (mass_water*cpwater)
-    dT8 = ((mdotd * cpwater * (Treturn - x[7])) + (mdote * cpwater * (x[6] - x[7]) * deltaPlus) - (U * As * (x[7] - Tamb)) + ((Aq * lamb) / z) * (x[6] - x[7])) / (mass_water*cpwater)
-
-    return [dT1, dT2, dT3, dT4, dT5, dT6, dT7, dT8]
 
 
-def buffervessel(Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
+        dT1 = ((mdots * self.cp_water * (Tsupply - x[0])) + (mdote *self.cp_water*(x[0] - x[1]) * deltaMinus) - (self.uwall * (self.Abase + self.Awall_layer) * (x[0]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[0] - x[1])) / (self.mass_water*self.cp_water)
+        dT2 = ((mdote *self.cp_water*(x[0] - x[1]) * deltaPlus) + (mdote *self.cp_water*(x[1] - x[2]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[1]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[0] + x[2] - (2*x[1]))) / (self.mass_water*self.cp_water)
+        dT3 = ((mdote *self.cp_water*(x[1] - x[2]) * deltaPlus) + (mdote *self.cp_water*(x[2] - x[3]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[2]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[1] + x[3] - (2*x[2]))) / (self.mass_water*self.cp_water)
+        dT4 = ((mdote *self.cp_water*(x[2] - x[3]) * deltaPlus) + (mdote *self.cp_water*(x[3] - x[4]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[3]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[2] + x[4] - (2*x[3]))) / (self.mass_water*self.cp_water)
+        dT5 = ((mdote *self.cp_water*(x[3] - x[4]) * deltaPlus) + (mdote *self.cp_water*(x[4] - x[5]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[4]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[3] + x[5] - (2*x[4]))) / (self.mass_water*self.cp_water)
+        dT6 = ((mdote *self.cp_water*(x[4] - x[5]) * deltaPlus) + (mdote *self.cp_water*(x[5] - x[6]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[5]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[4] + x[6] - (2*x[5]))) / (self.mass_water*self.cp_water)
+        dT7 = ((mdote *self.cp_water*(x[5] - x[6]) * deltaPlus) + (mdote *self.cp_water*(x[6] - x[7]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[6]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[5] + x[7] - (2*x[6]))) / (self.mass_water*self.cp_water)
+        dT8 = ((mdotd * self.cp_water * (Treturn - x[7])) + (mdote * self.cp_water * (x[6] - x[7]) * deltaPlus) - (self.uwall * self.Awall_layer * (x[7] - Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[6] - x[7])) / (self.mass_water*self.cp_water)
+
+        return [dT1, dT2, dT3, dT4, dT5, dT6, dT7, dT8]
+
+
+#def buffervessel(Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
     """Compute air and wall tempearature inside the house.
 
     :param T_outdoor:    (array):  Outdoor temperature in degree C
@@ -165,12 +163,12 @@ def buffervessel(Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
 
     """
     # initial values for odeint
-    inputs = (Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin)
-    result = solve_ivp(model_buffervessel, [0, 1000], [15], args=inputs)
-    Tbuffervessel = result.y[0, :]
-    return [result.t, Tbuffervessel]
+#    inputs = (Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin)
+#    result = solve_ivp(model_buffervessel, [0, 1000], [15], args=inputs)
+#    Tbuffervessel = result.y[0, :]
+#    return [result.t, Tbuffervessel]
 
-def stratified_buffervessel(U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdotsupply, mdotd, mass_water, z):
+#def stratified_buffervessel(U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdotsupply, mdotd, mass_water, z):
     """Compute air and wall tempearature inside the house.
 
     :param T_outdoor:    (array):  Outdoor temperature in degree C
@@ -182,10 +180,10 @@ def stratified_buffervessel(U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, md
     :return:             tuple :  Tuple containing (Tbuffeervessel):
 
     """
-    # initial values for odeint
-    inputs = (U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdotsupply, mdotd, mass_water, z)
-    result = solve_ivp(model_stratified_buffervessel, [0, 3600*2], [80, 80, 80, 80, 80, 80, 80, 80], args=inputs)
-    return [result.t, result.y[0, :], result.y[1, :], result.y[2, :], result.y[3, :], result.y[4, :], result.y[5, :], result.y[6, :], result.y[7, :]]
+#    # initial values for odeint
+#    inputs = (U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdotsupply, mdotd, mass_water, z)
+#    result = solve_ivp(model_stratified_buffervessel, [0, 3600*2], [80, 80, 80, 80, 80, 80, 80, 80], args=inputs)
+#    return [result.t, result.y[0, :], result.y[1, :], result.y[2, :], result.y[3, :], result.y[4, :], result.y[5, :], result.y[6, :], result.y[7, :]]
 
 
 if __name__ == "__main__":
@@ -200,7 +198,7 @@ if __name__ == "__main__":
     plt.plot(test[0], calculatedTbuffer, label='Formule')
     plt.legend(loc='best')
     plt.title("Buffervessel Simulation")
-    plt.show()"""
+    plt.show()
 
 
     #me = ms - md
@@ -217,5 +215,30 @@ if __name__ == "__main__":
     plt.plot(stratified_vessel[0]/3600, stratified_vessel[8], label='T8')
     plt.legend(loc='best')
     plt.title("Stratified Buffervessel Simulation")
+    plt.show()"""
+
+    test = StratifiedBuffer(8, 0, 7, 0.200,  2, 0.12)
+    print(test.height, test.radius, test.ratio, test.Awall, test.Abase)
+    Tamb = 20
+    Tsupply = 80
+    Treturn = 20
+    mdots = 0
+    mdotd = 0
+    inputs = (Tamb, Tsupply, Treturn, mdots, mdotd)
+    result = solve_ivp(test.model_stratified_buffervessel, [0, 3600 * 2], [80, 80, 80, 80, 80, 80, 80, 80], args=inputs)
+    
+    plt.figure(figsize=(15, 5))
+    plt.plot(result.t, result.y[0, :], label='T1')
+    plt.plot(result.t, result.y[1, :], label='T2')
+    plt.plot(result.t, result.y[2, :], label='T3')
+    plt.plot(result.t, result.y[3, :], label='T4')
+    plt.plot(result.t, result.y[4, :], label='T5')
+    plt.plot(result.t, result.y[5, :], label='T6')
+    plt.plot(result.t, result.y[6, :], label='T7')
+    plt.plot(result.t, result.y[7, :], label='T8')
+    plt.legend(loc='best')
+    plt.title("Stratified Buffervessel Simulation")
     plt.show()
+
+
 
