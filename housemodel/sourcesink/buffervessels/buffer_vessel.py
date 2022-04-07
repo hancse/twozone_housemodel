@@ -4,6 +4,7 @@ import matplotlib
 
 matplotlib.use('qt5agg')
 import matplotlib.pyplot as plt
+from housemodel.sourcesink.buffervessels import cp_water, rho_water
 
 class StratifiedBuffer():
     """parent class for cylindrical stratified buffer vessel
@@ -25,9 +26,8 @@ class StratifiedBuffer():
         self.Abase = self.radius**2 * np.pi
         self.lambda_water = 0.644  # W/mK
         self.cp_water = 4190       # J/kgK
-        self.rho = 1000            # kg/m^3
         self.temperatures = None
-        self.mass_water = 1000
+        self.mass_water_layer = (self.volume / self.n_layers) * rho_water
 
     def set_volume(self, vol):
         self.volume = vol
@@ -138,14 +138,14 @@ class StratifiedBuffer():
 
 
 
-        dT1 = ((mdots * self.cp_water * (Tsupply - x[0])) + (mdote *self.cp_water*(x[0] - x[1]) * deltaMinus) - (self.uwall * (self.Abase + self.Awall_layer) * (x[0]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[0] - x[1])) / (self.mass_water*self.cp_water)
-        dT2 = ((mdote *self.cp_water*(x[0] - x[1]) * deltaPlus) + (mdote *self.cp_water*(x[1] - x[2]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[1]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[0] + x[2] - (2*x[1]))) / (self.mass_water*self.cp_water)
-        dT3 = ((mdote *self.cp_water*(x[1] - x[2]) * deltaPlus) + (mdote *self.cp_water*(x[2] - x[3]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[2]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[1] + x[3] - (2*x[2]))) / (self.mass_water*self.cp_water)
-        dT4 = ((mdote *self.cp_water*(x[2] - x[3]) * deltaPlus) + (mdote *self.cp_water*(x[3] - x[4]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[3]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[2] + x[4] - (2*x[3]))) / (self.mass_water*self.cp_water)
-        dT5 = ((mdote *self.cp_water*(x[3] - x[4]) * deltaPlus) + (mdote *self.cp_water*(x[4] - x[5]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[4]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[3] + x[5] - (2*x[4]))) / (self.mass_water*self.cp_water)
-        dT6 = ((mdote *self.cp_water*(x[4] - x[5]) * deltaPlus) + (mdote *self.cp_water*(x[5] - x[6]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[5]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[4] + x[6] - (2*x[5]))) / (self.mass_water*self.cp_water)
-        dT7 = ((mdote *self.cp_water*(x[5] - x[6]) * deltaPlus) + (mdote *self.cp_water*(x[6] - x[7]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[6]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[5] + x[7] - (2*x[6]))) / (self.mass_water*self.cp_water)
-        dT8 = ((mdotd * self.cp_water * (Treturn - x[7])) + (mdote * self.cp_water * (x[6] - x[7]) * deltaPlus) - (self.uwall * self.Awall_layer * (x[7] - Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[6] - x[7])) / (self.mass_water*self.cp_water)
+        dT1 = ((mdots * cp_water * (Tsupply - x[0])) + (mdote *cp_water*(x[0] - x[1]) * deltaMinus) - (self.uwall * (self.Abase + self.Awall_layer) * (x[0]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[0] - x[1])) / (self.mass_water_layer*cp_water)
+        dT2 = ((mdote *cp_water*(x[0] - x[1]) * deltaPlus) + (mdote *cp_water*(x[1] - x[2]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[1]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[0] + x[2] - (2*x[1]))) / (self.mass_water_layer*cp_water)
+        dT3 = ((mdote *cp_water*(x[1] - x[2]) * deltaPlus) + (mdote *cp_water*(x[2] - x[3]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[2]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[1] + x[3] - (2*x[2]))) / (self.mass_water_layer*cp_water)
+        dT4 = ((mdote *cp_water*(x[2] - x[3]) * deltaPlus) + (mdote *cp_water*(x[3] - x[4]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[3]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[2] + x[4] - (2*x[3]))) / (self.mass_water_layer*cp_water)
+        dT5 = ((mdote *cp_water*(x[3] - x[4]) * deltaPlus) + (mdote *cp_water*(x[4] - x[5]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[4]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[3] + x[5] - (2*x[4]))) / (self.mass_water_layer*cp_water)
+        dT6 = ((mdote *cp_water*(x[4] - x[5]) * deltaPlus) + (mdote *cp_water*(x[5] - x[6]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[5]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[4] + x[6] - (2*x[5]))) / (self.mass_water_layer*cp_water)
+        dT7 = ((mdote *cp_water*(x[5] - x[6]) * deltaPlus) + (mdote *cp_water*(x[6] - x[7]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[6]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[5] + x[7] - (2*x[6]))) / (self.mass_water_layer*cp_water)
+        dT8 = ((mdotd * cp_water * (Treturn - x[7])) + (mdote * cp_water * (x[6] - x[7]) * deltaPlus) - (self.uwall * self.Awall_layer * (x[7] - Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[6] - x[7])) / (self.mass_water_layer*cp_water)
 
         return [dT1, dT2, dT3, dT4, dT5, dT6, dT7, dT8]
 
