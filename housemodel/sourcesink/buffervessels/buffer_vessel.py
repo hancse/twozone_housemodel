@@ -4,7 +4,7 @@ import matplotlib
 
 matplotlib.use('qt5agg')
 import matplotlib.pyplot as plt
-from housemodel.sourcesink.buffervessels import cp_water, rho_water
+from housemodel.sourcesink.buffervessels import cp_water, rho_water, lambda_water
 
 class StratifiedBuffer():
     """parent class for cylindrical stratified buffer vessel
@@ -24,8 +24,6 @@ class StratifiedBuffer():
         self.Awall = 2 * np.pi * self.radius * self.height
         self.Awall_layer = self.Awall / n_layers
         self.Abase = self.radius**2 * np.pi
-        self.lambda_water = 0.644  # W/mK
-        self.cp_water = 4190       # J/kgK
         self.temperatures = None
         self.mass_water_layer = (self.volume / self.n_layers) * rho_water
 
@@ -103,25 +101,9 @@ class StratifiedBuffer():
         If the signature is ``callable(t, y, ...)``, then the argument tfirst` must be set ``True``.
         """
 
-        # me = ms - md
+        mdots = 0
+        mdotd = 0.1
 
-        if (t/3600) > 11:
-            mdots = 2400000/(4190*(80-x[7]))
-            mdotd = 0
-            #mdote = 10
-            #mdots = 10
-            #mdotd = 0
-
-        if (t/3600) > 15:
-            mdots = 0
-            mdotd = 10
-
-        if(t/3600) > 17.5:
-            mdots = 2400000/(4190*(80-x[7]))
-            mdotd = 10
-
-
-        # States :
         mdote = mdots - mdotd
 
 
@@ -135,17 +117,14 @@ class StratifiedBuffer():
         else:
             deltaMinus = 0
 
-
-
-
-        dT1 = ((mdots * cp_water * (Tsupply - x[0])) + (mdote *cp_water*(x[0] - x[1]) * deltaMinus) - (self.uwall * (self.Abase + self.Awall_layer) * (x[0]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[0] - x[1])) / (self.mass_water_layer*cp_water)
-        dT2 = ((mdote *cp_water*(x[0] - x[1]) * deltaPlus) + (mdote *cp_water*(x[1] - x[2]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[1]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[0] + x[2] - (2*x[1]))) / (self.mass_water_layer*cp_water)
-        dT3 = ((mdote *cp_water*(x[1] - x[2]) * deltaPlus) + (mdote *cp_water*(x[2] - x[3]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[2]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[1] + x[3] - (2*x[2]))) / (self.mass_water_layer*cp_water)
-        dT4 = ((mdote *cp_water*(x[2] - x[3]) * deltaPlus) + (mdote *cp_water*(x[3] - x[4]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[3]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[2] + x[4] - (2*x[3]))) / (self.mass_water_layer*cp_water)
-        dT5 = ((mdote *cp_water*(x[3] - x[4]) * deltaPlus) + (mdote *cp_water*(x[4] - x[5]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[4]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[3] + x[5] - (2*x[4]))) / (self.mass_water_layer*cp_water)
-        dT6 = ((mdote *cp_water*(x[4] - x[5]) * deltaPlus) + (mdote *cp_water*(x[5] - x[6]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[5]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[4] + x[6] - (2*x[5]))) / (self.mass_water_layer*cp_water)
-        dT7 = ((mdote *cp_water*(x[5] - x[6]) * deltaPlus) + (mdote *cp_water*(x[6] - x[7]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[6]- Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[5] + x[7] - (2*x[6]))) / (self.mass_water_layer*cp_water)
-        dT8 = ((mdotd * cp_water * (Treturn - x[7])) + (mdote * cp_water * (x[6] - x[7]) * deltaPlus) - (self.uwall * self.Awall_layer * (x[7] - Tamb)) + ((self.Abase * self.lambda_water) / self.layer_height) * (x[6] - x[7])) / (self.mass_water_layer*cp_water)
+        dT1 = ((mdots * cp_water * (Tsupply - x[0])) + (mdote * cp_water *(x[0] - x[1]) * deltaMinus) - (self.uwall * (self.Abase + self.Awall_layer) * (x[0]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[0] - x[1])) / (self.mass_water_layer*cp_water)
+        dT2 = ((mdote * cp_water * (x[0] - x[1]) * deltaPlus) + (mdote * cp_water * (x[1] - x[2]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[1]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[0] + x[2] - (2*x[1]))) / (self.mass_water_layer*cp_water)
+        dT3 = ((mdote * cp_water * (x[1] - x[2]) * deltaPlus) + (mdote * cp_water * (x[2] - x[3]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[2]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[1] + x[3] - (2*x[2]))) / (self.mass_water_layer*cp_water)
+        dT4 = ((mdote * cp_water * (x[2] - x[3]) * deltaPlus) + (mdote * cp_water * (x[3] - x[4]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[3]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[2] + x[4] - (2*x[3]))) / (self.mass_water_layer*cp_water)
+        dT5 = ((mdote * cp_water * (x[3] - x[4]) * deltaPlus) + (mdote * cp_water * (x[4] - x[5]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[4]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[3] + x[5] - (2*x[4]))) / (self.mass_water_layer*cp_water)
+        dT6 = ((mdote * cp_water * (x[4] - x[5]) * deltaPlus) + (mdote * cp_water * (x[5] - x[6]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[5]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[4] + x[6] - (2*x[5]))) / (self.mass_water_layer*cp_water)
+        dT7 = ((mdote * cp_water * (x[5] - x[6]) * deltaPlus) + (mdote * cp_water * (x[6] - x[7]) * deltaMinus) - (self.uwall * self.Awall_layer * (x[6]- Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[5] + x[7] - (2*x[6]))) / (self.mass_water_layer*cp_water)
+        dT8 = ((mdotd * cp_water * (Treturn - x[7])) + (mdote * cp_water * (x[6] - x[7]) * deltaPlus) - (self.uwall * self.Awall_layer * (x[7] - Tamb)) + ((self.Abase * lambda_water) / self.layer_height) * (x[6] - x[7])) / (self.mass_water_layer*cp_water)
 
         return [dT1, dT2, dT3, dT4, dT5, dT6, dT7, dT8]
 
@@ -187,35 +166,6 @@ class StratifiedBuffer():
 
 
 if __name__ == "__main__":
-    """test = buffervessel(20000, 14, 0.7, 20, 1000, 0.02, 4180, 1 * 10 ** -4, 15)
-
-    calculatedTbuffer = np.zeros_like(test[0])
-    for i in range(len(test[0])):
-        calculatedTbuffer[i] = 61.9 - (46.9 * e ** ((-5.12 * 10 ** -3) * test[0][i]))
-
-    plt.figure(figsize=(15, 5))  # key-value pair: no spaces
-    plt.plot(test[0], test[1], label='Simulatie')
-    plt.plot(test[0], calculatedTbuffer, label='Formule')
-    plt.legend(loc='best')
-    plt.title("Buffervessel Simulation")
-    plt.show()
-
-
-    #me = ms - md
-    stratified_vessel = stratified_buffervessel(0.12, 0.196, 0.196, 10, 80, 20, 4190, 0.644, 0, 0.02, 150 / 8, 1 / 8)
-
-    plt.figure(figsize=(15, 5))  # key-value pair: no spaces
-    plt.plot(stratified_vessel[0]/3600, stratified_vessel[1], label='T1')
-    plt.plot(stratified_vessel[0]/3600, stratified_vessel[2], label='T2')
-    plt.plot(stratified_vessel[0]/3600, stratified_vessel[3], label='T3')
-    plt.plot(stratified_vessel[0]/3600, stratified_vessel[4], label='T4')
-    plt.plot(stratified_vessel[0]/3600, stratified_vessel[5], label='T5')
-    plt.plot(stratified_vessel[0]/3600, stratified_vessel[6], label='T6')
-    plt.plot(stratified_vessel[0]/3600, stratified_vessel[7], label='T7')
-    plt.plot(stratified_vessel[0]/3600, stratified_vessel[8], label='T8')
-    plt.legend(loc='best')
-    plt.title("Stratified Buffervessel Simulation")
-    plt.show()"""
 
     test = StratifiedBuffer(8, 0, 7, 0.200,  2, 0.12)
     print(test.height, test.radius, test.ratio, test.Awall, test.Abase)
