@@ -6,15 +6,10 @@ from scipy.integrate import solve_ivp       # ODE solver
 import numpy as np                       # linear algebra
 # from housemodel.tools.PIDsim import PID
 from housemodel.controls.ivPID.PID import PID
-from housemodel.sourcesink.heatpumps.Heatpump_HM import Heatpump_NTA
 from housemodel.controls.heating_curves import hyst, outdoor_reset
-from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
 import housemodel.tools.ReturnTemperature as Tr
-q_o=1   # [kW] Desing (peak) heat demand rate
-Ts_o=80 # [°C] Design radiator supply temperature
-Tr_o=60 # [°C] Design radiator return temperature
-Ti_o=20 # [°C] Design indoor (set) temperature
-n=1.3   # [-]  Emprical radiator constant
+from housemodel.sourcesink.buffervessels.buffer_vessel import StratifiedBuffer
+
 
 def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
                      control_interval):
@@ -138,22 +133,23 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     TBuffervessel7 = np.ones(len(t)) * TBuffervessel0
     TBuffervessel8 = np.ones(len(t)) * TBuffervessel0
 
-    # Controller initialization
-    # heatingPID = PID(Kp=5000, Ki=0, Kd=0, beta=1, MVrange=(0, 12000), DirectAction=False)
-    # heating = 0
+    # Controller initialization for roomt temperature and buffervessel top layer temperature
     kp = control_parameters[0]
     ki = control_parameters[1]
     kd = control_parameters[2]
 
-    pid = PID(kp, ki, kd, t[0])
+    # Room temp controller
+    pid_Room_Temp = PID(kp, ki, kd, t[0])
+    pid_Room_Temp.SetPoint=20.0
+    pid_Room_Temp.setSampleTime(0)
+    pid_Room_Temp.setBounds(0, 300000)
+    pid_Room_Temp.setWindup(300000/control_interval)
 
-    pid.SetPoint=20.0
-    pid.setSampleTime(0)
-    pid.setBounds(0, 300000)
-    pid.setWindup(300000/control_interval)
+    # define hysteresis object for Room temperature and buffervessel top layer temperature
+    t_air_hyst = hyst(dead_band=0.5, state=True)
 
-    # define hysteresis object for heat pump
-    hp_hyst = hyst(dead_band=0.5, state=True)
+    #Buffervessel initialization
+    sb = StratifiedBuffer(7, 2.5, 8)
 
     inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
 
@@ -166,21 +162,22 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     for i in range(len(t)-1):
 
         # here comes the "arduino style" controller
-        pid.SetPoint = SP_T[i]
-        pid.update(Tair[i], t[i])
-        Qinst = pid.output
+        pid_Room_Temp.SetPoint = SP_T[i]
+        pid_Room_Temp.update(Tair[i], t[i])
+        Qinst = pid_Room_Temp.output
 
         # incorporate hysteresis to control
-        Qinst = hp_hyst.update(Tair[i], SP_T[i], Qinst)
+        Qinst = t_air_hyst.update(Tair[i], SP_T[i], Qinst)
         if Qinst<2500:
             Qinst = 0
 
         # Calculate the resturn temperature
         Tr_AMTD = Tr.Tr_AMTD(Qinst/1000, 80, 20, 300, 80, 60, 20, 1.33)
 
-        #Calculate the supply and demand waterflow for the buffervessel
+        # Calculate the supply and demand waterflow for the buffervessel
         toplevel = TBuffervessel1[i]
-        #Supply is
+
+        # Supply is
         mdots = np.clip((80 - toplevel)*0.001*48, 0, 0.05*48)
         mdotd = np.clip(Qinst / ((TBuffervessel1[i]-Tr_AMTD)*4180*48), 0, 0.05*48)
 
@@ -192,8 +189,8 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
                         method='RK45', args=inputs,
                         first_step=control_interval)
 
-        inputs_buffervessel = (0.12, 4.1, 4, 20, 80, Tr_AMTD, 4190, 0.644, mdots, mdotd, 10000 / 8, 2.5 / 8)
-        result_buffervessel = solve_ivp(model_stratified_buffervessel, ts, y0buffervessel, method='RK45', args=inputs_buffervessel,
+        inputs_buffervessel = (80, Tr_AMTD, mdots, mdotd)
+        result_buffervessel = solve_ivp(sb.model_stratified_buffervessel, ts, y0buffervessel, method='RK45', args=inputs_buffervessel,
                         first_step=control_interval)
 
         # Write data into the containers
@@ -202,18 +199,11 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         Treturn[i] = Tr_AMTD
         Power[i] = Qinst
         TBuffervessel1[i+1] = result_buffervessel.y[0, -1]
-        TBuffervessel2[i+1] = result_buffervessel.y[1, -1]
-        TBuffervessel3[i+1] = result_buffervessel.y[2, -1]
-        TBuffervessel4[i+1] = result_buffervessel.y[3, -1]
-        TBuffervessel5[i+1] = result_buffervessel.y[4, -1]
-        TBuffervessel6[i+1] = result_buffervessel.y[5, -1]
-        TBuffervessel7[i+1] = result_buffervessel.y[6, -1]
         TBuffervessel8[i+1] = result_buffervessel.y[7, -1]
 
         #Use last result as a initial value for the ext step
         y0 = result.y[:, -1]
         y0buffervessel = result_buffervessel.y[:, -1]
-
 
     return t, Tair, Twall, Treturn, Power, TBuffervessel1, TBuffervessel8
 

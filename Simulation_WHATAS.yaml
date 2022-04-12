@@ -28,21 +28,15 @@ chains:
                       links:
                                                                        -
                                                                          Name:                    Internals
-                                                                         Conductance:                      5000 # W/K : 1/R1
+                                                                         Conductance:                      4500 # W/K : 1/R1
                                                                          Capacity:                            2.89E+08 # J/K: C1
                                                                        -
                                                                          Name:                    Load_bearing_constructon
-                                                                         Conductance:                             10000 # W/K: 1/R2
+                                                                         Conductance:                            9580 # W/K: 1/R2
                                                                          Capacity:                            2.63E+9 # J/K: C2
-
-
 ventilation:
                       n:                                                                      0.55
                       CF:                                                                      0.8
-
-initial:
-                      rho_air:                                                                 1.2
-
 internal:
                       delta_Q:                                                               20000
                       Q_day:                                                                     0
@@ -50,6 +44,6 @@ internal:
                       t2:                                                                       23
 
 controller:
-                      kp:                                                                    50000
-                      ki:                                                                       99
+                      kp:                                                                    0
+                      ki:                                                                     500
                       kd:                                                                        0

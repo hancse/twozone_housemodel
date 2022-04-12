@@ -40,7 +40,7 @@ CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False, xl=False):
     house_param = load_config(str(CONFIGDIR / "Simulation_WHATAS.yaml"))
-    days_sim = 365 # house_param['timing']['days_sim']
+    days_sim = 50 # house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
 
     num_links = len(house_param["chains"][0]["links"])
@@ -107,7 +107,7 @@ def main(show=False, xl=False):
     q_vector = np.zeros((num_links,days_sim*24))
     leak_to_amb = house_param["chains"][0]["links"][0]["Conductance"]
     q_vector[0,:] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
-    q_vector[1,:] = (T_outdoor_sim * leak_contruction) + (1 - CF) * Qsolar_sim
+    q_vector[1,:] = (T_outdoor_sim * leak_construction) + (1 - CF) * Qsolar_sim
 
     # Interpolation of data
     interp_func = interp1d(time_sim, q_vector, fill_value='extrapolate')
@@ -173,6 +173,8 @@ def main(show=False, xl=False):
 
         ax[0, 1].plot(data[0], data[5], label='Top')
         ax[0, 1].plot(data[0], data[6], label='Bottom')
+
+
         ax[0, 1].legend(loc='upper right')
         ax[0, 1].set_title('Buffervessel')
         ax[0, 1].set_xlabel(('Time (s)'))
