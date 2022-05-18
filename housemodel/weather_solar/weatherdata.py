@@ -21,6 +21,56 @@ NEN5060DIR = Path(__file__).absolute().parent.parent.parent / 'NEN_data'
 # The directory where the NEN 5060 data files are located is two levels higher
 # than where this Python file sits
 
+def area(self, x=None, y=None):
+    if x is not None and y != None:
+        return x * y
+    elif x != None:
+        return x * x
+    else:
+        return 0
+
+
+def diffuse_from_global_erbs(I_gh, sun_alt, doy=None, I_zero=None):
+    """
+
+    Args:
+        I_gh:     global radiation on a horizontal surface
+        sun_alt:  altitude of the sun in radians
+        doy:      (optional) day-of-year
+        I_zero:   (optional) extraterrestrial radiation on outer boundary earth atmosphere
+
+    Returns:
+       (ndarray): diffuse radiation on a horizontal surface
+    """
+    I_gh = np.asarray(I_gh)
+    sun_alt = np.asarray(sun_alt)
+    scalar_input = False
+    if sun_alt.ndim == 0:
+        sun_alt = sun_alt[np.newaxis]  # converts scalar to 1D array
+        scalar_input = True
+
+    if (doy is not None) & (I_zero is None):
+        doy = np.asarray(doy)
+        I_zero = 1361.5 * (1.0 + 0.33 * np.cos(360 * doy / 365)) * np.sin(sun_alt)
+    elif (I_zero is not None) & (doy is None):
+        I_zero = np.asarray(I_zero)
+    else:
+        print(f"Either day-of-year OR extraterrestrial irradiance should be provided as input")
+
+    kt = I_gh / (I_zero * np.sin(sun_alt))
+
+    kd = np.empty(sun_alt.shape)
+    if kt <= 0.22:
+        kd = 1.0 - 0.09 *kt
+    elif 0.22 < kt <= 0.8:
+        kd = 0.9511 - 0.1604*kt + 4.39* kt*kt - 16.64 *kt*kt*kt + 12.34*kt*kt*kt*kt
+    elif kt > 0.8:
+        kd = 0.165
+
+    if scalar_input:
+        return np.asscalar(kd*I_gh)
+    return kd*I_gh
+
 
 def get_hourly_knmi_weather_from_api(stations: str = '260', vars_to_get: str = 'ALL',
                                      start: str = '2020010101', end: str = '2020020124') -> Tuple:
