@@ -1,0 +1,21 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "reader"
+dist-name = "realpython-reader"
+description-file = "README.md"
+author = "Real Python"
+author-email = "office@realpython.com"
+home-page = "https://github.com/realpython/reader"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+]
+requires-python = ">=3.7"
+requires = ["feedparser", "html2text"]
+
+[tool.flit.scripts]
+realpython = "reader.__main__:main"
