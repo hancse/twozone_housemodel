@@ -1,0 +1,52 @@
+\section{PV and solar collector modeling}\label{s:PV_solar_collector}
+
+This section presents the (proposed) models that describe the behavior of PV-panels, thermal solar collectors and the combination of the two as PVT panels.
+
+
+\subsection{generic panel properties}
+PV panels and thermal collectors have a common set of properties. Both are oriented surfaces, which transforms the incoming energy from the solar radiation into useful energy; electrical energy for PV, and heat for thermal collectors. The yield highly depends on the location, orientation with respect to the sun and the total surface area. 
+Below the common properties are listed:
+\begin{itemize}
+\item surface\_area: the surface of the panels in $\text{m}^2$. 
+\item inclination: angle of the panel with the horizontal plane in degrees. The value lies between 0 degrees for horizontal and 90 degrees for vertical.
+\item azimuth: angle with due south direction in degrees (for the northern hemisphere). The value lies between -180 degrees and 180 degrees, with 90 degrees facing due west and -90 degrees facing due east.
+\end{itemize}
+
+Using these properties one can compute the irradiance level at a given time. Based on the NEN5060 irradiation numbers for the measured global irradiance on the horizontal plane, and the derived diffuse irradiance on the horizontal plane we can find the contributions of the direct and diffuse irradiance. 
+
+\subsection{splitting global irradiance into direct and diffuse}
+Most weather data contain only a measurement for the global irradiance on a horizontal plane. In order to make a good estimate for the yield of PV and thermal panels it is important to have an estimate of the direct and diffuse irradiance on the oriented surface of the panels, separately. In literature different experimental models can be found that give a method for making this split. In \cite{dervishi2012}, Dervishi and Mahdavi compare a set of these models that have been published over the years. They conclude that, of the models in their analysis, the model by Erbs et al. \cite{erbs1982estimation} gives the best results.
+
+The Erbs model determines a clearness index $k_t$ based on the extraterrestrial solar irradiance ($I_o$), the sun altitude ($\alpha$) and the measured global irradiance ($I_t$):
+\begin{equation}
+	k_t = \frac{I_t}{I_o\cdot \text{sin}\left(\alpha\right)}.
+\end{equation}
+In the model, $I_o$ is determined with the following equation:
+\begin{equation}
+	I_o = I_{sc} \cdot \left(1 + 0.33\text{cos}\frac{360n}{365}\right)\cdot \text{cos}\left(\theta_z\right) ,
+\end{equation}
+where $I_{sc}$ is the extraterrestrial solar constant irradiance (set to 1367 W/$\text{m}^2$), $n$ is the day number, and $\theta_z$ is the zenith angle.
+
+Based on the clearness index $k_t$ the fraction of the diffuse horizontal irradiance ($k_d$) can be determined:
+\begin{eqnarray}
+	\text{interval:} & k_t \leq 0.22 & k_d = 1 - 0.09k_t ,\\
+	\text{interval:} & 0.22 < k_t \leq 0.8 & k_d = 0.9511 - 0.1604 k_t + 4.39 k_t^2 -16.64 k_t^3 + 12.34 k_t^4 , \\
+	\text{interval:} & k_t > 0.8 & k_d = 0.165 .
+\label{eq:diffuse_fraction}
+\end{eqnarray} 
+Now, using $k_d$ we can determine the diffuse contribution  of the irradiance $I_d = k_d \cdot I_t$. The direct irradiance is the complementary part. 
+
+
+\subsection{PV-panel efficiency}
+A PV-panel converts the energy of the incoming solar irradiation to electrical energy. The efficiency of the conversion depends on the temperature of the panels according to the relationship [REF to dictaat Marc]:
+\begin{equation}
+  \eta_{\text{cell}}(T_{\text{cell}}) = \eta_{\text{cell,N}} \left( 1 + \gamma_{text{T}}\left(T_{\text{cell}} - T_{\text{cell,N}} \right) \right),
+\end{equation}   
+
+where $\eta_{\text{cell,N}} $ is the nominal efficiency according to the panel specifications, $\gamma_{text{T}}$ is temperature coefficient according to the panel specifications, $T_{\text{cell,N}}$ is the reference temperature at which the nominal efficiency is measured, and $T_{\text{cell}}$ is the actual temperature of the panel. 
+
+The actual temperature can be approximated using the formula:
+\begin{equation}
+	T_{\text{cell}} \approx T_a + \left( 43.3 \text{exp} l\left[-0.61 \left(\frac{v_w}{\text{m/s}} \right)^{0.63} \right] + 2.1 \right)\left(\frac{I_{g,s}}{1000\text{W/m}^2} \right)
+\label{eq:temp_panel}
+\end{equation}
