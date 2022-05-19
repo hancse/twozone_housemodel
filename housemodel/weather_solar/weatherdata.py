@@ -30,35 +30,52 @@ def area(self, x=None, y=None):
         return 0
 
 
-def diffuse_from_global_erbs(I_gh, sun_alt, doy=None, I_zero=None):
-    """
+def diffuse_from_global_erbs(sun_alt, I_gh, doy=None, I_zero=None):
+    """Derivation of diffuse horizontal irradiance from global horizontal irradiance.
+
+       Uses ratio of global horizontal and direct horizontal irradiance without atmosphere.
+
+    Ref:
+        DG Erbs, SA Klein, and JA Duffie. “Estimation of the diffuse radiation fraction for hourly, daily and
+        monthly-average global radiation”. In: Solar energy 28.4 (1982), pp. 293–302.
 
     Args:
-        I_gh:     global radiation on a horizontal surface
-        sun_alt:  altitude of the sun in radians
-        doy:      (optional) day-of-year
-        I_zero:   (optional) extraterrestrial radiation on outer boundary earth atmosphere
+        sun_alt: (scalar or array-like) altitude of the sun in radians
+        I_gh:                          global radiation on a horizontal surface
+        doy:      (optional)           day-of-year
+        I_zero:   (optional)           extraterrestrial radiation on outer boundary earth atmosphere
 
     Returns:
        (ndarray): diffuse radiation on a horizontal surface
     """
-    I_gh = np.asarray(I_gh)
+    # convert required input (scalar, list or numpy array) to numpy array
     sun_alt = np.asarray(sun_alt)
-    scalar_input = False
-    if sun_alt.ndim == 0:
-        sun_alt = sun_alt[np.newaxis]  # converts scalar to 1D array
-        scalar_input = True
+    I_gh = np.asarray(I_gh)
+    scalar_input = False               # assume array input, unless...
+    if sun_alt.ndim == 0:              # first input was converted to a 0D array (= scalar)
+        sun_alt = sun_alt[np.newaxis]  # then, convert oD array to 1D array
+        scalar_input = True            # and set the scalar flag!
 
+    if scalar_input:                   # if the first argument was a scalar...
+        I_gh = I_gh[np.newaxis]        # convert the other 0D arrays to 1D arrays
+
+    # do the same with the optional input arguments
     if (doy is not None) & (I_zero is None):
         doy = np.asarray(doy)
+        if scalar_input:
+            doy = doy[np.newaxis]
         I_zero = 1361.5 * (1.0 + 0.33 * np.cos(360 * doy / 365)) * np.sin(sun_alt)
     elif (I_zero is not None) & (doy is None):
         I_zero = np.asarray(I_zero)
+        if scalar_input:
+            I_zero = I_zero[np.newaxis]
     else:
         print(f"Either day-of-year OR extraterrestrial irradiance should be provided as input")
 
+    # start calculation with sun_alt, I_gh and I_zero
     kt = I_gh / (I_zero * np.sin(sun_alt))
 
+    # calculate kd from kt
     kd = np.empty(sun_alt.shape)
     if kt <= 0.22:
         kd = 1.0 - 0.09 *kt
@@ -66,7 +83,7 @@ def diffuse_from_global_erbs(I_gh, sun_alt, doy=None, I_zero=None):
         kd = 0.9511 - 0.1604*kt + 4.39* kt*kt - 16.64 *kt*kt*kt + 12.34*kt*kt*kt*kt
     elif kt > 0.8:
         kd = 0.165
-
+    # return a scalar if input was scalar, otherwise return the resulting numpy array
     if scalar_input:
         return np.asscalar(kd*I_gh)
     return kd*I_gh
