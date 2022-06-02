@@ -195,37 +195,51 @@ Er resteren dan 6 onafhankelijke vrijheidsgraden.
 
 \subsubsection{Capaciteitsmatrix $\mathbf{C}$}
 
-\subsubsection{$\mathbf{\dot{q}}$-vector}
+There are 7 nodes in the system. The heat capacities are:
 
-De q vector wordt gegeven door:
+\begin{equation}
+	\begin{aligned}
+\text{node 1} & & C_{e1,1} + C_{e2,2} \\
+\text{node 2} & & C_{e1,2} + C_{e3,1} + C_{e10,2} + C_{e6,2} \\
+\text{node 3} & & C_{e3,2} + C_{e4,1} + C_{e7,2} \\
+\text{node 4} & & C_{e4,2} + C_{e5, 1} + C_{e8,2} \\
+\text{node 5} & & C_{e5,2} + C_{e2, 1} + C_{e9, 2} + C_{11,2} \\
+\text{node 6} & & C_{e6,1} + C_{e7, 1} +  C_{e8, 1} +  C_{e9, 1} \\
+\text{node 7} & & C_{e10,2} + C_{e11,1}
+	\end{aligned}
+\end{equation}
 
-%\begin{equation}
 \[
 \begin{bmatrix}
-	1 & 1 & \dot{q}_1\\
+	C_{e1,1} + C_{e2,2} & 0 & 0 & 0 & 0 & 0 & 0 \\
+	0 & C_{e1,2} + C_{e3,1} + C_{e10,2} & 0 & 0 & 0 & 0 & 0 \\
+	0 & 0 & C_{e3,2} + C_{e4,1} & 0 & 0 & 0 & 0 & 0 \\
+	0 & 0 & 0 & C_{e4,2} + C_{e5, 1} & 0 & 0 & 0 & 0 \\
+	0 & 0 & 0 & 0 & C_{e5,2} + C_{e6, 2} + C_{e7, 2} + C_{11,2} & 0 & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 & C_{e10,2} + C_{e11, 1} & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 & C_{1,1} & 0 \\
+	0 & 0 & 0 & 0 & 0 & 0 & C_{1,1}
+\end{bmatrix}
+\]
+
+\subsubsection{$\mathbf{\dot{q}}$-vector}
+
+De vector $\mathbf{\dot{q}}$ wordt gegeven door:
+
+\[
+\begin{bmatrix}
+	1 & 1 & \dot{Q}_1 = \dot{Q}_{add}\\
 	2 & 2 & \dot{q}_2\\
 	3 & 3 & \dot{q}_3\\
 	4 & 4 & \dot{q}_4\\
 	5 & 5 & \dot{q}_5\\
-	6 & 6 & \dot{q}_6
+	6 & 7 & \dot{Q}_7 = -\dot{Q}_{use}
 \end{bmatrix}
 \]
 
 In knooppunten 1 en 7 is een externe heat source / heatsink aanwezig.
 
-\[
-\begin{bmatrix}
-	1 & 1 & \dot{Q}_{add}\\
-	2 & 2 & \dot{q}_2\\
-	3 & 3 & \dot{q}_3\\
-	4 & 4 & \dot{q}_4\\
-	5 & 5 & \dot{q}_5\\
-	6 & 7 & -\dot{Q}_{use}
-\end{bmatrix}
-\]
-
-Het voorgeschreven knooppunt (randvoorwaarde, boundary condition) 6 is verbonden aan knooppunten 2, 3,4 en 5. Dit zijn de ook de vrijheidsgraden 2,3,4, en 5. Vrijheidsgraden worden aangegeven met DOF (degree of freedom). In de overeenkomstige knooppunten wordt de capaciteitsmatrix K en de bronvector q aangepast.De aanpassing van de K-matrix wordt verderop toegelicht. De bronvector  wordt als volgt aangepast:
-
+Het voorgeschreven knooppunt (randvoorwaarde, boundary condition) 6 is verbonden aan knooppunten 2, 3, 4 en 5. Dit zijn de ook de vrijheidsgraden 2, 3, 4 en 5. Vrijheidsgraden worden aangegeven met DOF (degree of freedom). In de overeenkomstige knooppunten wordt de capaciteits? stiffness matrix $\mathbf{K}$ en de bronvector (load vector) $\mathbf{\dot{q}}$ aangepast.De aanpassing van de K-matrix wordt verderop toegelicht. De bronvector wordt als volgt aangepast:
 
 \[
 \begin{bmatrix}
@@ -252,6 +266,69 @@ elements with heat capacity must have two nodes:
 E3, E4, E5
 elements without heat capacity have two nodes as well:
 E1, E2, E6, E7, E8, E9, E10, E11
+
+elements without heat conduction:
+E1, E2, E10, E11
+
+elements with heat conduction:
+E3, E4, E5, E6, E7, E8, E9
+
+elements with heat convection (flow):
+E1, E2, E3, E4, E5, E10, E11
+
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+		\end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+\begin{equation}
+	\begin{aligned}
+\frac{1}{R_{2,3}} = R_{e3} \\
+\frac{1}{R_{3,4}} = R_{e4} \\
+\frac{1}{R_{4,5}} = R_{e5} \\
+\frac{1}{R_{2,6}} \\
+\frac{1}{R_{3,6}} \\
+\frac{1}{R_{4,6}} \\
+\frac{1}{R_{5,6}} 
+	\end{aligned}
+\end{equation}
+
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 0 & \frac{1}{R_{2,3}} & 0 & 0 & \frac{1}{R_{2,6}} & 0 \\
+            0 & \frac{1}{R_{2,3}} & 0 & \frac{1}{R_{3,4}} & 0 & \frac{1}{R_{3,6}} & 0\\
+            0 & 0 & \frac{1}{R_{3,4}} & 0 & \frac{1}{R_{4,5}} & \frac{1}{R_{4,6}} & 0\\
+            0 & 0 & 0 & \frac{1}{R_{4,5}} & 0 & \frac{1}{R_{5,6}} & 0 \\
+            0 & \frac{1}{R_{2,6}} & \frac{1}{R_{3,6}} & \frac{1}{R_{4,6}} & \frac{1}{R_{5,6}} & 0 & 0\\
+            0 & 0 & 0 & 0 & 0 & 0 & 0\\
+		\end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & \frac{1}{R_{2,3}} & 0 & 0 & \frac{1}{R_{2,6}} & 0 \\
+			0 & \frac{1}{R_{2,3}} & 0 & \frac{1}{R_{3,4}} & 0 & \frac{1}{R_{3,6}} & 0\\
+			0 & 0 & \frac{1}{R_{3,4}} & 0 & \frac{1}{R_{4,5}} & \frac{1}{R_{4,6}} & 0\\
+			0 & 0 & 0 & \frac{1}{R_{4,5}} & 0 & \frac{1}{R_{5,6}} & 0 \\
+			0 & \frac{1}{R_{2,6}} & \frac{1}{R_{3,6}} & \frac{1}{R_{4,6}} & \frac{1}{R_{5,6}} & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+		\end{bmatrix}
+	\end{aligned}
+\end{equation}
 
 nodes:
 E1 has 1 and 2
