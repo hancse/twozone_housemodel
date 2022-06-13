@@ -22,7 +22,7 @@ def plot_graph(g):
     plt.show()
 
 
-def C_from_elements(elements: dict):
+def C_from_elements(elements: list):
     """
 
     Args:
@@ -49,7 +49,44 @@ def C_from_elements(elements: dict):
     return C_matrix
 
 
-def K_from_elements(elements: dict):
+def C_from_elements2(df: pd.DataFrame):
+    """assemble C-matrix from Dataframe
+
+    Args:
+        df: Dataframe from Excel spreadsheet
+
+    Returns:
+        lumped mass matrix with heat capacity of nodes
+    """
+    # convert Dataframe into list of spreadsheet rows, called "rows"
+    # rows becomes a list of lists
+    rows = []
+    for row in range(len(df.index)):
+        rows.append(df.iloc[row].values.tolist())
+
+    # extract element 4: and element 2 of each row into "nodelists"
+    nodelists = []
+    for row in rows:
+        nodelist = [x for x in row[4:] if np.isnan(x) == False]
+        nodelist.append(0.5 * row[2])
+        nodelists.append(nodelist)
+
+    # nodelists is a list [node, node, weight], suitable for networkx
+    G = nx.Graph()
+    G.add_weighted_edges_from(nodelists)
+    print(G.nodes)
+    # plot_graph(G)
+
+    A = nx.adjacency_matrix(G, nodelist=list(range(G.order())))
+    B = A.toarray()
+    print(B, "\n")
+
+    row_sums = np.sum(B, axis=1).tolist()
+    C_matrix = np.diag(np.array(row_sums), k=0)
+    return C_matrix
+
+
+def K_from_elements(elements: list):
     """
 
     Args:
@@ -111,8 +148,8 @@ def flow_to_F_matrix(flowlist: list, rank: int):
 def F_from_flows(flows: dict):
     # convert Dataframe into list of spreadsheet rows, called "rows"
     rows = []
-    for row in range(len(df.index)):
-        rows.append(df.iloc[row].values.tolist())  ## This will give you 7th row
+    for row in range(len(flows.index)):
+        rows.append(flows.iloc[row].values.tolist())  ## This will give you 7th row
 
     # extract element 3: of each row into "nodelists"
     nodelists = []
@@ -167,7 +204,13 @@ if __name__ == "__main__":
     print(Kmatrix)
 
     df = pd.read_excel('xl_for_yaml.xlsx', sheet_name='flows')
-    F_from_flows(df)
+    Fmatrix = F_from_flows(df)
+    print(Fmatrix)
+
+    df = pd.read_excel('xl_for_yaml.xlsx', sheet_name='elements_new')
+    Cmatrix2 = C_from_elements2(df)
+    np.testing.assert_array_almost_equal(Cmatrix, Cmatrix2)
+
 
 
 
