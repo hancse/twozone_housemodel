@@ -329,7 +329,7 @@ The conductive elements in the system are:
 	\end{aligned}
 \end{equation}
 
-The conductive element $\frac{1}{R_{12}} = \frac{1}{R_{e1}} = 0$. This means $R_{12} \rightarrow \infty$. The pipeline is perfecly insulated and creates no heat leak. Thermal energy flowing \emph{through} it is completely delivered to the target node. Likewise, this holds for the elements E2, E10 and E11.
+The conductive element $\frac{1}{R_{12}} = \frac{1}{R_{e1}} = 0$. This means $R_{12} \rightarrow \infty$. We assume, the pipeline is perfectly insulated and creates no heat leak. Thermal energy flowing \emph{through} it is completely delivered to the target node. Likewise, this holds for the elements E2, E10 and E11.
 
 \begin{equation}
 	\begin{aligned}
@@ -413,31 +413,107 @@ This reduces the matrices to:
 
 	
 nodes:
-E1 has 1 and 2
-E2 has 1 and 5
-E3 has 2 and 3
-E4 has 3 and 4
-E5 has 4 and 5
-E6 has 2 and 6
-E7 has 3 and 6
-E8 has 4 and 6
-E9 has 5 and 6
-E10 has 2 and 7
-E11 has 5 and 7
+E1 has 1 and 2\\
+E2 has 1 and 5\\
+E3 has 2 and 3\\
+E4 has 3 and 4\\
+E5 has 4 and 5\\
+E6 has 2 and 6\\
+E7 has 3 and 6\\
+E8 has 4 and 6\\
+E9 has 5 and 6\\
+E10 has 2 and 7\\
+E11 has 5 and 7\\
 
 edges conductivity R and convection F:
 
-1 and 2
-1 and 5
-2 and 3
-3 and 4
-4 and 5
-2 and 6
-3 and 6
-4 and 6
-5 and 6
-2 and 7
-5 and 7
+1 and 2\\
+1 and 5\\
+2 and 3\\
+3 and 4\\
+4 and 5\\
+2 and 6\\
+3 and 6\\
+4 and 6\\
+5 and 6\\
+2 and 7\\
+5 and 7\\
+
+
+\subsection{water flow heat transfer}
+In the buffer vessel model, cf. Figure \ref{fig:FEbuffervessel}, two water flows run through the system. The first, labeled with $F1$, draws cold water from the bottom layer of the tank. This water is heated up in node 1. In the figure this is done using the external heat flow $Q_{add}$, but in a full system model another model component, for example a heat pump, can be connected here. (\emph{Note}: In order to be able to add heat in a sensible way to the system node 1 has to have some heat capacity. The approximation done above making the capacity of the pipes zero is then not valid.) 
+The heated water flows back into the vessel in the top level. The water flow $F1$ outside the vessel, induces an equal sized flow of water in side the vessel from the top layer towards the bottom, through the elements $E3$, $E4$ and $E5$. 
+
+The second water flow $F2$ draws water from the hot top layer. In node 7 a heat flow $Q_{use}$ is extracted. Here, similar to node 1, another model component (for example a radiator) may be connected. (\emph{Note}: the note made for node 1 is valid here is well). 
+The cooled water will flow back into the vessel in the bottom layer. F2 induces a flow in the buffer vessel opposite to $F1$, running though $E5$, $E4$ and $E3$,  consecutively. 
+
+The water flows will be controlled by pumps, either by a on/off manner (switching between a fixed water volume per second and 0) or a more advanced varying flow rate. 
+Since $F1$ and $F2$ can be controlled separately, the flow in the vessel, labeled with $F3$ can run either direction, from bottom to top, or from top to bottom. The size of the flow $F3$ is given by: $F3 = F1 - F2$. When $F3$ is positive it flows from top to bottom in the vessel. A negative value, implies a water flow from bottom to top. 
+
+
+\subsubsection{setting up the flow matrix}
+As indicated earlier, the flow rates can be controlled, and thus may change over time. This means that the terms for the heat exchange due to the water flows need to be generated at each time step, or at least after each change in the flow rates. A matrix that represents the flows may be generated in the following process.
+
+\begin{itemize}
+	\item First of all, the flows in the system need to be defined in the input file. For each flow we need to know the order it traverses the elements in the system, and more specifically the nodes it passes. This can be done by considering each flow separately, and listing the nodes you pass in the direction of the flow.
+	For $F1$ this gives $Nodes_{F1}\left[0, 1, 2, 3, 4, 0 \right]$, and for $F2$ this gives $Nodes_{F2}\left[6,4,3,2,1,6\right]$. (note the labeling of the nodes used here is the number in Figure \ref{fig:FEbuffervessel} minus one.) In the list the first element is equal to the last element, which shows that the flow is a closed loop. The depicted flow $F3$ is only the difference between $F1$ and $F2$, and does not need to be defined by itself. 
+	\item From the ordered list of nodes, we can create a "`directed-flow-matrix"' ($\mathbf{DF}$) for each flow. This matrix should be of the same size as the conductance-matrix ($\mathbf{K}$) and the capacity-matrix ($mathbf{C}$).  The directed-flow-matrix contains a 1 for each matrix-element that corresponds to a connection between nodes in the direction of the flow, and -1 for a connection between nodes in the opposite direction. Thus for flows $F1$ and $F2$ the matrix will be:
+	\begin{equation}
+		\mathbf{DF_{F1}} = \begin{bmatrix}
+							0 & 1 & 0 & 0 & -1& 0 & 0 \\
+							-1& 0 & 1 & 0 & 0 & 0 & 0 \\
+							0 & -1& 0 & 1 & 0 & 0 & 0 \\
+							0 & 0 & -1& 0 & 1 & 0 & 0 \\
+							1 & 0 & 0 & -1& 0 & 0 & 0 \\
+							0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+							0 & 0 & 0 & 0 & 0 & 0 & 0 
+							\end{bmatrix}
+	\label{eq:DFflow1}
+	\end{equation}
+	
+	\begin{equation}
+		\mathbf{DF_{F2}} = \begin{bmatrix}
+							0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+							0 & 0 & -1& 0 & 0 & 0 & 1 \\
+							0 & 1 & 0 & -1& 0 & 0 & 0 \\
+							0 & 0 & 1 & 0 & -1& 0 & 0 \\
+							0 & 0 & 0 & 1 & 0 & 0 & -1 \\
+							0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+							0 & -1& 0 & 0 & 1 & 0 & 0 
+							\end{bmatrix}
+	\label{eq:DFflow1}
+	\end{equation}
+	
+These matrices can be build up from the list as defined in the previous step, by looping through the list and taking the elements $Nodes(i,i+1)$, and filling in a one at the matrix element $(Node(i), Node(i+1))$. After looping through all these pairs we have filled in all connections in the direction of the flow, $\mathbf{DF^{+1}}$. The connections against the flow, $\mathbf{DF^{-1}}$, are given by: $\mathbf{DF^{-1}} = -1 \cdot (\mathbf{DF^{+1}})^T$. Finally, $\mathbf{DF} = \mathbf{DF^{+1}} + \mathbf{DF^{-1}}$. 
+\item In each time step, when the flow sizes have been determined by the control algorithms, each directed-flow-matrix is multiplied by its respected flow size in [$\frac{\text{m}^3}{\text{s}}$]. All resulting matrices can then be added together. Assuming a flow of size $f_1$ and $f_2$ for the flows $F1$ and $F2$, respectively we now get the matrix $\mathbf{SF}$:
+\begin{equation}
+		\mathbf{SF} = f_1 \cdot \mathbf{DF_{F1}} + f_2 \cdot \mathbf{DF_{F2}} = \begin{bmatrix}
+							0   & f_1    & 0       & 0       & -f_1    & 0 & 0 \\
+							-f_1& 0      & f_1-f_2 & 0       & 0       & 0 & f_2 \\
+							0   & f_2-f_1& 0       & f_1-f_2 & 0       & 0 & 0 \\
+							0   & 0      & f_2-f_1 & 0       & f_1-f_2 & 0 & 0 \\
+							f_1 & 0      & 0       & f_2-f_1 & 0       & 0 & -f2 \\
+							0   & 0      & 0       & 0       & 0       & 0 & 0 \\
+							0   & -f_2   & 0       & 0       & f_2     & 0 & 0 
+							\end{bmatrix}
+	\label{eq:addflows}
+	\end{equation}
+\item The heat transfer induced by the flows is only in the direction of the water flow. The correct elements are obtained by taking the $\text{min}(\mathbf{SF},0)$, here we mean for each element in $\mathbf{SF}$ we take the minimum of the respective element and 0. 
+\item Now, the diagonal elements can be computed. The diagonal elements are equal to minus the sum of the of diagonal elements in its respective row. 
+\item Finally, we need to multiply the resulting flow matrix with the density ($\rho_{water}$) and the specific heat ($c_{p, water}$), in order to obtain the heat transferred by the water due to the water flows. 
+\end{itemize} 
+
+\emph{Note 1}, when the system contains flows of different fluids, the described steps need to be followed for each fluid type separately. Each fluid will have its own matrix which will contribute to the overall system. This also implies the need to define the density and specific heat for each flow.
+
+\emph{Note 2}, at this moment the process does not deal with splitting and merging of the water flows. Therefore, a system that may control valves to distribute the water over different radiators using one supply pipe, and one pump, is not feasible in this concept, yet.   
+
+
+
+
+
+
+
+
 
 \[
 \begin{bmatrix}
