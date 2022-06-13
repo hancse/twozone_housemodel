@@ -13,6 +13,14 @@ import matplotlib
 
 matplotlib.use("TkAgg")
 
+def plot_graph(g):
+    # g = nx.Graph()
+    g.add_nodes_from(sorted(G.nodes(data=True)))
+    g.add_edges_from(G.edges(data=True))
+    print(g.nodes())
+    nx.draw(g, with_labels=True)
+    plt.show()
+
 
 def C_from_elements(elements: dict):
     """
@@ -30,14 +38,7 @@ def C_from_elements(elements: dict):
         t.append([e['NodeA'], e['NodeB'], 0.5 * e['Capacity']])
     G.add_weighted_edges_from(t)
     print(G.nodes)
-
-    # H = nx.Graph()
-    # H.add_nodes_from(sorted(G.nodes(data=True)))
-    # H.add_edges_from(G.edges(data=True))
-    # print(H.nodes())
-
-    # nx.draw(G, with_labels=True)
-    # plt.show()
+    # plot_graph(G)
 
     A = nx.adjacency_matrix(G, nodelist=list(range(G.order())))
     B = A.toarray()
@@ -64,14 +65,7 @@ def K_from_elements(elements: dict):
         t.append([e['NodeA'], e['NodeB'], e['Conductivity']])
     G.add_weighted_edges_from(t)
     print(G.nodes)
-
-    # H = nx.Graph()
-    # H.add_nodes_from(sorted(G.nodes(data=True)))
-    # H.add_edges_from(G.edges(data=True))
-    # print(H.nodes())
-
-    # nx.draw(H, with_labels=True)
-    # plt.show()
+    # plot_graph(G)
 
     A = nx.adjacency_matrix(G, nodelist=list(range(G.order())))
     B = A.toarray()
@@ -114,6 +108,48 @@ def flow_to_F_matrix(flowlist: list, rank: int):
     return C
 
 
+def F_from_flows(flows: dict):
+    # convert Dataframe into list of spreadsheet rows, called "rows"
+    rows = []
+    for row in range(len(df.index)):
+        rows.append(df.iloc[row].values.tolist())  ## This will give you 7th row
+
+    # extract element 3: of each row into "nodelists"
+    nodelists = []
+    for row in rows:
+        nodelist = [x for x in row[3:] if np.isnan(x) == False]
+        nodelists.append(nodelist)
+
+    # convert each nodelist into an adjacency matrix resulting in a list of matrices called "Fmatrices"
+    Fmatrices = []
+    for nl in nodelists:
+        Fmatrices.append(flow_to_F_matrix([nl], 7))  # first argument is a LIST, not a SCALAR
+    print(Fmatrices)
+
+    # multiply each adjacency matrix with a factor found in element 2 of each row
+    for n in range(len(rows)):
+        factor = rows[n][2]
+        Fmatrices[n] *= factor
+    print(Fmatrices)
+
+    # combine Fmatrices into matrix Fall
+    Fall = np.zeros_like(Fmatrices[0])
+    for n in range(len(Fmatrices)):
+        Fall += Fmatrices[n]
+    print(Fall)
+
+    # remove matrix elements < 0 from Fall
+    Fall = np.where(Fall <= 0, Fall, 0)
+    print(Fall)
+
+    # create diagonal elements in Fall, so that som over each row is zero
+    row_sums = np.sum(Fall, axis=1).tolist()
+    Fall = Fall - np.diag(np.array(row_sums), k=0)
+    print(Fall)
+
+    return Fall
+
+
 if __name__ == "__main__":
     df = pd.read_excel('xl_for_yaml.xlsx')
     dd = df.T.to_dict()
@@ -131,37 +167,7 @@ if __name__ == "__main__":
     print(Kmatrix)
 
     df = pd.read_excel('xl_for_yaml.xlsx', sheet_name='flows')
-
-    flows = []
-    for row in range(len(df.index)):
-        flows.append(df.iloc[row].values.tolist())  ## This will give you 7th row
-
-    F = []
-    for flow in flows:
-        nodelist = [x for x in flow[3:] if np.isnan(x) == False]
-        F.append(nodelist)
-
-    Fmatrix = []
-    for f in F:
-         Fmatrix.append(flow_to_F_matrix([f], 7))  # first argument is a LIST, not a SCALAR
-    print(Fmatrix)
-
-    for n in range(len(flows)):
-        factor = flows[n][2]
-        Fmatrix[n] *= factor
-    print(Fmatrix)
-
-    Fall = np.zeros_like(Fmatrix[0])
-    for n in range(len(Fmatrix)):
-        Fall += Fmatrix[n]
-    print(Fall)
-
-    Fall = np.where( Fall <= 0, Fall, 0)
-    print(Fall)
-
-    row_sums = np.sum(Fall, axis=1).tolist()
-    Fall = Fall - np.diag(np.array(row_sums), k=0)
-    print(Fall)
+    F_from_flows(df)
 
 
 
