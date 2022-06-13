@@ -245,6 +245,10 @@ In the approximation above, the buffer vessel system is not solvable, without ad
 
 In any case, the node N6 (boundary condition) does not contribute a DOF to the system of equations. Row 6 and column 6 will be removed from the set of equations.
 
+\lstinputlisting[label=lst:cmatrix, linerange={25-49}, 
+caption={Generation of capacity matrix}] 
+{../../housemodel/tools/xl2yml.py}
+
 \subsubsection{$\mathbf{\dot{q}}$-vector}
 
 De vector $\mathbf{\dot{q}}$ wordt gegeven door:
@@ -411,6 +415,9 @@ This reduces the matrices to:
 	\end{aligned}
 \end{equation}
 
+\lstinputlisting[label=lst:cmatrix, linerange={52-76}, 
+caption={Generation of stiffness matrix}] 
+{../../housemodel/tools/xl2yml.py}
 	
 nodes:
 E1 has 1 and 2\\
@@ -578,4 +585,9 @@ $$
 	d & e & f 
 \end{array}\right] 
 \]
+
+\lstinputlisting[label=lst:kmatrix, linerange={52-76}, 
+caption={Generation of stiffness matrix}] 
+{../../housemodel/tools/xl2yml.py}
+
 \newpage
