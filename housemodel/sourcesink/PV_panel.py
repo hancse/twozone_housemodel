@@ -7,7 +7,7 @@ class PVPanel:
     """
 
     def __init__(self, loc_long, loc_lat, orient_azimuth,orient_incl, area,
-                 nom_efficiency, nom_temp, temp_coeff, temp, work_efficiency):
+                 nom_efficiency, nom_temp, temp_coeff):
         """
 
         Args:
@@ -18,8 +18,9 @@ class PVPanel:
             area: (float) surface area in [m2]
             nom_efficiency: (float) nominal efficiency value [# between 0 and 1]
             nom_temp
-            T_coeff
-            temp
+            temp_coeff
+            work_temp
+            work_efficiency
         """
         self.loc_long = loc_long
         self.loc_lat = loc_lat
@@ -29,16 +30,26 @@ class PVPanel:
         self.nom_efficiency = nom_efficiency
         self.nom_temp = nom_temp
         self.temp_coeff = temp_coeff
-        self.work_temp = temp
-        self.work_efficiency = work_efficiency
+
 
     def compute_output_power(self, insol_global, T_amb, wind_speed):
-        self.update_temp(insol_global,T_amb,wind_speed)
-        self.update_efficiency()
+        """
+
+        Args:
+            insol_global: measured global insolation (as by NEN)
+            T_amb: measured ambient temp (as by NEN)
+            wind_speed: measured wind speed (as by NEN)
+
+        Returns:
+
+        """
+        pv_temp = self.compute_temp(insol_global, T_amb, wind_speed)
+        pv_efficiency = self.compute_efficiency(pv_temp)
+        out_power = pv_efficiency*insol_global
 
         return out_power
 
-    def update_temp(self, insol_global, T_amb, wind_speed):
+    def compute_temp(self, insol_global, T_amb, wind_speed):
         """
 
         Args:
@@ -47,17 +58,18 @@ class PVPanel:
             wind_speed: wind speed in [m/s]
 
         Returns:
-
+            work_temp
         """
 
         exponent = -0.61 * pow(wind_speed,0.63)
-        self.work_temp = T_amb + 43.3 * (exp(exponent) + 2.1) * (insol_global/1000)
+        work_temp = T_amb + 43.3 * (exp(exponent) + 2.1) * (insol_global/1000)
+        return work_temp
 
-    def update_efficiency(self):
-        delta_temp = self.work_temp - self.nom_temp
+    def compute_efficiency(self, work_temp):
+        delta_temp = work_temp - self.nom_temp
         factor = (1 + self.temp_coeff * delta_temp)
-        self.work_efficiency = self.nom_efficiency * factor
-
+        work_efficiency = self.nom_efficiency * factor
+        return work_efficiency
 
 if __name__ == "__main__":
     longitude = 0
@@ -76,8 +88,9 @@ if __name__ == "__main__":
 
     print(pv.work_temp)
     print(pv.work_efficiency)
-    pv.update_temp(15,24,3)
+    pv.compute_temp(15,24,3)
     print(pv.work_temp)
     print(pv.work_efficiency)
-    pv.update_efficiency()
+    pv.compute_efficiency()
     print(pv.work_efficiency)
+
