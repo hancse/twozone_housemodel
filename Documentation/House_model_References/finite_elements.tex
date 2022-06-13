@@ -1,0 +1,505 @@
+\section{Finite-element discretization}
+
+\subsection{Heat pump discretization}
+
+Het algemene model van de warmtepomp en airco wordt afgeleid met behulp van het volgende geschematiseerde black box model:
+
+\subsection{Buffer vessel discretization}
+
+Als voorbeeld van een model met warmtestromen en warmtediffusie wordt het volgende model van
+een buffervat beschouwd:
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\columnwidth]{Pictures/FEwatervat.png}
+	\caption[Short title]{Finite-element buffer vessel}
+	\label{fig:FEbuffervessel}
+\end{figure}
+
+Dit is een buffervat in een verwarmingsinstallatie.
+
+Voor het modelleren hiervan wordt gebruik gemaakt van een tweetal universele elementen:
+
+\begin{enumerate}
+	\item Exchange element. Dit element beschrijft warmtetransportt via een vloeistofstroom $F$ door het element en warmtetransport door geleiding. Het element kan een warmtecapaciteit
+	hebben.
+	\item Een puntbron. Deze bron beschrijft warmteontwikkeling of warmte-onttrekking in een punt.
+\end{enumerate}
+
+Het vat is verdeeld in 3 niveaus over de hoogte:
+\begin{enumerate}
+	\item Bovenzijde vat (element 3)
+	\item Midden vat( element 4 )
+	\item Onderzijde vat (element 5 )
+\end{enumerate}
+
+In het vat is sprake van:
+\begin{itemize}
+	\item Warmteverlies naar andere temperatuurniveau ’s en naar de omgeving. De
+	omgevingstemperatuur in dit model is gegeven door de temperatuur in punt 7.
+	De elementen die het volume van het vat beschrijven (E3,E4 en E5) wisselen warmte uit naar
+	elkaar en naar punt 6.
+	\item Warmtetransport door waterstromen. In waterstromen buiten het vat wordt warmte
+	onttrokken of toegevoegd. In het vat is een waterstroom die zorgt voor het kortsluiten van
+	de kringlopen.
+\end{itemize}
+
+Deze beide mechanismen worden meegenomen in het model.
+
+Er wordt verondersteld dat gebruik wordt gemaakt van gelaagdheid. Boven in het vat heerst een
+hogere temperatuur dan onderin het vat. Daarnaast is er sprake van een tweetal leidingen waarin
+warmte wordt uitgewisseld met de omgeving:
+
+\begin{itemize}
+	\item Een leiding waarin warmte wordt toegevoegd aan het vat $\dot{Q}_{add}$. Deze leiding neemt
+	vloeistof (water) onder uit het vat (punt 5), verhoogt de temperatuur door warmte-inbreng
+	(punt 1) en brengt het water boven in het vat weer in. Deze leiding bestaat uit de
+	elementen E1 (boven) en E2 (onder). In deze leiding is een vloeistofstroom $F_1 (kJ/(K·s))$
+	aanwezig die de warmte transporteert.
+	\item Een leiding waarin warmte wordt onttrokken aan het vat $\dot{Q}_{use}$. Deze leiding neemt vloeistof (water) boven uit het vat (punt 2), verlaagt de temperatuur door warmteonttrekking (punt 7) en brengt het water boven in het vat weer in. Deze leiding bestaat uit	de elementen E10 (boven) en E11 (onder). In deze leiding is een vloeistofstroom $F_2 (kJ/(K·s))$ aanwezig die de warmte transporteert.
+\end{itemize}
+
+\subsection{Matrixvergelijking}
+
+Voor het oplossen van de temperatuurverdeling wordt per knooppunt een energiebalans opgesteld.
+Deze energiebalans resulteert in een matrixvergelijking.
+
+\begin{equation}
+	\begin{aligned}
+	    \mathbf{K \theta + C \dot{\theta}} = \mathbf{\dot{q}}	    	
+	\end{aligned}
+\end{equation}
+
+$K$: de warmtegeleidingsmatrix (W/K)
+$C$: de warmtecapaciteitsmatrix (J/K)
+$\theta$: de temperatuursvector (K)
+$\dot{\theta}$: de tijdsafgeleide van de temperatuursvector (K/s)
+$\dot{q}$: de vector met thermische brontermen (W)
+
+\subsection{Elementen in de stroming}
+
+Om te komen tot het matrixmodel wordt begonnen met één exchange element zoals hierboven
+geïntroduceerd (E1,E2,E3,E4,E5,E10,E11). Dit element bevat 2 knooppunten. De volgende veronderstellingen worden gedaan:
+
+\begin{itemize}
+	\item Het element bevat 2 knooppunten waarmee deze verbonden is met de omgeving. De
+	nummering bedraagt: $n_1$ en $n_2$.
+	\item Binnen het element heerst een lineair verlopende temperatuur, van knooppunt naar
+	knooppunt.
+	\item Binnen het element is een vloeistofstroom $F$ die zorgt voor additioneel warmtetransport. De stroomrichting is van knooppunt 1 naar knooppunt 2.
+	\item De warmtecapaciteit van het element wordt evenredig verdeeld over de knooppunten.
+\end{itemize}
+
+De warmtestroom vanuit het element naar knoopunten 1 en 2 moet in balans zijn met de andere
+warmtestromen en de warmtegeneratie in de betreffende knooppunten.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\columnwidth]{Pictures/exchange_element.png}
+	\caption[Short title]{Exchange element buffer vessel}
+	\label{fig:exchange_element}
+\end{figure}
+
+Voor de warmtestromen vanaf knooppunt 1 geldt:
+
+\begin{equation}
+	\begin{aligned}
+		(T_1 - T_2) \cdot \frac{1}{R_e} + C_{e1,1} \cdot \frac{dT_1}{dT} = \dot{Q}_{ext,1}	    	
+	\end{aligned}
+\end{equation}
+
+$T_1$: temperatuur in knooppunt 1 \\
+$T_2$: temperatuur in knooppunt 2 \\
+$R_e$: warmteweerstand voor geleiding tussen knooppunt 1 en 2 \\
+$C_{e1,1}$: warmtecapaciteit in knooppunt 1 van element 1 \\
+$\frac{dT_1}{dT}$: temperatuursverandering in de tijd in knooppunt 1 \\
+$\dot{Q}_{ext,1}$: externe warmtetoevoer in knooppunt 1 \\
+
+De vloeistofstroom $F$ vanuit knooppunt $T_1$ heeft dezelfde temperatuur als $T_1$ en heeft dus geen invloed op de temperatuur in $T_1$.
+
+Voor de warmtestromen vanaf punt 2 geldt:
+
+\begin{equation}
+	\begin{aligned}
+		(T_2 - T_1) \cdot \frac{1}{R_e} + F \cdot (T_2 - T_1) + C_{e1,2} \cdot \frac{dT_2}{dT} = \dot{Q}_{ext,2}	    	
+	\end{aligned}
+\end{equation}
+
+$C_{e1,2}$: warmtecapaciteit in knooppunt 2 van element 1 \\
+$\frac{dT_2}{dT}$: temperatuursverandering in de tijd in knooppunt 2 \\
+$\dot{Q}_{ext,2}$: externe warmtetoevoer in knooppunt 2 \\
+
+In matrixnotatie:
+
+\begin{equation}
+	\begin{aligned}
+	\begin{bmatrix}
+	    1/R_e & -1/R_e \\
+	    -1/R_e -F &  1/R_e + F
+    \end{bmatrix}
+    \cdot
+    \begin{bmatrix}
+    	T_1 \\
+    	T_2
+    \end{bmatrix}
+    +
+    	\begin{bmatrix}
+    	C_{e1,1} & 0 \\
+    	0 &  C_{e1,2}
+    \end{bmatrix}
+    \cdot
+    \begin{bmatrix}
+    	\frac{dT_1}{dt} \\
+	    \frac{dT_2}{dt}
+    \end{bmatrix}	
+    =
+        \begin{bmatrix}
+    	\dot{Q}_{ext,1} \\
+    	\dot{Q}_{ext,2}
+    \end{bmatrix}  	
+	\end{aligned}
+\end{equation}
+
+Merk op dat door de aanwezigheid van een vloeistofstroom $F$, de geleidingsmatrix niet langer symmetrisch is.
+
+Daarnaast wordt gebruik gemaakt van elementen die alleen een warmteweerstand weergeven. Deze
+elementen (E6,E7,E8 en E9) kunnen worden gerepresenteerd met de volgende matrixvergelijking
+
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			1/R_e & -1/R_e \\
+			-1/R_e &  1/R_e
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			T_1 \\
+			T_2
+		\end{bmatrix}	
+		=
+		\begin{bmatrix}
+			\dot{Q}_{ext,1} \\
+			\dot{Q}_{ext,2}
+		\end{bmatrix}  	
+	\end{aligned}
+\end{equation}
+
+\subsection{Systemmmatrices van het buffervat}
+
+Er wordt nu een systeemmatrix opgesteld voor het schematisch weergegeven model. Deze
+systeemmatrix wordt opgebouwd uit de verschillende elementmatrices. De noodzakelijke rang van
+deze systeemmatrix is het aantal knooppunten in het warmtestroomschema minus het aantal
+voorgeschreven knooppunten in dit schema. Er zijn 7 knooppunten in het model. In dit geval wordt
+in punt 6 de temperatuur voorgeschreven.
+Er resteren dan 6 onafhankelijke vrijheidsgraden.
+
+\subsubsection{Capaciteitsmatrix $\mathbf{C}$}
+
+There are 7 nodes in the system. The heat capacities are:
+
+\begin{equation}
+	\begin{aligned}
+\text{node 1} & \quad C_{e1,1} + C_{e2,2} = 0.5 \cdot (C_{e1} + C_{e2})\\
+\text{node 2} & \quad C_{e1,2} + C_{e3,1} + C_{e10,2} + C_{e6,2} = 0.5 \cdot (C_{e1} + C_{e3} + C_{e10} + C_{e6}) \\
+\text{node 3} & \quad C_{e3,2} + C_{e4,1} + C_{e7,2} = 0.5 \cdot (C_{e3} + C_{e4} + C_{e7}) \\
+\text{node 4} & \quad C_{e4,2} + C_{e5, 1} + C_{e8,2} = 0.5 \cdot (C_{e4} + C_{e5} + C_{e8}) \\
+\text{node 5} & \quad C_{e5,2} + C_{e2, 1} + C_{e9, 2} + C_{11,2} = 0.5 \cdot (C_{e5} + C_{e2} + C_{e9} + C_{11}) \\
+\text{node 6} & \quad C_{e6,1} + C_{e7, 1} +  C_{e8, 1} +  C_{e9, 1} = 0.5 \cdot (C_{e6} + C_{e7} +  C_{e8} +  C_{e9}) \\
+\text{node 7} & \quad C_{e10,2} + C_{e11,1} = 0.5 \cdot (C_{e10} + C_{e11})
+	\end{aligned}
+\end{equation}
+
+\begin{tiny}
+\[
+0.5 \cdot 
+\begin{bmatrix}
+	C_{e1} + C_{e2} & 0 & 0 & 0 & 0 & 0 & 0 \\
+	0 & C_{e1} + C_{e3} + C_{e10} + C_{e6} & 0 & 0 & 0 & 0 & 0 \\
+	0 & 0 & C_{e3} + C_{e4} + C_{e7} & 0 & 0 & 0 & 0 \\
+	0 & 0 & 0 & C_{e4} + C_{e5} + C_{e8} & 0 & 0 & 0 \\
+	0 & 0 & 0 & 0 & C_{e5} + C_{e2} + C_{e9} + C_{e11} & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 & C_{e6} + C_{e7} +  C_{e8} + C_{e9} & 0 \\
+	0 & 0 & 0 & 0 & 0 & 0 & C_{e10} + C_{e11}
+\end{bmatrix}
+\]
+\end{tiny}
+
+The heat capacities of element E1, E2, E10 and E11 (pipelines) are very small and can be approximated to be zero. Also, the elements E6, E7, E8 and E9 are thermal leaks, connected to node 6, which may be a boundary condition.
+
+The capacity matrix thus reduces to:
+
+\[
+0.5 \cdot 
+\begin{bmatrix}
+	\approx 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+	0 & C_{e3} & 0 & 0 & 0 & 0 & 0 \\
+	0 & 0 & C_{e3} + C_{e4} & 0 & 0 & 0 & 0 \\
+	0 & 0 & 0 & C_{e4} + C_{e5} & 0 & 0 & 0 \\
+	0 & 0 & 0 & 0 & C_{e5} & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+	0 & 0 & 0 & 0 & 0 & 0 & \approx 0
+\end{bmatrix}
+\]
+
+In the approximation above, the buffer vessel system is not solvable, without adding some heat capacity to nodes N1 and N7. \emph{e.g.} these nodes must be coupled with a house model element with finite heat capacity.
+
+In any case, the node N6 (boundary condition) does not contribute a DOF to the system of equations. Row 6 and column 6 will be removed from the set of equations.
+
+\subsubsection{$\mathbf{\dot{q}}$-vector}
+
+De vector $\mathbf{\dot{q}}$ wordt gegeven door:
+
+\[
+\left(\hspace{-5pt}\begin{array}{cc|c}
+	1 & 1 & \dot{q}_1 = \dot{Q}_{add}\\
+	2 & 2 & \dot{q}_2\\
+	3 & 3 & \dot{q}_3\\
+	4 & 4 & \dot{q}_4\\
+	5 & 5 & \dot{q}_5\\
+	6 & 6 & \dot{q}_6\\
+	7 & 7 & \dot{q}_7 = -\dot{Q}_{use}
+\end{array}\hspace{-5pt}\right)
+\]
+
+\[
+\left(\hspace{-5pt}\begin{array}{cc|c}
+	1 & 2 & 3 \\
+	4 & 5 & 9
+\end{array}\hspace{-5pt}\right)
+\]
+
+In nodes N1 and N7 an external een heat source / heat sink is contributing to the power balance.
+
+Het voorgeschreven knooppunt (randvoorwaarde, boundary condition) 6 is verbonden aan knooppunten 2, 3, 4 en 5. Dit zijn de ook de vrijheidsgraden 2, 3, 4 en 5. Vrijheidsgraden worden aangegeven met DOF (degree of freedom). In de overeenkomstige knooppunten wordt de capaciteits? stiffness matrix $\mathbf{K}$ en de bronvector (load vector) $\mathbf{\dot{q}}$ aangepast.De aanpassing van de K-matrix wordt verderop toegelicht. De bronvector wordt als volgt aangepast:
+
+\[
+\begin{bmatrix}
+	1 & 1 & \dot{Q}_{add} \\
+	2 & 2 & 0 - \frac{1}{R_{2,6}} \\
+	3 & 3 & 0 - \frac{1}{R_{3,6}} \\
+	4 & 4 & 0 - \frac{1}{R_{4,6}} \\
+	5 & 5 & 0 - \frac{1}{R_{5,6}} \\
+	6 & 7 & -\dot{Q}_{use}
+\end{bmatrix}
+\]
+
+
+\subsubsection{Geleidingsmatrix $\mathbf{K}$}
+
+elements with heat capacity must have two nodes:
+E3, E4, E5
+
+elements without heat capacity have two nodes as well:
+E1, E2, E6, E7, E8, E9, E10, E11
+
+elements without heat conduction:
+E1, E2, E10, E11
+
+elements with heat conduction:
+E3, E4, E5, E6, E7, E8, E9
+
+elements with heat convection (flow):
+E1, E2, E3, E4, E5, E10, E11
+
+The "conduction" matrix is equivalent to the stiffness matrix in a mechanical FE analysis.
+In terms of the thermal system topology this matrix contains the "edges" between the nodes. The matrix is setup as a 7 x 7 square zero matrix with the nodes as DOF.
+
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+		\end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+The conductive elements in the system are:
+
+\begin{equation}
+	\begin{aligned}
+        \frac{1}{R_{2,3}} & = & \frac{1}{R_{e3}} \\
+        \frac{1}{R_{3,4}} & = & \frac{1}{R_{e4}} \\
+        \frac{1}{R_{4,5}} & = & \frac{1}{R_{e5}} \\
+        \frac{1}{R_{2,6}} & & \frac{1}{R_{3,6}} & & \frac{1}{R_{4,6}} & & \frac{1}{R_{5,6}} 
+	\end{aligned}
+\end{equation}
+
+The conductive element $\frac{1}{R_{12}} = \frac{1}{R_{e1}} = 0$. This means $R_{12} \rightarrow \infty$. The pipeline is perfecly insulated and creates no heat leak. Thermal energy flowing \emph{through} it is completely delivered to the target node. Likewise, this holds for the elements E2, E10 and E11.
+
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+            0 & 0 & \frac{-1}{R_{2,3}} & 0 & 0 & \frac{-1}{R_{2,6}} & 0 \\
+            0 & \frac{-1}{R_{2,3}} & 0 & \frac{-1}{R_{3,4}} & 0 & \frac{-1}{R_{3,6}} & 0\\
+            0 & 0 & \frac{-1}{R_{3,4}} & 0 & \frac{-1}{R_{4,5}} & \frac{-1}{R_{4,6}} & 0\\
+            0 & 0 & 0 & \frac{-1}{R_{4,5}} & 0 & \frac{-1}{R_{5,6}} & 0 \\
+            0 & \frac{-1}{R_{2,6}} & \frac{-1}{R_{3,6}} & \frac{-1}{R_{4,6}} & \frac{-1}{R_{5,6}} & 0 & 0\\
+            0 & 0 & 0 & 0 & 0 & 0 & 0\\
+		\end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & \frac{1}{R_{2,3}} + \frac{1}{R_{2,6}} & \frac{-1}{R_{2,3}} & 0 & 0 & \frac{-1}{R_{2,6}} & 0 \\
+			0 & \frac{-1}{R_{2,3}} & \frac{1}{R_{2,3}} + \frac{1}{R_{3,4}} + \frac{1}{R_{3,6}} & \frac{-1}{R_{3,4}} & 0 & \frac{-1}{R_{3,6}} & 0 \\
+			0 & 0 & \frac{-1}{R_{3,4}} & \frac{1}{R_{3,4}} +  \frac{1}{R_{4,5}} + \frac{1}{R_{4,6}} & \frac{-1}{R_{4,5}} & \frac{-1}{R_{4,6}} & 0\\
+			0 & 0 & 0 & \frac{-1}{R_{4,5}} & \frac{1}{R_{4,5}} + \frac{1}{R_{5,6}} & \frac{-1}{R_{5,6}} & 0 \\
+			0 & \frac{-1}{R_{2,6}} & \frac{-1}{R_{3,6}} & \frac{-1}{R_{4,6}} & \frac{-1}{R_{5,6}} & \frac{1}{R_{2,6}} + \frac{1}{R_{3,6}} +  \frac{1}{R_{4,6}} + \frac{1}{R_{5,6}} & 0\\
+			0 & 0 & 0 & 0 & 0 & 0 & 0\\
+		\end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+If node N6 is a boundary condition \emph{i.e.} $T_6$ is given as a constant. The corresponding row in the $\mathbf{K}$ and $\mathbf{C}$ matrices can be removed. For the nodes that are connected to node N6 (row 2, 3, 4 and 5) the thermal connection can be moved to the $\mathbf{\dot{q}}$ vector. This can be seen by writing down the differential equation for node N2:
+
+\begin{equation}
+	\begin{aligned}
+        0.5 \, C_{e3} \cdot \frac{dT_2}{dt} = \frac{1}{R_{2,3}} (T_3 - T_2) + \frac{1}{R_{2,6}} (T_6 - T_2) & = (-\frac{1}{R_{2,3}} - \frac{1}{R_{2,6}}) \cdot T_2 + \frac{1}{R_{2,3}} \cdot T_3 + \frac{1}{R_{2,6}} \cdot T_6 
+	\end{aligned}
+\end{equation}
+
+\begin{equation}
+	\begin{aligned}
+        \mathbf{K \theta} \qquad & + & \mathbf{C \dot{\theta}} & = & \mathbf{\dot{q}} \\
+		(\frac{1}{R_{2,3}} + \frac{1}{R_{2,6}}) \cdot T_2 - \frac{1}{R_{2,3}} \cdot T_3 \; & + & 0.5 \, C_{e3} \cdot \frac{dT_2}{dt} & = & \frac{1}{R_{2,6}} \cdot T_6
+	\end{aligned}
+\end{equation}
+
+\textbf{Note:} the sum of each row in $\mathbf{K}$ is not \emph{zero} anymore, but equals the corresponding vector element in $\mathbf{\dot{q}}$.
+
+This reduces the matrices to:
+
+\begin{equation}
+	\begin{aligned}
+		\mathbf{C} & =
+		0.5 \cdot 
+		\begin{bmatrix}
+			\approx 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & C_{e3} & 0 & 0 & 0 & 0 \\
+			0 & 0 & C_{e3} + C_{e4} & 0 & 0 & 0 \\
+			0 & 0 & 0 & C_{e4} + C_{e5} & 0 & 0 \\
+			0 & 0 & 0 & 0 & C_{e5} & 0 \\
+			0 & 0 & 0 & 0 & 0 & \approx 0 \\
+		\end{bmatrix} \\
+        \mathbf{K} & =
+			\begin{bmatrix}
+				0 & 0 & 0 & 0 & 0 & 0 \\
+				0 & \frac{1}{R_{2,3}} + \frac{1}{R_{2,6}} & \frac{-1}{R_{2,3}} & 0 & 0 & 0 \\
+				0 & \frac{-1}{R_{2,3}} & \frac{1}{R_{2,3}} + \frac{1}{R_{3,4}} + \frac{1}{R_{3,6}} & \frac{-1}{R_{3,4}} & 0 & 0 \\
+				0 & 0 & \frac{-1}{R_{3,4}} & \frac{1}{R_{3,4}} +  \frac{1}{R_{4,5}} + \frac{1}{R_{4,6}} & \frac{-1}{R_{4,5}} & 0\\
+				0 & 0 & 0 & \frac{-1}{R_{4,5}} & \frac{1}{R_{4,5}} + \frac{1}{R_{5,6}} & 0 \\
+				0 & 0 & 0 & 0 & 0 & 0\\
+		\end{bmatrix} \\
+        \mathbf{\dot{q}} & =
+	        \begin{bmatrix}
+		        \dot{Q}_{add} \\
+		        \frac{1}{R_{2,6}} \cdot T_6 \\
+		        \frac{1}{R_{3,6}} \cdot T_6 \\
+		        \frac{1}{R_{4,6}} \cdot T_6 \\
+		        \frac{1}{R_{5,6}} \cdot T_6 \\
+		        -\dot{Q}_{use}
+	        \end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+	
+nodes:
+E1 has 1 and 2
+E2 has 1 and 5
+E3 has 2 and 3
+E4 has 3 and 4
+E5 has 4 and 5
+E6 has 2 and 6
+E7 has 3 and 6
+E8 has 4 and 6
+E9 has 5 and 6
+E10 has 2 and 7
+E11 has 5 and 7
+
+edges conductivity R and convection F:
+
+1 and 2
+1 and 5
+2 and 3
+3 and 4
+4 and 5
+2 and 6
+3 and 6
+4 and 6
+5 and 6
+2 and 7
+5 and 7
+
+\[
+\begin{bmatrix}
+	1 & 1 & \dot{Q}_{add}\\
+	2 & 2 & 0 - \frac{1}{R_{2,6}}\\
+	3 & 3 & 0 - \frac{1}{R_{3,6}}\\
+	4 & 4 & 0 - \frac{1}{R_{4,6}}\\
+	5 & 5 & 0 - \frac{1}{R_{5,6}}\\
+	6 & 7 & -\dot{Q}_{use}
+\end{bmatrix}
+\]
+
+$$
+\begin{bmatrix}
+	1 & 0 & 0 & 0 &\bigm| & 0 \\
+	0 & 1 & 0 & 0 &\bigm| & 5 \\
+	0 & 0 & 1 & 0 &\bigm| & -4 \\ 
+	0 & 0 & 0 & 1 &\bigm| & -2
+\end{bmatrix}
+$$
+
+\newenvironment{amatrix}[1]{%
+	\left(\begin{array}{@{}*{#1}{c}|c@{}}
+	}{%
+	\end{array}\right)
+}
+
+\[
+\begin{amatrix}{2}
+	1 & 2 & 3 \\  a & b & c
+\end{amatrix}
+\]
+
+\[
+\left[
+\begin{array}{cc|c}
+	a & b & c \\
+	d & e & f
+\end{array}
+\right]
+\]
+
+\[
+\left[\begin{array}{rrrrr|r}
+	-3 & 6 & -1 & 1 & -7 & 0\\
+	1 & -2 & 2 & 3 & -1 & 0\\
+	2 & -4 & 5 & 8 & -4 & 0
+\end{array}\right]
+\]
+
+\[
+\left(\hspace{-5pt}\begin{array}{cc|c}
+	1 & 2 & 3 \\
+	4 & 5 & 9
+\end{array}\hspace{-5pt}\right)
+\]
+
+\[
+    \left[\begin{array}{c|c c} 
+	a & b & c\\ 
+	\hline 
+	d & e & f 
+\end{array}\right] 
+\]
+\newpage

@@ -1,0 +1,137 @@
+# General setting
+
+Identifier:            Definition file created by HAN
+Date:                                                           3/23/2022
+#
+# Climatefile with description of temperatures humidity and solar irradiation
+Climatefile:          ..\..\NEN5060.xls
+# Default simulation time in
+Timescale:                                                             10 # default timescale used in yaml file in minutes
+Duration:                                                            8760 # a year in the defined timescale
+Timestep:                                                               1 # default timestep in time integration. Required until new integration subroutine is implemented
+
+solar_irradiation:
+                      E:                                                                       9.5
+                      SE:                                                                        0
+                      S:                                                                         0
+                      SW:                                                                        0
+                      W:                                                                       9.5
+                      NW:                                                                        0
+                      N:                                                                         0
+                      NE:                                                                        0
+                      g_value:                                                                 0.7
+
+nodes:
+  -
+    Name:                    Ambient
+    Capacity:                            1.00E+12 # J/K: C0
+  -
+    Name:                    Internals
+    Capacity:                            8.59E+06 # J/K: C1
+  -
+    Name:                    Load_bearing_constructon
+    Capacity:                            4.68E+07 # J/K: C2
+  -
+    Name:                    radiator
+    Capacity:                              209000 # J/K: C3
+
+elements:
+  -
+    Name: Hot_Inlet
+    Capacity: 0
+    Conductivity: 0
+    Flow: 100
+    Nodes: [0, 1]
+
+  -
+    Name: Cold_Outlet
+    Capacity: 0
+    Conductivity: 0
+    Flow: 100
+    Nodes: [0, 4]
+
+  - Name:         Top
+    Capacity:     1.00e+12
+    Conductivity: 300
+    Flow:         100
+    Nodes:        [1, 2]
+
+  - Name:         Middle
+    Capacity:     1.00e+12
+    Conductivity: 300
+    Flow:         100
+    Nodes:        [2, 3]
+
+  - Name:         Bottom
+    Capacity:     1.00e+12
+    Conductivity: 300
+    Flow:         100
+    Nodes:        [3, 4]
+
+  - Name:         Leak_Top
+    Capacity:     0
+    Conductivity: 300
+    Flow:         0
+    Nodes:        [1, 5]
+
+  - Name:         Leak_UpperMid
+    Capacity:     0
+    Conductivity: 300
+    Flow:         0
+    Nodes:        [2, 5]
+
+  - Name:         Leak_LowerMid
+    Capacity:      0
+    Conductivity: 300
+    Flow:         0
+    Nodes:        [3, 5]
+
+  - Name:         Leak_Bottom
+    Capacity:       0
+    Conductivity: 300
+    Flow:         0
+    Nodes:        [4, 5]
+
+  - Name:         Hot_Outlet
+    Capacity:     0
+    Conductivity: 0
+    Flow:          100
+    Nodes:        [1, 6]
+
+  - Name:         Cold_Inlet
+    Capacity:     0
+    Conductivity: 0
+    Flow:         100
+    Nodes:        [4, 6]
+
+elementz:
+  - [Hot_Inlet,   0, 1, 0, 0, 0]        # W/K: 1/R01
+  - [Cold_Outlet, 0, 4, 0, 0, 100]        # W/K: 1/R12
+  - [1, 2,          1]        # W/K: 1/R13
+  - [1, 5,          1]        # W/K: 1/R13
+  - [1, 6,          1]        # W/K: 1/R13
+  - [2, 3,          1]        # W/K: 1/R13
+  - [2, 5,          1]        # W/K: 1/R13
+  - [3, 4,          1]        # W/K: 1/R13
+  - [3, 5,          1]        # W/K: 1/R13
+  - [4, 5,          1]        # W/K: 1/R13
+  - [4, 6,          1]        # W/K: 1/R13
+
+
+ventilation:
+                      n:                                                                      0.55
+                      CF:                                                                      0.8
+
+initial:
+                      rho_air:                                                                 1.2
+
+internal:
+                      delta_Q:                                                                 150
+                      Q_day:                                                                   400
+                      t1:                                                                        8
+                      t2:                                                                       23
+
+controller:
+                      kp:                                                                     4999
+                      ki:                                                                       99
+                      kd:                                                                        0

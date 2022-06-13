@@ -104,6 +104,47 @@ def make_edges(edge_list):
     K_matrix = B - np.diag(np.array(row_sums), k=0)
     return K_matrix
 
+def C_from_elements(elements:dict):
+    """
+
+    Args:
+        e: list with edge info [source_node (int), target_node (int), weight (float)]
+
+    Returns:
+        K_matrix (ndarray):  2D matrix with conductances in network
+    """
+    G = nx.Graph()
+    t = []
+    for e in elements:
+        # t.append([e['Nodes'][0], e['Nodes'][1], e['Conductivity']])
+        t.append([e['NodeA'], e['NodeB'], e['Conductivity']])
+    G.add_weighted_edges_from(t)
+    A = nx.adjacency_matrix(G)
+    B = A.toarray()
+    row_sums = np.sum(B, axis=1).tolist()
+    K_matrix = B - np.diag(np.array(row_sums), k=0)
+    return K_matrix
+
+def K_from_elements(elements:dict):
+    """
+
+    Args:
+        e: list with edge info [source_node (int), target_node (int), weight (float)]
+
+    Returns:
+        K_matrix (ndarray):  2D matrix with conductances in network
+    """
+    G = nx.Graph()
+    t = []
+    for e in elements:
+        t.append([e['Nodes'][0], e['Nodes'][1], e['Conductivity']])
+    G.add_weighted_edges_from(t)
+    A = nx.adjacency_matrix(G)
+    B = A.toarray()
+    row_sums = np.sum(B, axis=1).tolist()
+    K_matrix = B - np.diag(np.array(row_sums), k=0)
+    return K_matrix
+
 
 def add_chain(C_mat, new_c_element,
               K_mat, new_k_element, anchor,
@@ -157,6 +198,10 @@ def add_chain_to_k(K_mat, new_k_element, anchor):
 
 
 if __name__ == "__main__":
+    lines = load_config(str("FE_buffervessel_nodes_and_edges.yaml"))
+    Km = K_from_elements(lines['elements'])
+    print(Km)
+
     lines = load_config(str("excel_for_companies_nodes_and_edges.yaml"))
     Kmat = make_edges(lines['edges'])
     print(Kmat)
