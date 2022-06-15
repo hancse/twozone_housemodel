@@ -17,39 +17,12 @@ def plot_graph(g):
     # g = nx.Graph()
     g.add_nodes_from(sorted(G.nodes(data=True)))
     g.add_edges_from(G.edges(data=True))
-    print(g.nodes())
+    # print(g.nodes())
     nx.draw(g, with_labels=True)
     plt.show()
 
 
-def C_from_elements(elements: list):
-    """
-
-    Args:
-        elements: list with edge info [source_node (int), target_node (int), weight (float)]
-
-    Returns:
-        C_matrix (ndarray):  2D matrix with conductances in network
-    """
-    G = nx.Graph()
-    t = []
-    for e in elements:
-        # t.append([e['NodeA'], e['NodeB'], 1.0])   # e['Capacity']])
-        t.append([e['NodeA'], e['NodeB'], 0.5 * e['Capacity']])
-    G.add_weighted_edges_from(t)
-    print(G.nodes)
-    # plot_graph(G)
-
-    A = nx.adjacency_matrix(G, nodelist=list(range(G.order())))
-    B = A.toarray()
-    print(B, "\n")
-
-    row_sums = np.sum(B, axis=1).tolist()
-    C_matrix = np.diag(np.array(row_sums), k=0)
-    return C_matrix
-
-
-def C_from_elements2(df: pd.DataFrame):
+def C_from_elements(df: pd.DataFrame):
     """assemble C-matrix from Dataframe
 
     Args:
@@ -74,39 +47,49 @@ def C_from_elements2(df: pd.DataFrame):
     # nodelists is a list [node, node, weight], suitable for networkx
     G = nx.Graph()
     G.add_weighted_edges_from(nodelists)
-    print(G.nodes)
+    # print(G.nodes)
     # plot_graph(G)
 
     A = nx.adjacency_matrix(G, nodelist=list(range(G.order())))
     B = A.toarray()
-    print(B, "\n")
+    # print(B, "\n")
 
     row_sums = np.sum(B, axis=1).tolist()
     C_matrix = np.diag(np.array(row_sums), k=0)
     return C_matrix
 
 
-def K_from_elements(elements: list):
-    """
+def K_from_elements(df: pd.DataFrame):
+    """assemble K-matrix from Dataframe
 
     Args:
-        e: list with edge info [source_node (int), target_node (int), weight (float)]
+        df: Dataframe from Excel spreadsheett (float)]
 
     Returns:
         K_matrix (ndarray):  2D matrix with conductances in network
     """
+    # convert Dataframe into list of spreadsheet rows, called "rows"
+    # rows becomes a list of lists
+    rows = []
+    for row in range(len(df.index)):
+        rows.append(df.iloc[row].values.tolist())
+
+    # extract element 4: and element 2 of each row into "nodelists"
+    nodelists = []
+    for row in rows:
+        nodelist = [x for x in row[4:] if np.isnan(x) == False]
+        nodelist.append(row[3])
+        nodelists.append(nodelist)
+
+    # nodelists is a list [node, node, weight], suitable for networkx
     G = nx.Graph()
-    t = []
-    for e in elements:
-        # t.append([e['NodeA'], e['NodeB'], 1.0])
-        t.append([e['NodeA'], e['NodeB'], e['Conductivity']])
-    G.add_weighted_edges_from(t)
-    print(G.nodes)
+    G.add_weighted_edges_from(nodelists)
+    # print(G.nodes)
     # plot_graph(G)
 
     A = nx.adjacency_matrix(G, nodelist=list(range(G.order())))
     B = A.toarray()
-    print(B, "\n")
+    # print(B, "\n")
 
     row_sums = np.sum(B, axis=1).tolist()
     K_matrix = B - np.diag(np.array(row_sums), k=0)
@@ -126,18 +109,18 @@ def flow_to_F_matrix(flowlist: list, rank: int):
     # flatten
     flattened = [val for f in flowlist for val in f]
 
-    print("The original list : " + str(flattened))
+    # print("The original list : " + str(flattened))
     # Finding missing elements in List
     # res = [ele for ele in range(max(flattened) + 1) if ele not in flattened]
     res = list(set(range(rank)) - set(flattened))
-    print("The list of missing elements : " + str(res))
+    # print("The list of missing elements : " + str(res))
 
     G = nx.DiGraph()
     G.add_nodes_from(res)
     for f in flowlist:
         G.add_edges_from(flowlist_to_edges(f))
 
-    print(f"nodes: {G.nodes}")
+    # print(f"nodes: {G.nodes}")
     A = nx.adjacency_matrix(G, nodelist=list(range(G.order())))
     B = A.toarray()
     # sign changes ?
@@ -161,55 +144,89 @@ def F_from_flows(flows: dict):
     Fmatrices = []
     for nl in nodelists:
         Fmatrices.append(flow_to_F_matrix([nl], 7))  # first argument is a LIST, not a SCALAR
-    print(Fmatrices)
+    # print(Fmatrices)
 
     # multiply each adjacency matrix with a factor found in element 2 of each row
     for n in range(len(rows)):
         factor = rows[n][2]
         Fmatrices[n] *= factor
-    print(Fmatrices)
+    # print(Fmatrices)
 
     # combine Fmatrices into matrix Fall
     Fall = np.zeros_like(Fmatrices[0])
     for n in range(len(Fmatrices)):
         Fall += Fmatrices[n]
-    print(Fall)
+    # print(Fall)
 
-    # remove matrix elements < 0 from Fall
+    # remove matrix elements > 0 from Fall
     Fall = np.where(Fall <= 0, Fall, 0)
-    print(Fall)
+    # print(Fall)
 
     # create diagonal elements in Fall, so that som over each row is zero
     row_sums = np.sum(Fall, axis=1).tolist()
     Fall = Fall - np.diag(np.array(row_sums), k=0)
-    print(Fall)
+    # print(Fall)
 
     return Fall
 
 
 if __name__ == "__main__":
-    df = pd.read_excel('xl_for_yaml.xlsx')
+    df = pd.read_excel('xl_for_yaml.xlsx', sheet_name='elements')
+    Cmatrix = C_from_elements(df)
+    # print(Cmatrix, "\n")
+
     dd = df.T.to_dict()
-    print(dd)
+    # print(dd)
     dlist = [value for value in dd.values()]
-    print(dlist)
+    # print(dlist)
 
     with open("xl_for_yaml.yml", "w") as config_outfile:
         yaml.dump(dlist, config_outfile, indent=2, sort_keys=False)
 
-    Cmatrix = C_from_elements(dlist)
-    print(Cmatrix, "\n")
-
-    Kmatrix = K_from_elements(dlist)
-    print(Kmatrix)
+    Kmatrix = K_from_elements(df)
+    print(Kmatrix, "\n")
 
     df = pd.read_excel('xl_for_yaml.xlsx', sheet_name='flows')
     Fmatrix = F_from_flows(df)
-    print(Fmatrix)
+    # print(Fmatrix)
 
-    df = pd.read_excel('xl_for_yaml.xlsx', sheet_name='elements_new')
-    Cmatrix2 = C_from_elements2(df)
-    np.testing.assert_array_almost_equal(Cmatrix, Cmatrix2)
+    # ============================================
+    Cmatrix = np.delete(Cmatrix, [5], axis=0)
+    Cmatrix = np.delete(Cmatrix, [5], axis=1)
+
+    Kmatrix = np.delete(Kmatrix, [5], axis=0)
+    # make q-vector
+    col = Kmatrix[:,5]
+    Kmatrix = np.delete(Kmatrix, [5], axis=1)
+
+    Fmatrix = np.delete(Fmatrix, [5], axis=0)
+    Fmatrix = np.delete(Fmatrix, [5], axis=1)
+
+    print(Kmatrix, "\n")
+
+
+"""
+df = pd.read_excel('xl_for_yaml.xlsx')
+def C_from_elements(elements: list):
+    G = nx.Graph()
+    t = []
+    for e in elements:
+        # t.append([e['NodeA'], e['NodeB'], 1.0])   # e['Capacity']])
+        t.append([e['NodeA'], e['NodeB'], 0.5 * e['Capacity']])
+    G.add_weighted_edges_from(t)
+    print(G.nodes)
+    # plot_graph(G)
+
+    A = nx.adjacency_matrix(G, nodelist=list(range(G.order())))
+    B = A.toarray()
+    print(B, "\n")
+
+    row_sums = np.sum(B, axis=1).tolist()
+    C_matrix = np.diag(np.array(row_sums), k=0)
+    return C_matrix
+"""
+
+
 
 
 

@@ -2,65 +2,65 @@
   Name: Hot_Inlet
   Capacity: 0
   Conductivity: 0
-  NodeA: 0
-  NodeB: 1
+  'Unnamed: 4': 0
+  'Unnamed: 5': 1
 - Element ID: 1
   Name: Cold_Outlet
   Capacity: 0
   Conductivity: 0
-  NodeA: 0
-  NodeB: 4
+  'Unnamed: 4': 0
+  'Unnamed: 5': 4
 - Element ID: 2
   Name: Top
   Capacity: 100
   Conductivity: 1
-  NodeA: 1
-  NodeB: 2
+  'Unnamed: 4': 1
+  'Unnamed: 5': 2
 - Element ID: 3
   Name: Middle
   Capacity: 200
   Conductivity: 2
-  NodeA: 2
-  NodeB: 3
+  'Unnamed: 4': 2
+  'Unnamed: 5': 3
 - Element ID: 4
   Name: Bottom
   Capacity: 300
   Conductivity: 3
-  NodeA: 3
-  NodeB: 4
+  'Unnamed: 4': 3
+  'Unnamed: 5': 4
 - Element ID: 5
   Name: Leak_Top
   Capacity: 0
   Conductivity: 4
-  NodeA: 1
-  NodeB: 5
+  'Unnamed: 4': 1
+  'Unnamed: 5': 5
 - Element ID: 6
   Name: Leak_UpperMid
   Capacity: 0
   Conductivity: 5
-  NodeA: 2
-  NodeB: 5
+  'Unnamed: 4': 2
+  'Unnamed: 5': 5
 - Element ID: 7
   Name: Leak_Lower_Mid
   Capacity: 0
   Conductivity: 6
-  NodeA: 3
-  NodeB: 5
+  'Unnamed: 4': 3
+  'Unnamed: 5': 5
 - Element ID: 8
   Name: Leak_Bottom
   Capacity: 0
   Conductivity: 7
-  NodeA: 4
-  NodeB: 5
+  'Unnamed: 4': 4
+  'Unnamed: 5': 5
 - Element ID: 9
   Name: Hot_Outlet
   Capacity: 0
   Conductivity: 0
-  NodeA: 1
-  NodeB: 6
+  'Unnamed: 4': 1
+  'Unnamed: 5': 6
 - Element ID: 10
   Name: Cold_Inlet
   Capacity: 0
   Conductivity: 0
-  NodeA: 4
-  NodeB: 6
+  'Unnamed: 4': 4
+  'Unnamed: 5': 6

@@ -245,7 +245,7 @@ In the approximation above, the buffer vessel system is not solvable, without ad
 
 In any case, the node N6 (boundary condition) does not contribute a DOF to the system of equations. Row 6 and column 6 will be removed from the set of equations.
 
-\lstinputlisting[label=lst:cmatrix, linerange={25-49}, 
+\lstinputlisting[label=lst:cmatrix, linerange={52-86}, 
 caption={Generation of capacity matrix}] 
 {../../housemodel/tools/xl2yml.py}
 
@@ -329,7 +329,7 @@ The conductive elements in the system are:
         \frac{1}{R_{2,3}} & = & \frac{1}{R_{e3}} \\
         \frac{1}{R_{3,4}} & = & \frac{1}{R_{e4}} \\
         \frac{1}{R_{4,5}} & = & \frac{1}{R_{e5}} \\
-        \frac{1}{R_{2,6}} & & \frac{1}{R_{3,6}} & & \frac{1}{R_{4,6}} & & \frac{1}{R_{5,6}} 
+        \frac{1}{R_{2,6}} &  & \frac{1}{R_{3,6}} & & \frac{1}{R_{4,6}} & & \frac{1}{R_{5,6}} 
 	\end{aligned}
 \end{equation}
 
@@ -415,7 +415,7 @@ This reduces the matrices to:
 	\end{aligned}
 \end{equation}
 
-\lstinputlisting[label=lst:cmatrix, linerange={52-76}, 
+\lstinputlisting[label=lst:kmatrix, linerange={89-113}, 
 caption={Generation of stiffness matrix}] 
 {../../housemodel/tools/xl2yml.py}
 	
@@ -464,7 +464,7 @@ As indicated earlier, the flow rates can be controlled, and thus may change over
 \begin{itemize}
 	\item First of all, the flows in the system need to be defined in the input file. For each flow we need to know the order it traverses the elements in the system, and more specifically the nodes it passes. This can be done by considering each flow separately, and listing the nodes you pass in the direction of the flow.
 	For $F1$ this gives $Nodes_{F1}\left[0, 1, 2, 3, 4, 0 \right]$, and for $F2$ this gives $Nodes_{F2}\left[6,4,3,2,1,6\right]$. (note the labeling of the nodes used here is the number in Figure \ref{fig:FEbuffervessel} minus one.) In the list the first element is equal to the last element, which shows that the flow is a closed loop. The depicted flow $F3$ is only the difference between $F1$ and $F2$, and does not need to be defined by itself. 
-	\item From the ordered list of nodes, we can create a "`directed-flow-matrix"' ($\mathbf{DF}$) for each flow. This matrix should be of the same size as the conductance-matrix ($\mathbf{K}$) and the capacity-matrix ($mathbf{C}$).  The directed-flow-matrix contains a 1 for each matrix-element that corresponds to a connection between nodes in the direction of the flow, and -1 for a connection between nodes in the opposite direction. Thus for flows $F1$ and $F2$ the matrix will be:
+	\item From the ordered list of nodes, we can create a "`directed-flow-matrix"' ($\mathbf{DF}$) for each flow. This matrix should be of the same size as the conductance-matrix ($\mathbf{K}$) and the capacity-matrix ($\mathbf{C}$).  The directed-flow-matrix contains a 1 for each matrix-element that corresponds to a connection between nodes in the direction of the flow, and -1 for a connection between nodes in the opposite direction. Thus for flows $F1$ and $F2$ the matrix will be:
 	\begin{equation}
 		\mathbf{DF_{F1}} = \begin{bmatrix}
 							0 & 1 & 0 & 0 & -1& 0 & 0 \\
@@ -507,8 +507,15 @@ These matrices can be build up from the list as defined in the previous step, by
 	\end{equation}
 \item The heat transfer induced by the flows is only in the direction of the water flow. The correct elements are obtained by taking the $\text{min}(\mathbf{SF},0)$, here we mean for each element in $\mathbf{SF}$ we take the minimum of the respective element and 0. 
 \item Now, the diagonal elements can be computed. The diagonal elements are equal to minus the sum of the of diagonal elements in its respective row. 
+
 \item Finally, we need to multiply the resulting flow matrix with the density ($\rho_{water}$) and the specific heat ($c_{p, water}$), in order to obtain the heat transferred by the water due to the water flows. 
 \end{itemize} 
+
+\begin{equation}
+	\begin{aligned}
+		v_{pump} \cdot A_{pipe} \cdot \rho_{water} \cdot c_{p, water} =  \qquad \left[ \frac{m}{s} \cdot m^2 \cdot\frac{kg}{m^3} \cdot \frac{J}{kg \cdot K} = \frac{J}{K \cdot s} = \frac{W}{K}\right]
+	\end{aligned}
+\end{equation}
 
 \emph{Note 1}, when the system contains flows of different fluids, the described steps need to be followed for each fluid type separately. Each fluid will have its own matrix which will contribute to the overall system. This also implies the need to define the density and specific heat for each flow.
 
