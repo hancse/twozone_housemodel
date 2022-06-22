@@ -413,6 +413,7 @@ This reduces the matrices to:
 		        -\dot{Q}_{use}
 	        \end{bmatrix}
 	\end{aligned}
+	\label{eq:CKq_buffer}
 \end{equation}
 
 \lstinputlisting[label=lst:kmatrix, linerange={89-113}, 
@@ -447,7 +448,7 @@ edges conductivity R and convection F:
 5 and 7\\
 
 
-\subsection{water flow heat transfer}
+\subsection{Water flow heat transfer}
 In the buffer vessel model, cf. Figure \ref{fig:FEbuffervessel}, two water flows run through the system. The first, labeled with $F1$, draws cold water from the bottom layer of the tank. This water is heated up in node 1. In the figure this is done using the external heat flow $Q_{add}$, but in a full system model another model component, for example a heat pump, can be connected here. (\emph{Note}: In order to be able to add heat in a sensible way to the system node 1 has to have some heat capacity. The approximation done above making the capacity of the pipes zero is then not valid.) 
 The heated water flows back into the vessel in the top level. The water flow $F1$ outside the vessel, induces an equal sized flow of water in side the vessel from the top layer towards the bottom, through the elements $E3$, $E4$ and $E5$. 
 
@@ -499,16 +500,43 @@ These matrices can be build up from the list as defined in the previous step, by
 							-f_1& 0      & f_1-f_2 & 0       & 0       & 0 & f_2 \\
 							0   & f_2-f_1& 0       & f_1-f_2 & 0       & 0 & 0 \\
 							0   & 0      & f_2-f_1 & 0       & f_1-f_2 & 0 & 0 \\
-							f_1 & 0      & 0       & f_2-f_1 & 0       & 0 & -f2 \\
+							f_1 & 0      & 0       & f_2-f_1 & 0       & 0 & -f_2 \\
 							0   & 0      & 0       & 0       & 0       & 0 & 0 \\
 							0   & -f_2   & 0       & 0       & f_2     & 0 & 0 
 							\end{bmatrix}
 	\label{eq:addflows}
 	\end{equation}
-\item The heat transfer induced by the flows is only in the direction of the water flow. The correct elements are obtained by taking the $\text{min}(\mathbf{SF},0)$, here we mean for each element in $\mathbf{SF}$ we take the minimum of the respective element and 0. 
-\item Now, the diagonal elements can be computed. The diagonal elements are equal to minus the sum of the of diagonal elements in its respective row. 
+\item The heat transfer induced by the flows is only in the direction of the water flow. The correct elements are obtained by taking the $\text{min}(\mathbf{SF},0)$, here we mean for each element in $\mathbf{SF}$ we take the minimum of the respective element and 0. Thus, in the case $f_1>f_2$ the matrix $\mathbf{SF}$ will become:
+\begin{equation}
+		\text{min}(\mathbf{SF},0) =  \begin{bmatrix}
+							0   & 0      & 0       & 0       & -f_1    & 0 & 0 \\
+							-f_1& 0      & 0		   & 0       & 0       & 0 & 0 \\
+							0   & f_2-f_1& 0       & 0			 & 0       & 0 & 0 \\
+							0   & 0      & f_2-f_1 & 0       & 0			 & 0 & 0 \\
+							0	  & 0      & 0       & f_2-f_1 & 0       & 0 & -f_2 \\
+							0   & 0      & 0       & 0       & 0       & 0 & 0 \\
+							0   & -f_2   & 0       & 0       & 0       & 0 & 0 
+							\end{bmatrix}
+	\label{eq:minSFzero}
+	\end{equation}
 
-\item Finally, we need to multiply the resulting flow matrix with the density ($\rho_{water}$) and the specific heat ($c_{p, water}$), in order to obtain the heat transferred by the water due to the water flows. 
+
+
+\item Now, the diagonal elements can be computed. The diagonal elements are equal to minus the sum of the of diagonal elements in its respective row. For the matrix given in equation \ref{eq:minSFzero} this results in the flow matrix $\mathbf{F}$:
+\begin{equation}
+		\mathbf{F} =  \begin{bmatrix}
+							f_1   & 0      & 0       & 0       & -f_1    & 0 & 0 \\
+							-f_1& f_1      & 0		   & 0       & 0       & 0 & 0 \\
+							0   & f_2-f_1& -(f_2-f_1)       & 0			 & 0       & 0 & 0 \\
+							0   & 0      & f_2-f_1 & -(f_2-f_1)       & 0			 & 0 & 0 \\
+							0	  & 0      & 0       & f_2-f_1 & f_1      & 0 & -f_2 \\
+							0   & 0      & 0       & 0       & 0       & 0 & 0 \\
+							0   & -f_2   & 0       & 0       & 0       & 0 & f_2 
+							\end{bmatrix}
+	\label{eq:flowmatrix}
+	\end{equation}
+
+\item Finally, we need to multiply the resulting flow matrix with the density ($\rho_{water}$) and the specific heat ($c_{p, water}$), in order to obtain the heat transferred by the water due to the water flows. The resulting matrix can be added to the K matrix as given in equation \ref{eq:CKq_buffer}.
 \end{itemize} 
 
 \begin{equation}
@@ -522,79 +550,119 @@ These matrices can be build up from the list as defined in the previous step, by
 \emph{Note 2}, at this moment the process does not deal with splitting and merging of the water flows. Therefore, a system that may control valves to distribute the water over different radiators using one supply pipe, and one pump, is not feasible in this concept, yet.   
 
 
+\subsection{House model (2R2C-model) in finite element structure}
+
+Although the equations of the house model as presented in Section \ref{s:lumped-element} have a very similar structure, one should not mix the lumped-element approach presented in Section \ref{s:lumped-element} with the finite-element approach of this chapter. Therefore, we revisit the 2R2C-model in order to incorporate the house model in the finite-element approach. 
+
+Recall that, in the lumped-element model, the 2R2C model contained two connected elements with a heat capacity, one for the air in the house and one for the building structure. In the lumped element model these heat capacities cold be directly modeled with one capacitor for the air and one for the walls. The heat transfer between the two capacities was modeled with a single heat conductor (resistor). Finally, the air could exchange heat with the node fro the ambient temperature, which has a fixed temperature. This resulted in the model as presented in Figure \ref{fig:2R2Cagain}. 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\columnwidth]{Pictures/2R2Cmodel_rev.png}
+	\caption[Short title]{2R-2C house model revisited}
+	\label{fig:2R2Cagain}
+\end{figure}
+
+When we want to model this same concept in the finite-element structure, we need four elements: one element that represents the air, one that represents the walls, one element for the interaction between the air and the wall, and one element for the interaction between the air and the ambient surroundings. The model is sketched in Figure \ref{fig:fin-el-house}.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\columnwidth]{Pictures/finite_element_house.png}
+	\caption[Short title]{Finite element representation of the 2R2C house model}
+	\label{fig:fin-elhouse}
+\end{figure}
+
+In this model the heat capacity of the air will be divided over the nodes 1 and 2, with $0.5\cdot C_{air}$ for each node. In the same manner, the heat capacity of the wall will be divided over the nodes 3 and 4. The elements that are needed for the heat exchange between air and wall, and air and ambient surroundings do not have any heat capacity. 
+
+In the lumped-element model the air and wall were considered to have a homogeneous temperature. This is no longer the case in the finite element model. Theoretically, one could make the heat resistance within the air and wall elements zero, which would lead to an instantaneous heat transfer between the nodes 1 and 2, and 3 and 4, respectively. Thus resulting in an equal temperature for nodes 1 and 2, and 3 and 4. 
+However, computationally this will lead to problems, since the corresponding $\mathbf{K}$ matrix will have $\frac{1}{R} = \infty$  entries in the representative positions. Therefore, in practice, an internal heat resistance has to be applied in the air and wall elements. Thus, resulting in a gradient within the elements. 
+
+The $\mathbf{C}$ and $\mathbf{K}$ matrices of the system will be:
+\begin{equation}
+	\begin{aligned}
+		\mathbf{C} &= \begin{bmatrix}
+			0 & 0 & 0 & 0 & 0 \\
+			0 & 0.5 \cdot C_{air} & 0 & 0 & 0 \\
+			0 & 0 & 0.5 \cdot C_{air} & 0 & 0 \\
+			0 & 0 & 0 & 0.5 \cdot C_{wall} & 0 \\
+			0 & 0 & 0 & 0 & 0.5 \cdot C_{wall}\\
+		\end{bmatrix}\\
+	\mathbf{K} &= \begin{bmatrix}
+		\frac{1}{R_{a,a}} & -\frac{1}{R_{a,a}} & 0 & 0 & 0 \\
+		-\frac{1}{R_{a,a}} & \frac{1}{R_{a,a}}+\frac{1}{R_{air}} & -\frac{1}{R_{air}} & 0 & 0 \\
+		0 & -\frac{1}{R_{air}} & \frac{1}{R_{air}}+\frac{1}{R_{a,w}} & -\frac{1}{R_{a,w}} & 0 \\
+		0 & 0 & -\frac{1}{R_{a,w}}& \frac{1}{R_{a,w}}+\frac{1}{R_{wall}} & -\frac{1}{R_{wall}} \\
+		0 & 0 & 0 & -\frac{1}{R_{wall}} & \frac{1}{R_{wall}} 
+		\end{bmatrix}
+	\end{aligned}
+\label{eq:CK_finel_house}
+\end{equation}
 
 
-
-
-
-
-
-\[
-\begin{bmatrix}
-	1 & 1 & \dot{Q}_{add}\\
-	2 & 2 & 0 - \frac{1}{R_{2,6}}\\
-	3 & 3 & 0 - \frac{1}{R_{3,6}}\\
-	4 & 4 & 0 - \frac{1}{R_{4,6}}\\
-	5 & 5 & 0 - \frac{1}{R_{5,6}}\\
-	6 & 7 & -\dot{Q}_{use}
-\end{bmatrix}
-\]
-
-$$
-\begin{bmatrix}
-	1 & 0 & 0 & 0 &\bigm| & 0 \\
-	0 & 1 & 0 & 0 &\bigm| & 5 \\
-	0 & 0 & 1 & 0 &\bigm| & -4 \\ 
-	0 & 0 & 0 & 1 &\bigm| & -2
-\end{bmatrix}
-$$
-
-\newenvironment{amatrix}[1]{%
-	\left(\begin{array}{@{}*{#1}{c}|c@{}}
-	}{%
-	\end{array}\right)
-}
-
-\[
-\begin{amatrix}{2}
-	1 & 2 & 3 \\  a & b & c
-\end{amatrix}
-\]
-
-\[
-\left[
-\begin{array}{cc|c}
-	a & b & c \\
-	d & e & f
-\end{array}
-\right]
-\]
-
-\[
-\left[\begin{array}{rrrrr|r}
-	-3 & 6 & -1 & 1 & -7 & 0\\
-	1 & -2 & 2 & 3 & -1 & 0\\
-	2 & -4 & 5 & 8 & -4 & 0
-\end{array}\right]
-\]
-
-\[
-\left(\hspace{-5pt}\begin{array}{cc|c}
-	1 & 2 & 3 \\
-	4 & 5 & 9
-\end{array}\hspace{-5pt}\right)
-\]
-
-\[
-    \left[\begin{array}{c|c c} 
-	a & b & c\\ 
-	\hline 
-	d & e & f 
-\end{array}\right] 
-\]
-
-\lstinputlisting[label=lst:kmatrix, linerange={52-76}, 
-caption={Generation of stiffness matrix}] 
-{../../housemodel/tools/xl2yml.py}
+%\[
+%\begin{bmatrix}
+	%1 & 1 & \dot{Q}_{add}\\
+	%2 & 2 & 0 - \frac{1}{R_{2,6}}\\
+	%3 & 3 & 0 - \frac{1}{R_{3,6}}\\
+	%4 & 4 & 0 - \frac{1}{R_{4,6}}\\
+	%5 & 5 & 0 - \frac{1}{R_{5,6}}\\
+	%6 & 7 & -\dot{Q}_{use}
+%\end{bmatrix}
+%\]
+%
+%$$
+%\begin{bmatrix}
+	%1 & 0 & 0 & 0 &\bigm| & 0 \\
+	%0 & 1 & 0 & 0 &\bigm| & 5 \\
+	%0 & 0 & 1 & 0 &\bigm| & -4 \\ 
+	%0 & 0 & 0 & 1 &\bigm| & -2
+%\end{bmatrix}
+%$$
+%
+%\newenvironment{amatrix}[1]{%
+	%\left(\begin{array}{@{}*{#1}{c}|c@{}}
+	%}{%
+	%\end{array}\right)
+%}
+%
+%\[
+%\begin{amatrix}{2}
+	%1 & 2 & 3 \\  a & b & c
+%\end{amatrix}
+%\]
+%
+%\[
+%\left[
+%\begin{array}{cc|c}
+	%a & b & c \\
+	%d & e & f
+%\end{array}
+%\right]
+%\]
+%
+%\[
+%\left[\begin{array}{rrrrr|r}
+	%-3 & 6 & -1 & 1 & -7 & 0\\
+	%1 & -2 & 2 & 3 & -1 & 0\\
+	%2 & -4 & 5 & 8 & -4 & 0
+%\end{array}\right]
+%\]
+%
+%\[
+%\left(\hspace{-5pt}\begin{array}{cc|c}
+	%1 & 2 & 3 \\
+	%4 & 5 & 9
+%\end{array}\hspace{-5pt}\right)
+%\]
+%
+%\[
+    %\left[\begin{array}{c|c c} 
+	%a & b & c\\ 
+	%\hline 
+	%d & e & f 
+%\end{array}\right] 
+%\]
+%
+%\lstinputlisting[label=lst:kmatrix, linerange={52-76}, 
+%caption={Generation of stiffness matrix}] 
+%{../../housemodel/tools/xl2yml.py}
 
 \newpage
