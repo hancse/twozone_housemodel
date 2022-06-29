@@ -8,6 +8,8 @@ PV panels and thermal collectors have a common set of properties. Both are orien
 Below the common properties are listed:
 \begin{itemize}
 \item surface\_area: the surface of the panels in $\text{m}^2$. 
+\item longitude: longitude of the location of the panels, given in degrees. 
+\item latitude: latitude of the location of the panels, given in degrees.
 \item inclination: angle of the panel with the horizontal plane in degrees. The value lies between 0 degrees for horizontal and 90 degrees for vertical.
 \item azimuth: angle with due south direction in degrees (for the northern hemisphere). The value lies between -180 degrees and 180 degrees, with 90 degrees facing due west and -90 degrees facing due east.
 \end{itemize}
@@ -23,7 +25,7 @@ The Erbs model determines a clearness index $k_t$ based on the extraterrestrial 
 \end{equation}
 In the model, $I_o$ is determined with the following equation:
 \begin{equation}
-	I_o = I_{sc} \cdot \left(1 + 0.33\text{cos}\frac{360n}{365}\right)\cdot \text{cos}\left(\theta_z\right) ,
+	I_o = I_{sc} \cdot \left(1 + 0.33\cdot\text{cos}\frac{360\cdot n}{365}\right)\cdot \text{cos}\left(\theta_z\right) ,
 \end{equation}
 where $I_{sc}$ is the extraterrestrial solar constant irradiance (set to 1367 W/$\text{m}^2$), $n$ is the day number, and $\theta_z$ is the zenith angle.
 
@@ -34,7 +36,18 @@ Based on the clearness index $k_t$ the fraction of the diffuse horizontal irradi
 	\text{interval:} & k_t > 0.8 & k_d = 0.165 .
 \label{eq:diffuse_fraction}
 \end{eqnarray} 
-Now, using $k_d$ we can determine the diffuse contribution  of the irradiance $I_d = k_d \cdot I_t$. The direct irradiance is the complementary part. 
+Now, using $k_d$ we can determine the diffuse contribution of the irradiance on the horizontal plane $I_{dif,h} = k_d \cdot I_t$. The direct irradiance onthe horizontal plane is the complementary part, $I_{dir,h} = I_t - I_{diff,h}$. 
+
+\subsection{irradiation on an inclined surface}
+In order to be able to compute the output power of the PV-panel we need to compute the contributions of both the diffuse and direct irradiance on the oriented surface of the PV-panel. For the direct irradiance ($I_{dir,p}$) this ca be done by using the location and orientation of the panels and the orientation of the sun.
+\begin{equation}
+		I_{dir,p} = \frac{\text{cos}\theta}{\text{sin}h}
+\label{eq:direct_plane}
+\end{equation}
+
+
+In order to transform    
+
 
 
 \subsection{PV-panel efficiency}
