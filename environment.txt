@@ -1,27 +1,33 @@
+conda config --show
+
+#if not present:
 conda config --add channels conda-forge
 conda config --set channel_priority strict
 
 conda create -n futurefactory python=3.8
+
 activate futurefactory
 conda info -e
 
+conda install -c pvlib pvlib  # downgrades pytorch to 1.4.0, so install pytorch after pvlib
+
 conda install matplotlib
-conda install scipy
-conda install pandas
+(conda install scipy)
+(conda install pandas)
 conda install openpyxl
 conda install pyyaml
 conda install holidays
 
-pip install solarenergy
-conda install -c conda-forge pvlib-python  # downgrades pytorch to 1.4.0, so install pytorch after pvlib
-
 conda install scikit-learn-intelex                  
-conda install -c pytorch pytorch          
+conda install -c pytorch pytorch     # 1.12.1      
 
-conda install pytest
+conda install pytest                 # downgrades pytorch to 1.10.2
 conda install colored-traceback
 
 conda install networkx
+conda install requests
+
+pip install solarenergy
 
 conda list
 
