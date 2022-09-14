@@ -108,11 +108,12 @@ if __name__ == "__main__":
     print("LMTD : %s %f" % (pattern, log_mean_td))
 
     pattern = 'counter'
-    log_mean_td = LMTD(80, 20, 50, 20, pattern)
+    log_mean_td = LMTD(80, 50, 20, 20, pattern)
     print("LMTD : %s %f" % (pattern, log_mean_td))
 
     log_mean_rad = LMTD_radiator(80, 50, 20)
     print(f"LMTD_radiator : {log_mean_rad} {deg}C")
-    house_to_csv()
+
+    # house_to_csv()
 
 
