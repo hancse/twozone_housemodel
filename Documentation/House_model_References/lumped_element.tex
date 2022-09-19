@@ -1031,8 +1031,285 @@ Then we can complete the diagonal elements, so that the sum over each row become
 	\end{bmatrix}
 \end{equation}
 
+\subsection{Coupling the housemodel elements}
+
+The housemodel is to be extended with modular elements representing the installations that supply the heat demanded by the building. Each subsystem contributes its own set of differential equations to the total system. In Fig.~\ref{fig:grandmodel}, the subsystems are indicated with a color code.
+ 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.9\columnwidth]{Pictures/grand_model}
+	\caption[Short title]{Grand Model}
+	\label{fig:grandmodel}
+\end{figure} 
+
+The building itself, in black, generates the differential equations:
+
+\begin{equation}
+	\begin{aligned}
+		T_{air} \text{:} \quad C_{air}\frac{dT_{air}}{dt} &=\frac{T_{amb}-T_{air}}{R_{air, amb}} + \frac{T_{wall}-T_{air}}{R_{air, wall}} + \dot{Q}_{rad, air} 
+		\\ \\
+		T_{wall} \text{:} \quad C_{wall}\frac{dT_{wall}}{dt} &=\frac{T_{air}-T_{wall}}{R_{air, wall}}
+	\end{aligned}
+\end{equation}
+
+$T_{amb}$: given as piecewise constant function, in interval $[t_i, t_{i+1}]$, $T_{amb} = T_{amb, i}$
+
+The radiator element, coupled to the node $T_{air}$, transfers heat to the building at a rate $\dot{Q}_{rad}$. It has a feed temperature $T_{feed}$ and a return temperature $T_{return}$. The radiator is modeled as a "cross-flow" heat exchanger, obeying the "radiator equation":
+
+{\color{blue}
+\begin{equation}
+	\begin{aligned}
+		\dot{Q}_{rad} \text{:} \quad \dot{Q}_{rad} &= C_{rad} \cdot (\Delta T_{LMTD})^n \text{, with } \Delta T_{LMTD} = \frac{T_{feed} - T_{return}}{\ln\left(\frac{T_{feed} -T_{air}}{T_{return} - T_{air}}\right)}
+		\\ \\
+	    \text{also, :} \quad \dot{Q}_{rad} &= F_{rad} \cdot c_w \cdot (T_{feed} - T_{return})
+	\end{aligned}
+\end{equation}
+}
+
+when $T_{feed}$, $T_{air}$ and $F_{rad}$ are known, we have two equations with two unknowns $\dot{Q}_{rad}$ and $T_{return}$.
+
+{\color{red}Question: when do you solve this system? Do you need to solve this within the time interval $[t_i, t_{i+1}]$?}
+
+Further equations:
+
+\begin{equation}
+	\begin{aligned}
+        {\color{red}T_{feed}} &= {\color{teal}T_{top}} \\
+        {\color{red}T_{return}} & \text{ should follow from equations above.}
+    \end{aligned}
+\end{equation}
+
+{\color{teal}
+\begin{equation}
+	\begin{aligned}
+	T_{top} \text{:} \quad C_{top}\frac{dT_{top}}{dt} &= \frac{T_{top}-T_{mid}}{-R_{mid, top}} + F_{HP} \cdot c_w \cdot (T_{HP,out} - T_{top}) + \max(F_{rad}-F_{HP}, 0) \cdot c_w \cdot (T_{mid} - T_{top})
+    \\ \\
+    T_{mid} \text{:} \quad C_{mid}\frac{dT_{mid}}{dt} &= \frac{T_{top}-T_{mid}}{R_{mid, top}} + \frac{T_{mid}-T_{bot}}{-R_{bot, mid}} + \\
+    & \max(F_{HP}-F_{rad}, 0) \cdot c_w \cdot (T_{top} - T_{mid}) + \max(F_{rad}-F_{HP}, 0) \cdot c_w \cdot (T_{mid} - T_{bot}) 
+    \\ \\
+    T_{bot} \text{:} \quad C_{bot}\frac{dT_{bot}}{dt} &= \frac{T_{mid}-T_{bot}}{R_{bot, mid}} + F_{rad} \cdot c_w \cdot (T_{return} - T_{bot}) + \\
+    & \max(F_{HP}-F_{rad}, 0) \cdot c_w \cdot (T_{mid} - T_{bot})
+	\end{aligned}
+\end{equation}
+}
+
+\begin{equation}
+	\begin{aligned}
+		T_{HP,in} &= {\color{teal}T_{bot}} \\
+		T_{HP,out} \text{:} \quad \dot{Q}_{HP} &= F_{HP} \cdot c_w \cdot (T_{HP,out} - T_{HP,in}
+		\dot{Q}_{HP} &= f(T_{HP,in}\text{,} T_{HP,out}\text{,} T_{src,in}\text{,} T_{src,out}))
+	\end{aligned}
+\end{equation}
+
+{\color{red} heat pump function? Also here the question is: when to solve this equation?}
 
 
+Writing out the differential equations in the classical notation:
+
+\begin{equation}
+	\begin{aligned}
+		C_{air}\frac{dT_{air}}{dt} &= \left[ \frac{-1}{R_{air, amb}} + \frac{-1}{R_{air, wall}} \right]  \cdot T_{air}  + \frac{1}{R_{air, wall}} \cdot T_{wall} + \frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air}
+		\\ \\
+		C_{wall}\frac{dT_{wall}}{dt} &= \frac{1}{R_{air, wall}} \cdot T_{air} + \frac{-1}{R_{air, wall}}   \cdot T_{wall}
+	\end{aligned}
+\end{equation}
+
+The differential equations of the 2R-2C house model (in black) be written in matrix notation as:
+
+\begin{subequations}
+	\label{eq:matnot}
+	\begin{align}
+		\mathbf{C} \cdot \boldsymbol{\dot{\theta}} = - \mathbf{K} \cdot \boldsymbol{\theta} + \mathbf{\dot{q}} \\ 
+		\mathbf{C} \cdot \boldsymbol{\dot{\theta}} + \mathbf{K} \cdot \boldsymbol{\theta} = \mathbf{\dot{q}}
+	\end{align}
+\end{subequations}
+
+with:
+
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{air} & 0 \\
+		0 &  C_{wall}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{air}}{dt} \\
+		\frac{dT_{wall}}{dt}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{air, amb}} + \frac{1}{R_{air, wall}} & \frac{-1}{R_{air, wall}} \\
+		\frac{-1}{R_{air, wall}} &  \frac{1}{R_{air, wall}}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{air} \\
+		T_{wall}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air} \\
+		0
+	\end{bmatrix}
+\end{equation}
+
+
+
+The routines in Matlab, Simulink and Python need a \emph{model function} that provides the vector $\boldsymbol{\dot{\theta}}$ for evaluation at any time instance chosen by the algorithm. The equations \eqref{eq:matnot} then should be cast in the following form by left multiplication with $\mathbf{C^{-1}}$.
+
+\begin{subequations}
+	\label{eq:matnot_ivp}
+	\begin{align}
+		\mathbf{C}^{-1} \cdot \mathbf{C} \cdot \boldsymbol{\dot{\theta}} = - \mathbf{C}^{-1} \cdot \mathbf{K} \cdot \boldsymbol{\theta} + \mathbf{C}^{-1} \cdot \mathbf{\dot{q}} \\ 
+		\boldsymbol{\dot{\theta}} = - \mathbf{C}^{-1} \cdot \mathbf{K} \cdot \boldsymbol{\theta} + \mathbf{C}^{-1} \cdot \mathbf{\dot{q}}
+	\end{align}
+\end{subequations}
+
+Since $\mathbf{C}$ is a \emph{diagonal} matrix with positive elements only, its inverse exists and contains the reciprocal elements on its diagonal:
+
+\begin{equation}
+	\mathbf{C^{-1}} =
+	\begin{bmatrix}
+		\frac{1}{C_{air}} & 0 \\
+		0 &  \frac{1}{C_{wall}}
+	\end{bmatrix}
+\end{equation}
+
+This provides the division by the lumped thermal capacitances of the air and wall compartments in the model, necessary for the calculating the derivative vector $\boldsymbol{\dot{\theta}}$ in the model functions. 
+
+Radiator
+
+\begin{equation}
+	\begin{aligned}
+		C_{feed}\frac{dT_{feed}}{dt} &= F_{rad} \cdot c_w \cdot (T_{top}- T_{feed})
+		\\ \\
+		C_{return}\frac{dT_{feed}}{dt} &= 
+	\end{aligned}
+\end{equation} 
+
+
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{feed} & 0 \\
+		0 &  C_{return}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{feed}}{dt} \\
+		\frac{dT_{return}}{dt}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		0 & 0 \\
+		0 &  0
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{feed} \\
+		T_{return}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		0 \\
+		\dot{Q}_{rad, air}
+	\end{bmatrix}
+\end{equation}
+
+\subsubsection{Radiator}
+
+The equations for the radiator element are:
+
+{\color{blue}
+	\begin{equation}
+		\label{eq:radnonlin}
+		\begin{aligned}
+			\dot{Q}_{rad} &- C_{rad} \cdot (\Delta T_{LMTD})^n &= 0 \\
+			\dot{Q}_{rad} &- F_{rad} \cdot c_w \cdot (T_{feed} - T_{return}) &= 0 \\ \\
+			&\text{with } \Delta T_{LMTD} = \frac{T_{feed} - T_{return}}{\ln\left(\frac{T_{feed} -T_{air}}{T_{return} - T_{air}}\right)}
+		\end{aligned}
+	\end{equation}
+}
+
+This nonlinear system of equations can be solved for the two unknowns $[\dot{Q}_{rad} \quad T_{return}]$, if input data $T_{feed}$, $ T_{amb}$, $C_{rad}$, $F_{rad}$ and $c_w$ is provided. A solver needs the function template in Eq.~\ref{eq:radnonlin}, with the unknowns vector as input variable. Furthermore, the Jacobian of the function template has to be calculated. Evaluation of an analytical expression of the partial derivatives in the Jacobian always outperforms numerical derivative calculations. Thus, for the upper equation (function) in set \ref{eq:radnonlin}:
+
+\begin{equation}
+	\begin{aligned}
+		\begin{matrix}
+			\frac{\partial f}{\partial \dot{Q}_{rad}} &= 1 \\ 
+			\\
+			\dfrac{\partial f}{\partial T_{return}} &= -Cn\cdot \dfrac{\left(\frac{T_1-T_2}{\ln\left(\frac{T_1-T_3}{T_2-T_3}\right)}\right)^{n-1}\,\left(\frac{T_1-T_2}{T_2-T_3}-\ln\left(\frac{T_1-T_3}{T_2-T_3}\right)\right)}{\ln^2\left(\frac{T_1-T_3}{T_2-T_3}\right)} \\ \\
+		\end{matrix}
+	\end{aligned}
+\end{equation} 
+for the second equation:
+\begin{equation}
+	\begin{aligned}
+		\begin{matrix}
+			\frac{\partial f}{\partial \dot{Q}_{rad}} &= 1 \\ \\
+			\frac{\partial f}{\partial T_{return}} &= F_{rad} \cdot c_w
+		\end{matrix}
+	\end{aligned}
+\end{equation} 
+
+See: \url{https://www.derivative-calculator.net/}.
+
+The Jacobian matrix 
+$$\mathbf{J}_{i,j}=\dfrac{\partial f_{i}(\mathbf{x})}{\partial x_{j}}$$
+becomes:
+\begin{equation}
+	\begin{aligned}
+		\begin{bmatrix}
+			\dfrac{\partial f_1}{\partial \dot{Q}_{rad}} & \dfrac{\partial f_1}{\partial T_{return}} \\ 
+			\vspace{2pt} \\
+			\dfrac{\partial f_2}{\partial \dot{Q}_{rad}} & \dfrac{\partial f_2}{\partial T_{return}}
+		\end{bmatrix}
+	\end{aligned}
+\end{equation} 
+
+with:
+
+\begin{equation}
+	\begin{aligned}
+		\mathbf{x} =
+		\begin{bmatrix}
+			\dot{Q}_{rad} \\ 
+			T_{return}
+		\end{bmatrix}
+	\end{aligned}
+\end{equation}
+
+The properties and the calculation of $\mathbf{x}$ is implemented in Python in the \textsf{Radiator} class.
+The methods of this class are:
+\begin{itemize}
+	\item \textsf{\_\_init\_\_}: initializes the class members. Members starting with \_\_* are private members.
+	\item \textsf{get\_lmtd}: returns the value of private member \_\_lmtd.
+	\item \textsf{func\_rad}: calculates radiator equations and partial derivatives.
+	\item \textsf{update}: uses \textsf{scipy.optimize.root()} to find the roots $\mathbf{x}$ of the radiator equations.
+\end{itemize}
+
+\lstinputlisting[label=lst:Radiator, linerange={76-134}, 
+caption={Radiator class}] 
+{../../housemodel/sourcesink/radiators.py}
+
+The Radiator class uses a helper function \textsf{LMTD\_radiator} to determine the effective temperature drop:
+
+\lstinputlisting[label=lst:lmtd, linerange={14-44}, 
+caption={LMTD\_radiator function}] 
+{../../housemodel/sourcesink/radiators.py}
 \subsection{Package "housemodel"}
 
 The repository "\textsf{twozone\_housemodel-git}" contains the modules for the house model. The customary way to organize the modules is to make a \emph{Python package} with \emph{subpackages}. This opens up the possibility of publishing the package on PyPi, so that it can be imported.
