@@ -1231,20 +1231,38 @@ Radiator
 
 \subsubsection{Radiator}
 
+In a radiator, the heat transport is in good approximation only due to \emph{convection} of a gas (steam) or liquid (water, glycol, brine) For a liquid, the following points of view may be taken:
 The equations for the radiator element are:
 
 {\color{blue}
 	\begin{equation}
 		\label{eq:radnonlin}
 		\begin{aligned}
+			F_{rad} &= \dot{f} \cdot \rho \cdot c_w  \\
+			F_{rad} &= \dot{m} \cdot c_w  
+		\end{aligned}
+	\end{equation}
+}
+where: \\
+$\rho$ is the density of the liquid in $[kg/m^3]$ \\
+$c_w$ is the specific heat capacity of water: $4.2 \cdot 10^3 J/(kg \cdot K)$ \\
+$\dot{f}$ is the liquid volume flow in $[m^3/s]$ \\
+$\dot{m}$ is the liquid mass flow in $[kg/s]$ \\
+
+The equations for the heat transfer of the radiator are: 
+
+{\color{blue}
+	\begin{equation}
+		\label{eq:radnonlin}
+		\begin{aligned}
 			\dot{Q}_{rad} &- C_{rad} \cdot (\Delta T_{LMTD})^n &= 0 \\
-			\dot{Q}_{rad} &- F_{rad} \cdot c_w \cdot (T_{feed} - T_{return}) &= 0 \\ \\
+			\dot{Q}_{rad} &- F_{rad} \cdot (T_{feed} - T_{return}) &= 0 \\ \\
 			&\text{with } \Delta T_{LMTD} = \frac{T_{feed} - T_{return}}{\ln\left(\frac{T_{feed} -T_{air}}{T_{return} - T_{air}}\right)}
 		\end{aligned}
 	\end{equation}
 }
 
-This nonlinear system of equations can be solved for the two unknowns $[\dot{Q}_{rad} \quad T_{return}]$, if input data $T_{feed}$, $ T_{amb}$, $C_{rad}$, $F_{rad}$ and $c_w$ is provided. A solver needs the function template in Eq.~\ref{eq:radnonlin}, with the unknowns vector as input variable. Furthermore, the Jacobian of the function template has to be calculated. Evaluation of an analytical expression of the partial derivatives in the Jacobian always outperforms numerical derivative calculations. Thus, for the upper equation (function) in set \ref{eq:radnonlin}:
+This nonlinear system of equations can be solved for the two unknowns $[\dot{Q}_{rad} \quad T_{return}]$, if input data $T_{feed}$, $ T_{amb}$, $C_{rad}$ and $F_{rad}$ are provided. A solver needs the function template in Eq.~\ref{eq:radnonlin}, with the unknowns vector as input variable. Furthermore, the Jacobian of the function template has to be calculated. Evaluation of an analytical expression of the partial derivatives in the Jacobian always outperforms numerical derivative calculations. Thus, for the upper equation (function) in set \ref{eq:radnonlin}:
 
 \begin{equation}
 	\begin{aligned}
@@ -1260,7 +1278,7 @@ for the second equation:
 	\begin{aligned}
 		\begin{matrix}
 			\frac{\partial f}{\partial \dot{Q}_{rad}} &= 1 \\ \\
-			\frac{\partial f}{\partial T_{return}} &= F_{rad} \cdot c_w
+			\frac{\partial f}{\partial T_{return}} &= -F_{rad}
 		\end{matrix}
 	\end{aligned}
 \end{equation} 
@@ -1310,6 +1328,7 @@ The Radiator class uses a helper function \textsf{LMTD\_radiator} to determine t
 \lstinputlisting[label=lst:lmtd, linerange={14-44}, 
 caption={LMTD\_radiator function}] 
 {../../housemodel/sourcesink/radiators.py}
+
 \subsection{Package "housemodel"}
 
 The repository "\textsf{twozone\_housemodel-git}" contains the modules for the house model. The customary way to organize the modules is to make a \emph{Python package} with \emph{subpackages}. This opens up the possibility of publishing the package on PyPi, so that it can be imported.

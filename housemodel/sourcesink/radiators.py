@@ -116,7 +116,7 @@ class Radiator:
         denominator = np.log(self.T_feed - self.T_amb) - np.log(x[1] - self.T_amb)
         h2 -= denominator
 
-        dTdt = (h1 * h2) / (denominator * denominator)
+        dTdt = -(h1 * h2) / (denominator * denominator)
 
         df = np.array([[1.0, dTdt],
                        [1.0, self.F_rad]])
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     radiator.T_ret = (radiator.T_feed + radiator.T_amb) / 2.0
     radiator.T_amb = 20.0
     radiator.c_rad = 50
-    radiator.flow = 0.05e-3     # 0.5 l/s
+    radiator.flow = 0.05e-3     # 0.05 l/s
     radiator.F_rad = radiator.flow * radiator.rho * radiator.c_w
     print(f"Frad: {radiator.F_rad} [W/K]")
 
