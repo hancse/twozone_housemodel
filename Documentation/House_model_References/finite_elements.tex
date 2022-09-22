@@ -459,12 +459,12 @@ The water flows will be controlled by pumps, either by a on/off manner (switchin
 Since $F1$ and $F2$ can be controlled separately, the flow in the vessel, labeled with $F3$ can run either direction, from bottom to top, or from top to bottom. The size of the flow $F3$ is given by: $F3 = F1 - F2$. When $F3$ is positive it flows from top to bottom in the vessel. A negative value, implies a water flow from bottom to top. 
 
 
-\subsubsection{setting up the flow matrix}
+\subsubsection{Setting up the flow matrix}
 As indicated earlier, the flow rates can be controlled, and thus may change over time. This means that the terms for the heat exchange due to the water flows need to be generated at each time step, or at least after each change in the flow rates. A matrix that represents the flows may be generated in the following process.
 
 \begin{itemize}
 	\item First of all, the flows in the system need to be defined in the input file. For each flow we need to know the order it traverses the elements in the system, and more specifically the nodes it passes. This can be done by considering each flow separately, and listing the nodes you pass in the direction of the flow.
-	For $F1$ this gives $Nodes_{F1}\left[0, 1, 2, 3, 4, 0 \right]$, and for $F2$ this gives $Nodes_{F2}\left[6,4,3,2,1,6\right]$. (note the labeling of the nodes used here is the number in Figure \ref{fig:FEbuffervessel} minus one.) In the list the first element is equal to the last element, which shows that the flow is a closed loop. The depicted flow $F3$ is only the difference between $F1$ and $F2$, and does not need to be defined by itself. 
+	For $F1$ this gives Nodes$_{F1}\left[0, 1, 2, 3, 4, 0 \right]$, and for $F2$ this gives Nodes$_{F2}\left[6,4,3,2,1,6\right]$. (note the labeling of the nodes used here is the number in Figure \ref{fig:FEbuffervessel} minus one.) In the list the first element is equal to the last element, which shows that the flow is a closed loop. The depicted flow $F3$ is only the difference between $F1$ and $F2$, and does not need to be defined by itself. 
 	\item From the ordered list of nodes, we can create a "`directed-flow-matrix"' ($\mathbf{DF}$) for each flow. This matrix should be of the same size as the conductance-matrix ($\mathbf{K}$) and the capacity-matrix ($\mathbf{C}$).  The directed-flow-matrix contains a 1 for each matrix-element that corresponds to a connection between nodes in the direction of the flow, and -1 for a connection between nodes in the opposite direction. Thus for flows $F1$ and $F2$ the matrix will be:
 	\begin{equation}
 		\mathbf{DF_{F1}} = \begin{bmatrix}
@@ -492,7 +492,7 @@ As indicated earlier, the flow rates can be controlled, and thus may change over
 	\label{eq:DFflow1}
 	\end{equation}
 	
-These matrices can be build up from the list as defined in the previous step, by looping through the list and taking the elements $Nodes(i,i+1)$, and filling in a one at the matrix element $(Node(i), Node(i+1))$. After looping through all these pairs we have filled in all connections in the direction of the flow, $\mathbf{DF^{+1}}$. The connections against the flow, $\mathbf{DF^{-1}}$, are given by: $\mathbf{DF^{-1}} = -1 \cdot (\mathbf{DF^{+1}})^T$. Finally, $\mathbf{DF} = \mathbf{DF^{+1}} + \mathbf{DF^{-1}}$. 
+These matrices can be build up from the list as defined in the previous step, by looping through the list and taking the elements Nodes$(i,i+1)$, and filling in a one at the matrix element (Node$(i)$, Node$(i+1)$). After looping through all these pairs we have filled in all connections in the direction of the flow, $\mathbf{DF^{+1}}$. The connections against the flow, $\mathbf{DF^{-1}}$, are given by: $\mathbf{DF^{-1}} = -1 \cdot (\mathbf{DF^{+1}})^T$. Finally, $\mathbf{DF} = \mathbf{DF^{+1}} + \mathbf{DF^{-1}}$. 
 \item In each time step, when the flow sizes have been determined by the control algorithms, each directed-flow-matrix is multiplied by its respected flow size in [$\frac{\text{m}^3}{\text{s}}$]. All resulting matrices can then be added together. Assuming a flow of size $f_1$ and $f_2$ for the flows $F1$ and $F2$, respectively we now get the matrix $\mathbf{SF}$:
 \begin{equation}
 		\mathbf{SF} = f_1 \cdot \mathbf{DF_{F1}} + f_2 \cdot \mathbf{DF_{F2}} = \begin{bmatrix}

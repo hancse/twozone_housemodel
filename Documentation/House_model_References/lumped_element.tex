@@ -1081,6 +1081,7 @@ Further equations:
 
 {\color{teal}
 \begin{equation}
+	\label{eq:buffer}
 	\begin{aligned}
 	T_{top} \text{:} \quad C_{top}\frac{dT_{top}}{dt} &= \frac{T_{top}-T_{mid}}{-R_{mid, top}} + F_{HP} \cdot c_w \cdot (T_{HP,out} - T_{top}) + \max(F_{rad}-F_{HP}, 0) \cdot c_w \cdot (T_{mid} - T_{top})
     \\ \\
@@ -1227,6 +1228,116 @@ Radiator
 		0 \\
 		\dot{Q}_{rad, air}
 	\end{bmatrix}
+\end{equation}
+
+\subsection{Buffer vessel}
+
+The buffer vessel model is the general model for a "stratified (layered) tank". In order to avoid extensive convection in the tank, the model assumes that addition of hot water from the heat source \emph{and} extraction of hot water to the sink (demand) occurs in the \emph{top} layer.  Return flow from the sink is to the \emph{bottom} layer of the vessel.
+
+The differential equations [\ref{eq:buffer}] can be rewritten as:
+
+{\color{teal}
+	\begin{equation}
+		\begin{aligned}
+			C_{top}\frac{dT_{top}}{dt} &= \frac{-1}{R_{mid, top}} (T_{top}-T_{mid}) + \max(F_{rad}-F_{HP}, 0) \cdot (T_{mid} - T_{top}) \\
+			&+ F_{HP} \cdot (T_{HP,out} - T_{top})
+			\\ \\
+			C_{mid}\frac{dT_{mid}}{dt} &= \frac{1}{R_{mid, top}} (T_{top}-T_{mid}) + \frac{-1}{R_{bot, mid}}(T_{mid}-T_{bot}) \\
+			& + \max(F_{HP}-F_{rad}, 0) \cdot (T_{top} - T_{mid}) + \max(F_{rad}-F_{HP}, 0)  \cdot (T_{mid} - T_{bot}) 
+			\\ \\
+			C_{bot}\frac{dT_{bot}}{dt} &= \frac{1}{R_{bot, mid}} (T_{mid}-T_{bot}) + \max(F_{HP} - F_{rad}, 0) \cdot (T_{mid} - T_{bot})\\
+			& + F_{rad} \cdot (T_{return} - T_{bot}) 
+		\end{aligned}
+	\end{equation}
+}
+
+These differential equations can be written in matrix notation as previously, but a \emph{convection} matrix $\mathbf{F}$ is added:
+
+\begin{subequations}
+	\label{eq:matnot}
+	\begin{align}
+		\mathbf{C} \cdot \boldsymbol{\dot{\theta}} + \mathbf{K} \cdot \boldsymbol{\theta} + \mathbf{F} \cdot \boldsymbol{\theta}= \mathbf{\dot{q}}
+	\end{align}
+\end{subequations}
+
+with:
+
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{top} & 0 & 0 \\
+		0 &  C_{mid} & 0 \\
+		0 & 0 & C_{bot} \\
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{top}}{dt} \\
+		\frac{dT_{mid}}{dt} \\
+		\frac{dT_{bot}}{dt}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		\frac{1}{R_{mid,top}} & \frac{-1}{R_{mid,top}} & 0\\
+		\frac{-1}{R_{mid,top}} &  \frac{1}{R_{mid, top}} + \frac{1}{R_{bot,mid}} & \frac{-1}{R_{bot,mid}}\\
+		0 &  \frac{-1}{R_{bot, mid}} & \frac{1}{R_{bot,mid}}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{top} \\
+		T_{mid} \\
+		T_{bot}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{F} \cdot \boldsymbol{\theta} =
+	\begin{bmatrix}
+		F_{HP,out} + F_{rad} & F_{rad} & 0 \\
+		F_{rad} &  0  & F_{rad} \\
+		0 &  F_{rad} & F_{HP} + F_{rad}
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{top} \\
+		T_{mid} \\
+		T_{bot}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\mathbf{\dot{q}} =
+	\begin{bmatrix}
+		\frac{1}{R_{air, amb}} \cdot T_{amb} + \dot{Q}_{heat, air} \\
+		0
+	\end{bmatrix}
+\end{equation}
+
+
+F1: [0 1 2 0]
+
+F2: [2 1 0 2]
+
+\begin{equation}
+	\mathbf{DF_{F1}} = 
+	\begin{bmatrix}
+		0 & 1 &-1  \\
+	   -1 & 0 & 1  \\
+		1 &-1 & 0  \\
+	\end{bmatrix}
+	\label{eq:DFflow1}
+\end{equation}
+
+\begin{equation}
+	\mathbf{DF_{F2}} = 
+	\begin{bmatrix}
+		0 &-1 & 1  \\
+	    1 & 0 &-1  \\
+	   -1 & 1 & 0  \\
+	\end{bmatrix}
+	\label{eq:DFflow1}
 \end{equation}
 
 \subsubsection{Radiator}
