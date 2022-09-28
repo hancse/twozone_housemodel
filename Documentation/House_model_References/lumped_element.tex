@@ -1230,7 +1230,7 @@ Radiator
 	\end{bmatrix}
 \end{equation}
 
-\subsection{Buffer vessel}
+\subsubsection{Buffer vessel}
 
 The buffer vessel model is the general model for a "stratified (layered) tank". In order to avoid extensive convection in the tank, the model assumes that addition of hot water from the heat source \emph{and} extraction of hot water to the sink (demand) occurs in the \emph{top} layer.  Return flow from the sink is to the \emph{bottom} layer of the vessel.
 
@@ -1371,11 +1371,12 @@ Now, the diagonal elements can be computed. The diagonal elements are equal to m
 	\label{eq:flowmatrix}
 \end{equation}
 
-Finally, we need to multiply the resulting flow matrix with the density ($\rho_{water}$) and the specific heat ($c_{p, water}$), in order to obtain the heat transferred by the water due to the water flows. The resulting matrix can be added to the K matrix as given in equation \ref{eq:CKq_buffer}.
+Finally, we need to multiply the resulting flow matrix with the density ($\rho_{w}$) and the specific heat ($c_{w}$), in order to obtain the heat transferred by the water due to the water flows. The resulting matrix can be added to the K matrix as given in equation \ref{eq:CKq_buffer}.
 
 \begin{equation}
 	\begin{aligned}
-		v_{pump} \cdot A_{pipe} \cdot \rho_{water} \cdot c_{p, water} =  \qquad \left[ \frac{m}{s} \cdot m^2 \cdot\frac{kg}{m^3} \cdot \frac{J}{kg \cdot K} = \frac{J}{K \cdot s} = \frac{W}{K}\right]
+		\dot{f} = v_{pump} \cdot A_{pipe} \qquad & \left[ \frac{m}{s} \cdot m^2 = \frac{m^3}{s}\right] \\
+		\dot{f} \cdot \rho_w \cdot c_w \quad \text{has the dimension} \qquad & \left[ \frac{m^3}{s} \cdot m^2 \cdot\frac{kg}{m^3} \cdot \frac{J}{kg \cdot K} = \frac{J}{K \cdot s} = \frac{W}{K}\right]
 	\end{aligned}
 \end{equation}
 

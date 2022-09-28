@@ -73,7 +73,7 @@ def calc_mean_diff_rad(Tinlet, Treturn, Tamb):
     return lm
 
 
-class Radiator:
+class Radiator():
     """ class for general Radiator object."""
     def __init__(self, exp_rad):
         self.T_feed = None
