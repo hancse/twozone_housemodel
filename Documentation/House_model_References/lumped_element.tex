@@ -1340,6 +1340,46 @@ F2: [2 1 0 2]
 	\label{eq:DFflow1}
 \end{equation}
 
+In each time step, when the flow sizes have been determined by the control algorithms, each directed-flow-matrix is multiplied by its respected flow size in [$\frac{\text{m}^3}{\text{s}}$]. All resulting matrices can then be added together. Assuming a flow of size $f_1$ and $f_2$ for the flows $F1$ and $F2$, respectively we now get the matrix $\mathbf{SF}$:
+\begin{equation}
+	\mathbf{SF} = f_1 \cdot \mathbf{DF_{F1}} + f_2 \cdot \mathbf{DF_{F2}} = 
+	\begin{bmatrix}
+		0     & f_1-f_2 & f_2-f_1 \\
+     f_2-f_1  & 0       & f_1-f_2 \\
+     f_1-f_2  & f_2-f_1 & 0       
+	\end{bmatrix}
+	\label{eq:addbufferflows}
+\end{equation}
+
+The heat transfer induced by the flows is only in the direction of the water flow. The correct elements are obtained by taking the $\text{min}(\mathbf{SF},0)$, here we mean for each element in $\mathbf{SF}$ we take the minimum of the respective element and 0. Thus, in the case $f_1>f_2$ the matrix $\mathbf{SF}$ will become:
+\begin{equation}
+	\text{min}(\mathbf{SF},0) =  \begin{bmatrix}
+		0     & f_1-f_2 & 0 \\
+        0     & 0       & f_1-f_2 \\
+     f_1-f_2  & 0       & 0     
+	\end{bmatrix}
+	\label{eq:minSFzero}
+\end{equation}
+
+Now, the diagonal elements can be computed. The diagonal elements are equal to minus the sum of the off-diagonal elements in its respective row. For the matrix given in equation \ref{eq:minSFzero} this results in the flow matrix $\mathbf{F}$:
+\begin{equation}
+	\mathbf{F} =  \begin{bmatrix}
+		-(f_1-f_2)   & f_1-f_2 & 0 \\
+        0     & -(f_1-f_2)       & f_1-f_2 \\
+     f_1-f_2  & 0       & -(f_1-f_2)     
+	\end{bmatrix}
+	\label{eq:flowmatrix}
+\end{equation}
+
+Finally, we need to multiply the resulting flow matrix with the density ($\rho_{water}$) and the specific heat ($c_{p, water}$), in order to obtain the heat transferred by the water due to the water flows. The resulting matrix can be added to the K matrix as given in equation \ref{eq:CKq_buffer}.
+
+\begin{equation}
+	\begin{aligned}
+		v_{pump} \cdot A_{pipe} \cdot \rho_{water} \cdot c_{p, water} =  \qquad \left[ \frac{m}{s} \cdot m^2 \cdot\frac{kg}{m^3} \cdot \frac{J}{kg \cdot K} = \frac{J}{K \cdot s} = \frac{W}{K}\right]
+	\end{aligned}
+\end{equation}
+
+
 \subsubsection{Radiator}
 
 In a radiator, the heat transport is in good approximation only due to \emph{convection} of a gas (steam) or liquid (water, glycol, brine) For a liquid, the following points of view may be taken:
