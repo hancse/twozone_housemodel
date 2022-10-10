@@ -54,8 +54,8 @@ def main(show=False, xl=False):
     cond_mat = add_chain_to_k(cond_mat, cond_list[2], 0)
     print(days_sim)
 
-    #Loading the radiator and buffervessel parameters
-    #Heat transfer coefficient of the radiator and het capacity
+    # Loading the radiator and buffervessel parameters
+    # Heat transfer coefficient of the radiator and heat capacity
     UAradiator = house_param["chains"][0]["links"][2]["Conductance"]
     Crad =  house_param["chains"][0]["links"][2]["Capacity"]
 

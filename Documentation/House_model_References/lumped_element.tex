@@ -1344,9 +1344,9 @@ In each time step, when the flow sizes have been determined by the control algor
 \begin{equation}
 	\mathbf{SF} = f_1 \cdot \mathbf{DF_{F1}} + f_2 \cdot \mathbf{DF_{F2}} = 
 	\begin{bmatrix}
-		0     & f_1-f_2 & f_2-f_1 \\
-     f_2-f_1  & 0       & f_1-f_2 \\
-     f_1-f_2  & f_2-f_1 & 0       
+		0     & \dot{f_1}-\dot{f_2} & \dot{f_2}-\dot{f_1} \\
+    \dot{ f_2}-\dot{f_1}  & 0       & \dot{f_1}-\dot{f_2} \\
+     \dot{f_1}-\dot{f_2}  & \dot{f_2}-\dot{f_1} & 0       
 	\end{bmatrix}
 	\label{eq:addbufferflows}
 \end{equation}
@@ -1354,9 +1354,9 @@ In each time step, when the flow sizes have been determined by the control algor
 The heat transfer induced by the flows is only in the direction of the water flow. The correct elements are obtained by taking the $\text{min}(\mathbf{SF},0)$, here we mean for each element in $\mathbf{SF}$ we take the minimum of the respective element and 0. Thus, in the case $f_1>f_2$ the matrix $\mathbf{SF}$ will become:
 \begin{equation}
 	\text{min}(\mathbf{SF},0) =  \begin{bmatrix}
-		0     & f_1-f_2 & 0 \\
-        0     & 0       & f_1-f_2 \\
-     f_1-f_2  & 0       & 0     
+		0     & \dot{f_1}-\dot{f_2} & 0 \\
+        0     & 0       & \dot{f_1}-\dot{f_2} \\
+     \dot{f_1}-\dot{f_2}  & 0       & 0     
 	\end{bmatrix}
 	\label{eq:minSFzero}
 \end{equation}
@@ -1364,9 +1364,9 @@ The heat transfer induced by the flows is only in the direction of the water flo
 Now, the diagonal elements can be computed. The diagonal elements are equal to minus the sum of the off-diagonal elements in its respective row. For the matrix given in equation \ref{eq:minSFzero} this results in the flow matrix $\mathbf{F}$:
 \begin{equation}
 	\mathbf{F} =  \begin{bmatrix}
-		-(f_1-f_2)   & f_1-f_2 & 0 \\
-        0     & -(f_1-f_2)       & f_1-f_2 \\
-     f_1-f_2  & 0       & -(f_1-f_2)     
+		-(\dot{f_1}-\dot{f_2})   & \dot{f_1}-\dot{f_2} & 0 \\
+        0     & -(\dot{f_1}-\dot{f_2})       & \dot{f_1}-\dot{f_2} \\
+     \dot{f_1}-\dot{f_2}  & 0       & -(\dot{f_1}-\dot{f_2})     
 	\end{bmatrix}
 	\label{eq:flowmatrix}
 \end{equation}

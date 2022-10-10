@@ -89,7 +89,7 @@ def make_edges(edge_list):
     """
 
     Args:
-        e: list with edge info [source_node (int), target_node (int), weight (float)]
+        edge_list: list with edge info [source_node (int), target_node (int), weight (float)]
 
     Returns:
         K_matrix (ndarray):  2D matrix with conductances in network
@@ -103,6 +103,7 @@ def make_edges(edge_list):
     row_sums = np.sum(B, axis=1).tolist()
     K_matrix = B - np.diag(np.array(row_sums), k=0)
     return K_matrix
+
 
 def C_from_elements(elements:dict):
     """
@@ -174,6 +175,7 @@ def add_chain(C_mat, new_c_element,
     new_k_mat[idx, anchor] = -new_k_element
     new_q_vect = np.vstack((q_vect, new_q_element))
     return new_c_mat, new_k_mat, new_q_vect
+
 
 def add_chain_to_k(K_mat, new_k_element, anchor):
     """
