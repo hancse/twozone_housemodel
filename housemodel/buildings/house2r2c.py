@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         add_c_inv_block,
                                         make_edges)
+from housemodel.tools.new_configurator import load_config
 
 
 @dataclass
@@ -17,6 +18,7 @@ class HouseNode:
 class FixedNode:
     label: str
     temp: float     # [K]
+# if methods are defined this turns into a normal class object
 
 
 @dataclass
@@ -24,8 +26,8 @@ class HouseEdge:
     label: str
     cond: float   # [W/K]
     conn_nodes: []   # empty list (tuple, ndarray)
-    src: int
-    sink: int
+    # src: int
+    # sink: int
 
 
 class House2R2C:
@@ -51,4 +53,9 @@ if __name__ == "__main__":
     k_list =[[0, 1, 1.0]]
     k1 = make_edges(k_list)
     print(k1, '\n')
+
+    from pathlib import Path
+    CONFIGDIR = Path(__file__).parent.absolute()
+    house_param = load_config(str(CONFIGDIR / "xl_for_2R2Chouse_buffer.yml"))
+    print()
 

@@ -1,0 +1,24 @@
+
+# 2R2C HOUSE
+nodes:
+  -
+    label: air
+    tag: 0
+    capacity: 1.0e12  # J/K
+    T_ini: 20.0
+  -
+    label: wall
+    tag: 1
+    capacity: 8.6e6    #J/K
+    T_ini: 20.0
+
+edges:
+  - [0, 1, 201.9611831]  # W/K : 1/R1
+
+boundaries:
+  -
+    label: ambient
+    T_ini: 20.0
+    connected_to:
+      -[0, 0.1]
+      -[1, 0.11]
