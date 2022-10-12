@@ -63,7 +63,7 @@ def K_from_elements(df: pd.DataFrame):
     """assemble K-matrix from Dataframe
 
     Args:
-        df: Dataframe from Excel spreadsheett (float)]
+        df: Dataframe from Excel spreadsheet (float)]
 
     Returns:
         K_matrix (ndarray):  2D matrix with conductances in network

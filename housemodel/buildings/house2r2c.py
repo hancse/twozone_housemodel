@@ -47,4 +47,8 @@ if __name__ == "__main__":
     c1 = make_c_inv_matrix(c_list)
     print(c1, "\n")
     cb = add_c_inv_block(c1, c1)
-    print(cb)
+    print(cb, '\n')
+    k_list =[[0, 1, 1.0]]
+    k1 = make_edges(k_list)
+    print(k1, '\n')
+
