@@ -1,35 +1,35 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Nov 10 12:05:19 2020
-
-@author: TrungNguyen, PvK, MvdB
+@author: PvK, MJ
 """
-from housemodel.solvers.house_model_for_companies import house_radiator_m  # exposed function "house" in house module
-# function "model" in module house is private
-
-from housemodel.tools.new_configurator import (load_config,
-                                               add_chain_to_k, make_c_inv_matrix)
-from housemodel.sourcesink.NEN5060 import run_qsun
-
-from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
-from housemodel.controls.Temperature_SP import simple_thermostat
-
-from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
-                                                  NENdatehour2datetime)
-
-# import matplotlib
-# matplotlib.use('qt5agg')
-import matplotlib.pyplot as plt
-
 import numpy as np
-from scipy.interpolate import interp1d
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
+from scipy.interpolate import interp1d
+
+from housemodel.solvers.house_model_for_companies import house_radiator_m  # exposed function "house" in house module
+# function "model" in module house is private
+
+from housemodel.tools.new_configurator import load_config
+from housemodel.tools.ckf_tools import (make_c_inv_matrix,
+                                        make_edges,
+                                        add_c_inv_block)
+
+from housemodel.sourcesink.NEN5060 import run_qsun
+from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
+from housemodel.controls.Temperature_SP import simple_thermostat
+from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
+                                                  NENdatehour2datetime)
+from housemodel.buildings.house2r2c import House2R2C
+
+import matplotlib
+matplotlib.use('Qt5Agg')
+import matplotlib.pyplot as plt
 
 import logging
 logging.basicConfig()
-logger = logging.getLogger('matrix')
+logger = logging.getLogger('HBNE')
 logger.setLevel(logging.INFO)
 
 from pathlib import Path
@@ -37,28 +37,25 @@ CONFIGDIR = Path(__file__).parent.absolute()
 
 
 def main(show=False, xl=False):
-    house_param = load_config(str(CONFIGDIR / "excel_for_companies.yaml"))
-    days_sim = 365 # house_param['timing']['days_sim']
-    CF = house_param['ventilation']['CF']
-
-    num_links = len(house_param["chains"][0]["links"])
-    cap_list = []
-    for n in range(num_links):
-        cap_list.append(house_param["chains"][0]["links"][n]["Capacity"])
-    cap_mat_inv = make_c_inv_matrix(cap_list)
-
-    cond_list = []
-    for n in range(num_links):
-        cond_list.append(house_param["chains"][0]["links"][n]["Conductance"])
-
-    cond_mat = add_chain_to_k(np.array([cond_list[0]]), cond_list[1], 0)
-    cond_mat = add_chain_to_k(cond_mat, cond_list[2], 0)
+    house_param = load_config(str(CONFIGDIR / "xl_for_2R2Chouse_buffer.yml"))
+    days_sim = 365    # house_param['timing']['days_sim']
     print(days_sim)
 
-    # Loading the radiator and buffervessel parameters
-    # Heat transfer coefficient of the radiator and heat capacity
-    UAradiator = house_param["chains"][0]["links"][2]["Conductance"]
-    Crad =  house_param["chains"][0]["links"][2]["Capacity"]
+    h = House2R2C()
+    h.nodes_from_dict(house_param["nodes"])
+    h.fill_c_inv()
+    h.edges_from_dict(house_param["edges"])
+    h.fill_k(house_param["edges"])
+    h.boundaries_from_dict(house_param["boundaries"])
+    h.add_fixed_to_k()
+    h.make_q_vec()
+    h.add_fixed_to_q()
+
+
+    #Loading the radiator and buffervessel parameters
+    #Heat transfer coefficient of the radiator and het capacity
+    # UAradiator = house_param["chains"][0]["links"][2]["Conductance"]
+    # Crad =  house_param["chains"][0]["links"][2]["Capacity"]
 
     # read NEN5060 data from spreadsheet NEN5060-2018.xlsx into pandas DataFrame
     df_nen = read_nen_weather_from_xl()
