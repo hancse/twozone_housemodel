@@ -21,7 +21,7 @@ from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
 from housemodel.controls.Temperature_SP import simple_thermostat
 from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
-from housemodel.buildings.house2r2c import House2R2C
+from housemodel.buildings.house2r2c import House
 
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -41,7 +41,7 @@ def main(show=False, xl=False):
     days_sim = 365    # house_param['timing']['days_sim']
     print(days_sim)
 
-    h = House2R2C()
+    h = House()
     h.nodes_from_dict(house_param["nodes"])
     h.fill_c_inv()
     h.edges_from_dict(house_param["edges"])
@@ -51,6 +51,9 @@ def main(show=False, xl=False):
     h.make_q_vec()
     h.add_fixed_to_q()
 
+    print(h.c_inv_mat, '\n')
+    print(h.k_mat, '\n')
+    print(h.q_vec, '\n')
 
     #Loading the radiator and buffervessel parameters
     #Heat transfer coefficient of the radiator and het capacity

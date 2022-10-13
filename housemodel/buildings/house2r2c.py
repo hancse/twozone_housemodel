@@ -42,17 +42,17 @@ class Flow:
     heat_rate: float  # [J/s = W]
 
 
-class House2R2C:
+class House:
     def __init__(self):
-        self.num_nodes = 2
-        self.num_edges = 1
-        self.nodes = []   # np.ndarray(self.num_nodes, dtype=object)
-        self.edges = [] # np.ndarray(self.num_nodes - 1)
+        self.num_nodes = 0
+        self.num_edges = 0
+        self.nodes = []           # np.zeros(self.num_nodes, dtype=object)
+        self.edges = []           # np.zeros(self.num_nodes - 1)
         self.ambient = None
 
         self.c_inv_mat = None     # np.zeros((self.num_nodes, self.num_nodes))
-        self.k_mat = None  # np.zeros_like(self.c_inv_mat)
-        self.q_vec = None
+        self.k_mat = None         # np.zeros_like(self.c_inv_mat)
+        self.q_vec = None         # np.zeros(self.num_nodes, 1)
         self.q_solar = None
         self.q_int = None
         self.cap_list = []
@@ -111,13 +111,14 @@ class House2R2C:
             self.k_mat[index, index] -= cond
 
     def make_q_vec(self):
-        self.q_vec = np.ndarray((self.num_nodes, 1))
+        self.q_vec = np.zeros((self.num_nodes, 1))
 
     def add_fixed_to_q(self):
         for c in self.ambient.connected_to:
             index = c[0]
             cond = c[1]
             self.q_vec[index] += cond
+
 
 if __name__ == "__main__":
     h = House2R2C()
