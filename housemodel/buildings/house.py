@@ -13,7 +13,7 @@ class HouseNode:
     label: str = field(default="label")
     tag: int = field(default=-1)
     cap: float = field(default=0.0)     # [J/K]
-    temp: float  = field(default=20.0)  # [K]
+    temp: float = field(default=20.0)  # [K]
 
 
 @dataclass
@@ -121,7 +121,7 @@ class House:
 
 
 if __name__ == "__main__":
-    h = House2R2C()
+    h = House()
     c_list = [1.0, 2.0]
     c1 = make_c_inv_matrix(c_list)
     print(c1, "\n")

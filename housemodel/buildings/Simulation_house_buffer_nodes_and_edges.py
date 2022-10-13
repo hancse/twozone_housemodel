@@ -21,7 +21,8 @@ from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
 from housemodel.controls.Temperature_SP import simple_thermostat
 from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
-from housemodel.buildings.house2r2c import House
+from housemodel.buildings.house import House
+from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
 
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -54,6 +55,14 @@ def main(show=False, xl=False):
     print(h.c_inv_mat, '\n')
     print(h.k_mat, '\n')
     print(h.q_vec, '\n')
+
+    buffer_param = load_config(str(CONFIGDIR / "xl_for_buffer.yml"))
+
+    b = StratifiedBuffer()
+    b.nodes_from_dict(buffer_param["nodes"])
+    b.fill_c_inv()
+    b.edges_from_dict(buffer_param['edges'])
+    b.fill_k(house_param["edges"])
 
     #Loading the radiator and buffervessel parameters
     #Heat transfer coefficient of the radiator and het capacity

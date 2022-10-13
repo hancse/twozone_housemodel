@@ -1,0 +1,48 @@
+
+Timescale: 10 # default timescale used in yaml file in minutes
+Duration:  8760 # a year in the defined timescale
+Timestep:  1 # default timestep in time integration. Required until new integration subroutine is implemented
+
+# BUFFER VESSEL
+nodes:
+  -
+    label: top
+    tag: 0
+    capacity: 1.0e+12  # J/K
+    T_ini: 20.0
+  -
+    label: mid
+    tag: 1
+    capacity: 8.6e+6    #J/K
+    T_ini: 20.0
+  -
+    label: bottom
+    tag: 2
+    capacity: 8.6e+6    #J/K
+    T_ini: 20.0
+
+edges:
+  - [0, 1, 201.9611831 ]  # W/K : 1/R1
+  - [1, 2, 201.9611831]  # W/K : 1/R1
+
+flows:
+  -
+    label: radiator_flow
+    flow_rate: 50e-6   # [m^3/s]
+    density: 1000     # [kg/m^3]
+    cp: 4200         # J/(kg K)]
+
+  -
+    label: hp_flow
+    flow_rate: 100e-6   # [m^3/s]
+    density: 1000     # [kg/m^3]
+    cp: 4200         # J/(kg K)]
+
+boundaries:
+  -
+    label: room
+    T_ini: 20.0
+    connected_to:
+      - [0, 0.1]
+      - [1, 0.11]
+      - [2, 0.12]
