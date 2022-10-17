@@ -78,8 +78,9 @@ def main(show=False, xl=False):
     print(t.q_vec, '\n')
 
     r = Radiator(1.3)
+    r.boundaries_from_dict(param["boundaries"])
     r.T_amb = 20.0
-    # r.
+
 
     #Loading the radiator and buffervessel parameters
     #Heat transfer coefficient of the radiator and het capacity
@@ -97,23 +98,23 @@ def main(show=False, xl=False):
     time_sim = df_irr.iloc[0:days_sim*24, 0].values
 
     # Interval in seconds the control algorithm
-    control_interval = house_param["Timescale"]*60
+    control_interval = param["Timescale"]*60
 
-    Qsolar = (df_irr.total_E * house_param['solar_irradiation']['E'] +
-              df_irr.total_SE * house_param['solar_irradiation']['SE'] +
-              df_irr.total_S * house_param['solar_irradiation']['S'] +
-              df_irr.total_SW * house_param['solar_irradiation']['SW'] +
-              df_irr.total_W * house_param['solar_irradiation']['W'] +
-              df_irr.total_NW * house_param['solar_irradiation']['NW'] +
-              df_irr.total_N * house_param['solar_irradiation']['N'] +
-              df_irr.total_NE * house_param['solar_irradiation']['NE']).values
-    Qsolar *= house_param['solar_irradiation']['g_value']
+    Qsolar = (df_irr.total_E * param['solar_irradiation']['E'] +
+              df_irr.total_SE * param['solar_irradiation']['SE'] +
+              df_irr.total_S * param['solar_irradiation']['S'] +
+              df_irr.total_SW * param['solar_irradiation']['SW'] +
+              df_irr.total_W * param['solar_irradiation']['W'] +
+              df_irr.total_NW * param['solar_irradiation']['NW'] +
+              df_irr.total_N * param['solar_irradiation']['N'] +
+              df_irr.total_NE * param['solar_irradiation']['NE']).values
+    Qsolar *= param['solar_irradiation']['g_value']
     Qsolar_sim = Qsolar[0:days_sim*24]
 
-    Qint = internal_heat_gain(house_param['internal']['Q_day'],
-                              house_param['internal']['delta_Q'],
-                              house_param['internal']['t1'],
-                              house_param['internal']['t2'])
+    Qint = internal_heat_gain(param['internal']['Q_day'],
+                              param['internal']['delta_Q'],
+                              param['internal']['t1'],
+                              param['internal']['t2'])
     Qint = Qint.flatten()
     Qinternal_sim = Qint[0:days_sim*24]
 
@@ -126,7 +127,7 @@ def main(show=False, xl=False):
 
     # make predictable part of q_dot vector
     q_vector = np.zeros((num_links,days_sim*24))
-    leak_to_amb = house_param["chains"][0]["links"][0]["Conductance"]
+    leak_to_amb = param["chains"][0]["links"][0]["Conductance"]
     q_vector[0,:] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
     q_vector[1,:] = (1 - CF) * Qsolar_sim
 
@@ -157,12 +158,12 @@ def main(show=False, xl=False):
 
     # Input PID values in to control
     control_parameters = np.zeros(3)
-    control_parameters[0] = house_param['controller']['kp']
-    control_parameters[1] = house_param['controller']['ki']
-    control_parameters[2] = house_param['controller']['kd']
+    control_parameters[0] = param['controller']['kp']
+    control_parameters[1] = param['controller']['ki']
+    control_parameters[2] = param['controller']['kd']
 
     # solve ODE
-    data = house_radiator_m(cap_mat_inv, cond_mat, q_vector,
+    data = house_radiator_m(t.c_inv_mat, t.k_mat, t.q_vec,
                             SP_sim, time_sim, control_interval, control_parameters)
 
     # if show=True, plot the results

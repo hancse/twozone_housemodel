@@ -76,7 +76,7 @@ def calc_mean_diff_rad(Tinlet, Treturn, Tamb):
 
 
 @dataclass
-class RadiatorFixedNode:
+class FixedNode:
     label: str
     connected_to: []
     temp: float     # [K]
@@ -97,8 +97,8 @@ class Radiator:
 
         self.q_dot = 0.0
         self.T_ret = None
-
-        self.ReturnNode = RadiatorFixedNode
+        self.boundaries = []
+        self.return_node = FixedNode
 
         self.k_mat = None
         self.f_mat = None
@@ -106,6 +106,15 @@ class Radiator:
 
         self.__denominator = None
         self.__lmtd = None
+
+    def boundaries_from_dict(self, lod):
+        for n in range(len(lod)):
+            node = FixedNode(label=lod[n]["label"],
+                             temp=lod[n]["T_ini"],
+                             connected_to=lod[n]["connected_to"])
+            # append by reference, therefore new node object in each iteration
+            self.boundaries.append(node)
+        self.return_node = [fn for fn in self.boundaries if fn.label == "return"][0]
 
     def get_lmtd(self):
         return self.__lmtd
