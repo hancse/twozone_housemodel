@@ -25,6 +25,7 @@ from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
 from housemodel.buildings.house import House
 from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
+from housemodel.sourcesink.radiators import Radiator
 from housemodel.buildings.totalsystem import TotalSystem
 
 import matplotlib
@@ -41,16 +42,17 @@ CONFIGDIR = Path(__file__).parent.absolute()
 
 
 def main(show=False, xl=False):
-    house_param = load_config(str(CONFIGDIR / "xl_for_2R2Chouse_buffer.yml"))
-    days_sim = 365    # house_param['timing']['days_sim']
+    param = load_config(str(CONFIGDIR / "xl_for_2R2Chouse_buffer.yml"))
+    days_sim = 365    # param['timing']['days_sim']
     print(days_sim)
 
     h = House()
-    h.nodes_from_dict(house_param["nodes"])
+    h.nodes_from_dict(param["Building"]["nodes"])
     h.fill_c_inv()
-    h.edges_from_dict(house_param["edges"])
-    h.fill_k(house_param["edges"])
-    h.boundaries_from_dict(house_param["boundaries"])
+    h.edges_from_dict(param["edges"])
+    h.fill_k(param["edges"])
+    h.boundaries_from_dict(param["boundaries"])
+
     h.add_fixed_to_k()
     h.make_q_vec()
     h.add_fixed_to_q()
@@ -59,19 +61,25 @@ def main(show=False, xl=False):
     print(h.k_mat, '\n')
     print(h.q_vec, '\n')
 
-    buffer_param = load_config(str(CONFIGDIR / "xl_for_buffer.yml"))
-
     b = StratifiedBuffer()
-    b.nodes_from_dict(buffer_param["nodes"])
+    b.nodes_from_dict(param["Buffer"]["nodes"])
     b.fill_c_inv()
-    b.edges_from_dict(buffer_param['edges'])
-    b.fill_k(buffer_param["edges"])
+    b.edges_from_dict(param['edges'])
+    b.fill_k(param["edges"])
     b.make_q_vec()
 
     t = TotalSystem()
     t.c_inv_mat = add_c_inv_block(h.c_inv_mat, b.c_inv_mat)
     t.k_mat = add_k_block(h.k_mat, b.k_mat)
     t.q_vec = stack_q(h.q_vec, b.q_vec)
+
+    print(t.c_inv_mat, '\n')
+    print(t.k_mat, '\n')
+    print(t.q_vec, '\n')
+
+    r = Radiator(1.3)
+    r.T_amb = 20.0
+    # r.
 
     #Loading the radiator and buffervessel parameters
     #Heat transfer coefficient of the radiator and het capacity

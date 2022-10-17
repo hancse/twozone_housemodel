@@ -35,8 +35,9 @@ class StratifiedBuffer:
     def __init__(self):
         self.num_layers = 0
         self.num_edges = 0
-        self.nodes = []  # np.zeros(self.num_nodes, dtype=object)
-        self.edges = []  # np.zeros(self.num_nodes - 1)
+        self.nodes = []           # np.zeros(self.num_nodes, dtype=object)
+        self.edges = []           # np.zeros(self.num_nodes - 1)
+        self.boundaries = []
         self.ambient = None
 
         self.c_inv_mat = None  # np.array(self.num_layers, self.num_layers)
@@ -44,6 +45,7 @@ class StratifiedBuffer:
         self.f_mat = None  # np.array(self.num_layers, self.num_layers)
         self.q_vec = None  # np.zeros(self.num_nodes, 1)
 
+        self.tag_list = []
         self.cap_list = []
         self.cond_list = []
 
@@ -64,6 +66,7 @@ class StratifiedBuffer:
                               temp=lod[n]["T_ini"])
             # append by reference, therefore new node object in each iteration
             self.nodes.append(node)
+        self.tag_list = [n.tag for n in self.nodes]
 
     def fill_c_inv(self):
         self.cap_list = [n.cap for n in self.nodes]
@@ -81,18 +84,32 @@ class StratifiedBuffer:
             self.edges.append(edge)
 
     def fill_k(self, lol):
-        self.k_mat = make_edges(lol)
+        """select local edges belonging to object and make k-matrix.
+
+        Args:
+            lol: list of edge lists [from, to, weight]
+
+        Returns:
+
+        """
+        el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
+        self.k_mat = make_edges(el)
 
     def boundaries_from_dict(self, lod):
         for n in range(len(lod)):
             node = FixedNode(label=lod[n]["label"],
                              temp=lod[n]["T_ini"],
                              connected_to=lod[n]["connected_to"])
-
             # append by reference, therefore new node object in each iteration
-            self.ambient = node
+            self.boundaries.append(node)
+        self.ambient = [fn for fn in self.boundaries if fn.label == "indoor"][0]
 
     def add_fixed_to_k(self):
+        """
+
+        Returns:
+
+        """
         for c in self.ambient.connected_to:
             index = c[0]
             cond = c[1]

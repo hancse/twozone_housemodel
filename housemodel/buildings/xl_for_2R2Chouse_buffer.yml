@@ -3,21 +3,41 @@ Timescale: 10 # default timescale used in yaml file in minutes
 Duration:  8760 # a year in the defined timescale
 Timestep:  1 # default timestep in time integration. Required until new integration subroutine is implemented
 
-# 2R2C HOUSE
-nodes:
-  -
-    label: air
-    tag: 0
-    capacity: 1.0e+12  # J/K
-    T_ini: 20.0
-  -
-    label: wall
-    tag: 1
-    capacity: 8.6e+6    #J/K
-    T_ini: 20.0
+Building:
+  nodes:
+    -
+      label: air
+      tag: 0
+      capacity: 1.0e+12  # J/K
+      T_ini: 20.0
+    -
+      label: wall
+      tag: 1
+      capacity: 8.6e+6    #J/K
+      T_ini: 20.0
+
+Buffer:
+  nodes:
+    -
+      label: top
+      tag: 2
+      capacity: 1.0e+12  # J/K
+      T_ini: 20.0
+    -
+      label: mid
+      tag: 3
+      capacity: 8.6e+6    #J/K
+      T_ini: 20.0
+    -
+      label: bottom
+      tag: 4
+      capacity: 8.6e+6    #J/K
+      T_ini: 20.0
 
 edges:
   - [0, 1, 201.9611831]  # W/K : 1/R1
+  - [2, 3, 201.9611831 ]  # W/K : 1/R1
+  - [3, 4, 201.9611831]  # W/K : 1/R1
 
 flows:
   -
@@ -25,17 +45,36 @@ flows:
     flow_rate: 50e-6   # [m^3/s]
     density: 1000     # [kg/m^3]
     cp: 4200         # J/(kg K)]
-
   -
     label: floor_flow
+    flow_rate: 100e-6   # [m^3/s]
+    density: 1000     # [kg/m^3]
+    cp: 4200         # J/(kg K)]
+  -
+    label: hp_flow
     flow_rate: 100e-6   # [m^3/s]
     density: 1000     # [kg/m^3]
     cp: 4200         # J/(kg K)]
 
 boundaries:
   -
-    label: ambient
+    label: outdoor
     T_ini: 20.0
     connected_to:
-      - [0, 0.1]
-      - [1, 0.11]
+      - [ 0, 0.1 ]
+      - [ 1, 0.11 ]
+  -
+    label: return
+    T_ini: 20.0
+    connected_to:
+      - [ 4, 0.1 ]
+  -
+    label: indoor
+    T_ini: 20.0
+    connected_to:
+      - [2, 0.1]
+      - [3, 0.11]
+      - [4, 0.12]
+
+
+

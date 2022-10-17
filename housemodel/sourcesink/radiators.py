@@ -2,6 +2,8 @@
 # https://www.buildingservicesindex.co.uk/entry/136540/AEL-Heating-Solutions-Ltd/How-to-calculate-the-delta-T-for-a-radiator/
 
 import numpy as np
+from dataclasses import dataclass, field
+
 import matplotlib
 import matplotlib.pyplot as plt
 from scipy import interpolate
@@ -73,9 +75,17 @@ def calc_mean_diff_rad(Tinlet, Treturn, Tamb):
     return lm
 
 
-class Radiator():
+@dataclass
+class RadiatorFixedNode:
+    label: str
+    connected_to: []
+    temp: float     # [K]
+# if methods are defined this turns into a normal class object
+
+
+class Radiator:
     """ class for general Radiator object."""
-    def __init__(self, exp_rad):
+    def __init__(self, exp_rad=1.3):
         self.T_feed = None
         self.c_rad = None
         self.exp_rad = exp_rad
@@ -87,6 +97,12 @@ class Radiator():
 
         self.q_dot = 0.0
         self.T_ret = None
+
+        self.ReturnNode = RadiatorFixedNode
+
+        self.k_mat = None
+        self.f_mat = None
+        self.q_vec = None
 
         self.__denominator = None
         self.__lmtd = None

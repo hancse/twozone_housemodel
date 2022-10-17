@@ -48,18 +48,23 @@ class House:
         self.num_edges = 0
         self.nodes = []           # np.zeros(self.num_nodes, dtype=object)
         self.edges = []           # np.zeros(self.num_nodes - 1)
+        self.boundaries = []
         self.ambient = None
 
         self.c_inv_mat = None     # np.zeros((self.num_nodes, self.num_nodes))
         self.k_mat = None         # np.zeros_like(self.c_inv_mat)
         self.q_vec = None         # np.zeros(self.num_nodes, 1)
+
         self.q_solar = None
         self.q_int = None
+
+        self.tag_list = []
         self.cap_list = []
         self.cond_list = []
 
     def nodes_from_dict(self, lod: list):
         """initializes "nodes" attribute with data from yaml file
+           makes a list from tags belonging to the House object
 
         Args:
             lod: list of dicts read from yaml file
@@ -76,6 +81,7 @@ class House:
                              temp=lod[n]["T_ini"])
             # append by reference, therefore new node object in each iteration
             self.nodes.append(node)
+        self.tag_list = [n.tag for n in self.nodes]
 
     def fill_c_inv(self):
         self.cap_list = [n.cap for n in self.nodes]
@@ -93,18 +99,35 @@ class House:
             self.edges.append(edge)
 
     def fill_k(self, lol):
-        self.k_mat = make_edges(lol)
+        """ select local edges belonging to object and make k-matrix.
+
+        Args:
+            lol: list of edge lists [from, to, weight]
+
+        Returns:
+
+        """
+        el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
+        self.k_mat = make_edges(el)
 
     def boundaries_from_dict(self, lod):
         for n in range(len(lod)):
             node = FixedNode(label=lod[n]["label"],
                              temp=lod[n]["T_ini"],
                              connected_to=lod[n]["connected_to"])
-
             # append by reference, therefore new node object in each iteration
-            self.ambient = node
+            self.boundaries.append(node)
+        self.ambient = [fn for fn in self.boundaries if fn.label == "outdoor"][0]
 
     def add_fixed_to_k(self):
+        """
+
+        Returns:
+
+        """
+        # fnl = [fn for fn in self.boundaries for index in fn.connected_to if index[0] in self.tag_list]
+        # res = []
+        # [res.append(x) for x in fnl if x not in res]
         for c in self.ambient.connected_to:
             index = c[0]
             cond = c[1]
