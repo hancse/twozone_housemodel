@@ -23,6 +23,15 @@ def add_c_inv_block(first, second):
     return block_diag(first, second)
 
 
+def add_k_block(first, second):
+    return block_diag(first, second)
+
+
+def stack_q(first, second):
+    return np.vstack((first, second))
+    # return np.concatenate(first, second)
+
+
 def make_edges(edge_list):
     """
 
@@ -66,3 +75,10 @@ if __name__ == "__main__":
     for row in q:
         print('  '.join(map(str, row)))
     print()
+
+    q1 = np.array([[1], [2]])
+    B = np.array([10, 11, 12]).reshape(-1, 1)
+    q2 = np.array([[3], [4]])
+    qt = add_q(q1, q2)
+    print(qt)
+

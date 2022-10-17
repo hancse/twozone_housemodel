@@ -14,7 +14,9 @@ from housemodel.solvers.house_model_for_companies import house_radiator_m  # exp
 from housemodel.tools.new_configurator import load_config
 from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         make_edges,
-                                        add_c_inv_block)
+                                        add_c_inv_block,
+                                        add_k_block,
+                                        stack_q)
 
 from housemodel.sourcesink.NEN5060 import run_qsun
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
@@ -23,6 +25,7 @@ from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
 from housemodel.buildings.house import House
 from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
+from housemodel.buildings.totalsystem import TotalSystem
 
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -62,7 +65,13 @@ def main(show=False, xl=False):
     b.nodes_from_dict(buffer_param["nodes"])
     b.fill_c_inv()
     b.edges_from_dict(buffer_param['edges'])
-    b.fill_k(house_param["edges"])
+    b.fill_k(buffer_param["edges"])
+    b.make_q_vec()
+
+    t = TotalSystem()
+    t.c_inv_mat = add_c_inv_block(h.c_inv_mat, b.c_inv_mat)
+    t.k_mat = add_k_block(h.k_mat, b.k_mat)
+    t.q_vec = stack_q(h.q_vec, b.q_vec)
 
     #Loading the radiator and buffervessel parameters
     #Heat transfer coefficient of the radiator and het capacity
