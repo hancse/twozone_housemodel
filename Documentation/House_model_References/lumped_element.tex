@@ -1504,6 +1504,9 @@ Here we summarize the properties of the different model components.
 \begin{itemize}
 	\item label: unique 'name' for identification. This should be provided in the \textbf{input}.
 	\item temperature [K]or [\degree C]: for every given time the temperature of this node should be defined. For this a temperature profile should be provided in the \textbf{input}. The temperature profile can be a list of tuples of the form [start\_time , temperature]. At every time interval for which the model is evaluated the corresponding temperature of the node should be obtained. For this a function \texttt{set\_node\_temperature} is needed. 
+	\item connection(s) to other model nodes: every fixed temperature node is connected to at least one capacity node, via a heat conductance edge. This edge, and its corresponding heat conductance, "belongs" to the fixed temperature node.
+	\item contribution to \textbf{K}-matrix: based on the (time-dependent) temperature and the conductances, the diagonal element in the \textbf{K}-matrix corresponding to the connected capacity nodes should be updated.
+	\item contribution to \textbf{q}-vector: based on the (time-dependent) temperature and the conductances, the element in the \textbf{q}-vector corresponding capacity nodes should be updated. This is update may be done in the same function as the update for the \textbf{K}-matrix. The update value is the same for both terms, except for the sign. 
 \end{itemize}
 \emph{NOTE}: The temperature of the node should remain constant over the entire interval of model solving, so moments of switching temperature should coincide with the start and end of these intervals. This may be enforced by limiting the options for 'start\_time' (for example only multiples of 10 minutes). An alternative could be that the profile is always defined based on the times as given by the NEN5060. The NEN5060 will, most likely, provide the profile of the ambient air temperature. When we would require all profiles of the same shape and size the reading and processing can be done in the same fashion for all nodes. 
 
@@ -1522,11 +1525,28 @@ Here we summarize the properties of the different model components.
 \textbf{description} A flow edge represents the possibility of heat transfer between capacities by the flow of a medium. In contrast to a heat conductance edge the transfer is uni-directional. 
 \textbf{properties}
 \begin{itemize}	
-	\item node\_in: node from which the flow comes. (possible multiple)
-	\item node\_out: node to which the flow goes. 	(possible multiple, with a division ratio)
+	\item node\_in: node from which the flow comes. 
+	\item node\_out: node to which the flow goes. 	
 	\item flow\_rate: this is variable and should be controlled somehow. The flow rate in a edge depends on the incoming flow (what comes in should go out) 
 \end{itemize}
 
+\subsection{flow node}
+
+\begin{itemize}
+	\item nr\_connections: should be greater or equal 2. Each connection may be either incoming or outgoing, depending on the pump rates that drive the flows through the connected edges. As the pump rates may change the solution to the flow rate through each flow connection may change as well. Solving this for an arbitrary network will need further research. (The procedure might be very similar as solving for currents in an electrical network using Kirchov's laws, possibly interesting material can also be found in the field of "\textit{pipe network analysis}". The pipe networks in the model should remain relatively basic. It is possibly taking it to far, making the modeling concept so generic that it will solve arbitrary flow networks. However, alternatively some check is needed whether the system is set-up as expected. 
+	\item flow division ratio: When multiple outgoing connections are available one can potentially add the concept of controlling the division of the outgoing flows by some valve. Adding this feature to the model would make it even more complex. A network solving method would be needed to incorporate this. 
+	\item heat\_capacity: unlike the edges, a flow node can have a heat capacity (like a capacity node). It does not need to have it when it would be used as a pipe junction. In this case the capacity will be zero. Nodes with a positive heat capacity can also be connected in a heat conductance network. 
+\end{itemize}
+
+\subsection{flow pump node}
+\textbf{description}: A flow pump is a node in the flow 'network' which determines the flow rate of the fluid going through the flow-network, both upstream and down stream of the pump. 
+
+\textbf{properties}
+\begin{itemize}
+	\item flow\_rate
+	\item incoming\_connection: in order to be able to define a flow direction the notion of the incoming link and outgoing link is needed. 
+	\item outgoing\_connection
+\end{itemize}  
 
 \subsubsection{house module}
 \textbf{description}: The house module is an abstraction of the main heat capacities of a house, and the heat conductances within. \emph{NOTE}, capacities can be connected to other model modules by means of heat conductance edges or possibly flow edges. There is potentially much freedom in the model design here. Question to be solved here is how do we define the inter-connectivity in the input? Which module is 'leading' in making the connection. My (Marijn) first idea is to let the house module be 'passive' here, that is, connections to the house module are part of the connecting-module.    
@@ -1540,7 +1560,18 @@ Here we summarize the properties of the different model components.
 \end{itemize}
 
 \subsubsection{fixed temperatures module}
-\textbf{description}
+\textbf{description} The fixed temperatures module is a collection of all fixed temperature nodes that are connected to the different other parts of the running model. For each node the temperature profile over time is checked, and the temperature is updated accordingly. 
+
+\textbf{properties}
+\begin{itemize}
+	\item list\_fixed\_temperature\_nodes
+	\item updating_function: function that loops over all fixed nodes, and makes sure every node is up to date with respect to the temperature at the given time. The updated contributions to \textbf{k}-matrix and \textbf{q}-vector should be added and passed to the model solver. 
+\end{itemize}
+
+\subsection{buffer module}
+\textbf{description}: The buffer module is an abstract representation of a heat buffer vessel. The vessel is build up of a set of $n$ layers. Each layer has a heat conductance edge to the layer directly above and below. Also, a conductance edge to the surrounding air is possible, represented by a fixed temperature node (this works similar as for a house). An alternative is that the surrounding air is a capacity node, which can be part of, or connected to the house module. This last scenario is more complex to incorporate in the model, as this connection is not part of either module (buffer or house), but is a 'special' inter-module connection. Next to the heat conductance edges, the buffer also has flow connections. Internally, flow connections exist between adjacent layers, these are bi-directional (the flow can go both directions, but at every moment in time the flow only one direction is active). Also flow connections, coming in and flowing out of both the top and bottom layer are possible. 
+
+\textbf{properties}
 
 
 
