@@ -10,6 +10,9 @@ from scipy import interpolate
 from scipy.optimize import root
 from housemodel.sourcesink.heatexchangers import LMTD
 
+from housemodel.buildings.components import (CapacityNode,
+                                             FixedNode,
+                                             CondEdge)
 matplotlib.use("Qt5Agg")
 
 
@@ -73,14 +76,6 @@ def calc_log_mean_diff_rad(Tinlet, Treturn, Tamb):
 def calc_mean_diff_rad(Tinlet, Treturn, Tamb):
     lm = np.mean([Tinlet, Treturn]) - Tamb
     return lm
-
-
-@dataclass
-class FixedNode:
-    label: str
-    connected_to: []
-    temp: float     # [K]
-# if methods are defined this turns into a normal class object
 
 
 class Radiator:
