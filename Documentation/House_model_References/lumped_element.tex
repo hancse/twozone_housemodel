@@ -1491,34 +1491,46 @@ Here we summarize the properties of the different model components.
 \textbf{properties}
 
 \begin{itemize}
-	\item label: unique `name' for the node. This should be provided in the \textbf{input}.
-	\item heat\_capacity: the heat capacity [J/K]. This is constant over time and should be provided in the \textbf{input}. Capacity should be greater than zero and finite.  
-	\item temperature: the temperature [K]. This will be computed by the model. For each node the model should be able to output a temperature profile over the duration of the simulation
+	\item \emph{label}: unique `name' for the node. This should be provided in the \textbf{input}.
+	\item \emph{tag}: index of the node in the resulting model. Translates to row-index in the \textbf{q}-vector.
+	\item \emph{heat\_capacity}: the heat capacity [J/K]. This is constant over time and should be provided in the \textbf{input}. Capacity should be greater than zero and finite.  
+	\item \emph{temperature}: the temperature [K]. This will be computed by the model. For each node the model should be able to output a temperature profile over the duration of the simulation
 \end{itemize}
 
+\lstinputlisting[label=lst:capnode, linerange={9-14}, 
+caption={Capacitor Node}] 
+{../../housemodel/buildings/components.py}
 
 \subsubsection{fixed temperature node}
 \textbf{description}: This is a node with a predefined temperature. This temperature will not change due to heat exchange with its surrounding nodes. The predefined temperature should be constant within a given time interval. This node represents a part of the system with a very large heat capacity (much larger than other components), \textit{for example}, the ambient air or the ground. 
 
 \textbf{properties}
 \begin{itemize}
-	\item label: unique 'name' for identification. This should be provided in the \textbf{input}.
-	\item temperature [K]or [\degree C]: for every given time the temperature of this node should be defined. For this a temperature profile should be provided in the \textbf{input}. The temperature profile can be a list of tuples of the form [start\_time , temperature]. At every time interval for which the model is evaluated the corresponding temperature of the node should be obtained. For this a function \texttt{set\_node\_temperature} is needed. 
-	\item connection(s) to other model nodes: every fixed temperature node is connected to at least one capacity node, via a heat conductance edge. This edge, and its corresponding heat conductance, "belongs" to the fixed temperature node.
+	\item \emph{label}: unique 'name' for identification. This should be provided in the \textbf{input}.
+	\item \emph{connection(s)} to other model nodes: every fixed temperature node is connected to at least one capacity node, via a heat conductance edge. This edge, and its corresponding heat conductance, "belongs" to the fixed temperature node.
+	\item \emph{temperature} [K] or [\degree C]: for every given time the temperature of this node should be defined. For this a temperature profile should be provided in the \textbf{input}. The temperature profile can be a list of tuples of the form [start\_time , temperature]. At every time interval for which the model is evaluated the corresponding temperature of the node should be obtained. For this a function \texttt{set\_node\_temperature} is needed. 
 	\item contribution to \textbf{K}-matrix: based on the (time-dependent) temperature and the conductances, the diagonal element in the \textbf{K}-matrix corresponding to the connected capacity nodes should be updated.
 	\item contribution to \textbf{q}-vector: based on the (time-dependent) temperature and the conductances, the element in the \textbf{q}-vector corresponding capacity nodes should be updated. This is update may be done in the same function as the update for the \textbf{K}-matrix. The update value is the same for both terms, except for the sign. 
 \end{itemize}
 \emph{NOTE}: The temperature of the node should remain constant over the entire interval of model solving, so moments of switching temperature should coincide with the start and end of these intervals. This may be enforced by limiting the options for 'start\_time' (for example only multiples of 10 minutes). An alternative could be that the profile is always defined based on the times as given by the NEN5060. The NEN5060 will, most likely, provide the profile of the ambient air temperature. When we would require all profiles of the same shape and size the reading and processing can be done in the same fashion for all nodes. 
+
+\lstinputlisting[label=lst:capnode, linerange={17-22}, 
+caption={Fixed Node}] 
+{../../housemodel/buildings/components.py}
 
 \subsubsection{heat conductance edges}
 \textbf{description}: A heat conductance edge represents the possibility to exchange heat between the two connected nodes (either capacity node or temperature node). Heat will be transferred from the node with high temperature to the node with low temperature. For example, an edge between the nodes 'air' and 'walls' indicates that heat can be transferred from the air to the wall, and the other way around.  
 
 \textbf{properties}
 \begin{itemize}
-	\item label: name of the edge. This should be provided in the \textbf{input}.
-	\item conductance\_value [J/K] or [J/\degree C]. This should be provided in the \textbf{input}.
-	\item connected\_nodes: a pair of connected nodes. Each edge connects two nodes. This should be provided in the \textbf{input}. 
+	\item \emph{label}: name of the edge. This should be provided in the \textbf{input}.
+	\item \emph{connected\_nodes}: a pair of connected nodes. Each edge connects two nodes. This should be provided in the \textbf{input}. 
+	\item \emph{conductance\_value} [J/K] or [J/\degree C]. This should be provided in the \textbf{input}.
 \end{itemize}
+
+\lstinputlisting[label=lst:capnode, linerange={25-31}, 
+caption={Conductance Edges}] 
+{../../housemodel/buildings/components.py}
 
 \subsubsection{flow edges}
 \emph{NOTE}: not sure whether this is useful. Flows have been defined earlier based on a ordered list which gives all edges directly. The definition below is not complete. By breaking the  flow down into separate edges it might be possible to extend the concept to an connection between more than two nodes, with multiple in flows and multiple outflows with a (fixed or variable) division between the outgoing flows.  
@@ -1529,6 +1541,10 @@ Here we summarize the properties of the different model components.
 	\item node\_out: node to which the flow goes. 	
 	\item flow\_rate: this is variable and should be controlled somehow. The flow rate in a edge depends on the incoming flow (what comes in should go out) 
 \end{itemize}
+
+\lstinputlisting[label=lst:capnode, linerange={34-40}, 
+caption={Flow Edges}] 
+{../../housemodel/buildings/components.py}
 
 \subsection{flow node}
 
@@ -1565,7 +1581,7 @@ Here we summarize the properties of the different model components.
 \textbf{properties}
 \begin{itemize}
 	\item list\_fixed\_temperature\_nodes
-	\item updating_function: function that loops over all fixed nodes, and makes sure every node is up to date with respect to the temperature at the given time. The updated contributions to \textbf{k}-matrix and \textbf{q}-vector should be added and passed to the model solver. 
+	\item updating\_function: function that loops over all fixed nodes, and makes sure every node is up to date with respect to the temperature at the given time. The updated contributions to \textbf{k}-matrix and \textbf{q}-vector should be added and passed to the model solver. 
 \end{itemize}
 
 \subsection{buffer module}
