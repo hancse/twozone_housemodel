@@ -1497,7 +1497,7 @@ Here we summarize the properties of the different model components.
 	\item \emph{temperature}: the temperature [K]. This will be computed by the model. For each node the model should be able to output a temperature profile over the duration of the simulation
 \end{itemize}
 
-\lstinputlisting[label=lst:capnode, linerange={9-14}, 
+\lstinputlisting[label=lst:capnode, linerange={10-15}, 
 caption={Capacitor Node}] 
 {../../housemodel/buildings/components.py}
 
@@ -1514,7 +1514,7 @@ caption={Capacitor Node}]
 \end{itemize}
 \emph{NOTE}: The temperature of the node should remain constant over the entire interval of model solving, so moments of switching temperature should coincide with the start and end of these intervals. This may be enforced by limiting the options for 'start\_time' (for example only multiples of 10 minutes). An alternative could be that the profile is always defined based on the times as given by the NEN5060. The NEN5060 will, most likely, provide the profile of the ambient air temperature. When we would require all profiles of the same shape and size the reading and processing can be done in the same fashion for all nodes. 
 
-\lstinputlisting[label=lst:capnode, linerange={17-22}, 
+\lstinputlisting[label=lst:capnode, linerange={18-23}, 
 caption={Fixed Node}] 
 {../../housemodel/buildings/components.py}
 
@@ -1528,7 +1528,7 @@ caption={Fixed Node}]
 	\item \emph{conductance\_value} [J/K] or [J/\degree C]. This should be provided in the \textbf{input}.
 \end{itemize}
 
-\lstinputlisting[label=lst:capnode, linerange={25-31}, 
+\lstinputlisting[label=lst:capnode, linerange={26-32}, 
 caption={Conductance Edges}] 
 {../../housemodel/buildings/components.py}
 
@@ -1543,7 +1543,7 @@ caption={Conductance Edges}]
 	\item flow\_rate: this is variable and should be controlled somehow. The flow rate in a edge depends on the incoming flow (what comes in should go out) 
 \end{itemize}
 
-\lstinputlisting[label=lst:capnode, linerange={34-40}, 
+\lstinputlisting[label=lst:capnode, linerange={35-41}, 
 caption={Flow Edges}] 
 {../../housemodel/buildings/components.py}
 
