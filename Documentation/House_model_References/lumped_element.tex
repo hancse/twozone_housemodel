@@ -1520,9 +1520,11 @@ Here we summarize the properties of the different model components.
 	\item connected\_nodes: a pair of connected nodes. Each edge connects two nodes. This should be provided in the \textbf{input}. 
 \end{itemize}
 
+
 \subsubsection{flow edges}
-\emph{NOTE}: not sure whether this is useful. Flows have been defined earlier based on a ordered list which gives all edges directly. The definition below is not complete. By breaking the  flow down into separate edges it might be possible to extend the concept to an connection between more than two nodes, with multiple in flows and multiple outflows with a (fixed or variable) division between the outgoing flows.  
-\textbf{description} A flow edge represents the possibility of heat transfer between capacities by the flow of a medium. In contrast to a heat conductance edge the transfer is uni-directional. 
+\emph{NOTE}:I am not sure whether this is useful. Flows have been defined earlier based on a ordered list which gives all edges directly. The flows we have envisioned so far are based on closed loops. The loops may be interconnected with each other, creating a network of flows. Each loop should contain a pump that drives the flow. A flow edge connects \textbf{two} flow nodes. Within the edge no heat loss is taken into account. A split of the flow should be modeled by adding a node with more than two connected flow edges. 
+
+\textbf{description} A flow edge represents the possibility of heat transfer between capacities by the flow of a medium. In contrast to a heat conductance edge the transfer is uni-directional, in the direction of the flow. 
 \textbf{properties}
 \begin{itemize}	
 	\item node\_in: node from which the flow comes. 
@@ -1530,12 +1532,13 @@ Here we summarize the properties of the different model components.
 	\item flow\_rate: this is variable and should be controlled somehow. The flow rate in a edge depends on the incoming flow (what comes in should go out) 
 \end{itemize}
 
-\subsection{flow node}
 
+\subsection{flow node}
 \begin{itemize}
 	\item nr\_connections: should be greater or equal 2. Each connection may be either incoming or outgoing, depending on the pump rates that drive the flows through the connected edges. As the pump rates may change the solution to the flow rate through each flow connection may change as well. Solving this for an arbitrary network will need further research. (The procedure might be very similar as solving for currents in an electrical network using Kirchov's laws, possibly interesting material can also be found in the field of "\textit{pipe network analysis}". The pipe networks in the model should remain relatively basic. It is possibly taking it to far, making the modeling concept so generic that it will solve arbitrary flow networks. However, alternatively some check is needed whether the system is set-up as expected. 
 	\item flow division ratio: When multiple outgoing connections are available one can potentially add the concept of controlling the division of the outgoing flows by some valve. Adding this feature to the model would make it even more complex. A network solving method would be needed to incorporate this. 
 	\item heat\_capacity: unlike the edges, a flow node can have a heat capacity (like a capacity node). It does not need to have it when it would be used as a pipe junction. In this case the capacity will be zero. Nodes with a positive heat capacity can also be connected in a heat conductance network. 
+	\item temperature: temperature of the medium in the node (only needed when the node has a positive capacity)
 \end{itemize}
 
 \subsection{flow pump node}
@@ -1548,6 +1551,7 @@ Here we summarize the properties of the different model components.
 	\item outgoing\_connection
 \end{itemize}  
 
+
 \subsubsection{house module}
 \textbf{description}: The house module is an abstraction of the main heat capacities of a house, and the heat conductances within. \emph{NOTE}, capacities can be connected to other model modules by means of heat conductance edges or possibly flow edges. There is potentially much freedom in the model design here. Question to be solved here is how do we define the inter-connectivity in the input? Which module is 'leading' in making the connection. My (Marijn) first idea is to let the house module be 'passive' here, that is, connections to the house module are part of the connecting-module.    
 
@@ -1559,20 +1563,27 @@ Here we summarize the properties of the different model components.
 	\item k\_matrix: based on the edges a house k\_matrix can be composed. (method based on graph theory functions)
 \end{itemize}
 
+
 \subsubsection{fixed temperatures module}
 \textbf{description} The fixed temperatures module is a collection of all fixed temperature nodes that are connected to the different other parts of the running model. For each node the temperature profile over time is checked, and the temperature is updated accordingly. 
 
 \textbf{properties}
 \begin{itemize}
 	\item list\_fixed\_temperature\_nodes
-	\item updating_function: function that loops over all fixed nodes, and makes sure every node is up to date with respect to the temperature at the given time. The updated contributions to \textbf{k}-matrix and \textbf{q}-vector should be added and passed to the model solver. 
+	\item updating\_function: function that loops over all fixed nodes, and makes sure every node is up to date with respect to the temperature at the given time. The updated contributions to \textbf{k}-matrix and \textbf{q}-vector should be added and passed to the model solver. 
 \end{itemize}
+
 
 \subsection{buffer module}
 \textbf{description}: The buffer module is an abstract representation of a heat buffer vessel. The vessel is build up of a set of $n$ layers. Each layer has a heat conductance edge to the layer directly above and below. Also, a conductance edge to the surrounding air is possible, represented by a fixed temperature node (this works similar as for a house). An alternative is that the surrounding air is a capacity node, which can be part of, or connected to the house module. This last scenario is more complex to incorporate in the model, as this connection is not part of either module (buffer or house), but is a 'special' inter-module connection. Next to the heat conductance edges, the buffer also has flow connections. Internally, flow connections exist between adjacent layers, these are bi-directional (the flow can go both directions, but at every moment in time the flow only one direction is active). Also flow connections, coming in and flowing out of both the top and bottom layer are possible. 
 
 \textbf{properties}
-
+\begin{itemize}
+	\item nr\_layers
+	\item node\_list: the buffer consists of multiple flow nodes with capacity. The nodes corresponding to the top and bottom layer will have flow connections. 
+	\item internal_conductance_edges: an internal conductance network defines the internal heat-exchange. With this set of internal edges the a  \textbf{k}-matrix  for the buffer can be build. This should be incorporated in the overall model \textbf{k}
+	\item 
+\end{itemize}
 
 
 \subsection{Package "housemodel"}
