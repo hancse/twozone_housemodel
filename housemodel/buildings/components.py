@@ -6,6 +6,7 @@ from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         make_edges)
 from housemodel.tools.new_configurator import load_config
 
+
 @dataclass
 class CapacityNode:
     label: str = field(default="label")

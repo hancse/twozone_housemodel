@@ -1,11 +1,13 @@
 import numpy as np
-from dataclasses import dataclass
+# from dataclasses import dataclass
 
 from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         add_c_inv_block,
                                         make_edges)
-
-
+from housemodel.buildings.components import (CapacityNode,
+                                             FixedNode,
+                                             CondEdge)
+"""
 @dataclass
 class BufferNode:
     label: str
@@ -29,6 +31,7 @@ class BufferEdge:
     cond: float  # [W/K]
     # src: int
     # sink: int
+"""
 
 
 class StratifiedBuffer:
@@ -60,7 +63,7 @@ class StratifiedBuffer:
         """
         self.num_layers = len(lod)
         for n in range(self.num_layers):
-            node = BufferNode(label=lod[n]["label"],
+            node = CapacityNode(label=lod[n]["label"],
                               tag=lod[n]["tag"],
                               cap=lod[n]["capacity"],
                               temp=lod[n]["T_ini"])
@@ -78,7 +81,7 @@ class StratifiedBuffer:
     def edges_from_dict(self, lol):
         self.num_edges = len(lol)
         for n in range(self.num_edges):
-            edge = BufferEdge(label="",
+            edge = CondEdge(label="",
                               conn_nodes=[lol[n][0], lol[n][1]],
                               cond=lol[n][2])
             self.edges.append(edge)

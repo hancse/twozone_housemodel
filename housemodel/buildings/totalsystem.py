@@ -5,8 +5,10 @@ from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         add_c_inv_block,
                                         make_edges)
 from housemodel.tools.new_configurator import load_config
-
-
+from housemodel.buildings.components import (CapacityNode,
+                                             FixedNode,
+                                             CondEdge)
+"""
 @dataclass
 class SysNode:
     # first
@@ -21,8 +23,6 @@ class FixedSysNode:
     label: str
     connected_to: []
     temp: float  # [K]
-
-
 # if methods are defined this turns into a normal class object
 
 
@@ -42,6 +42,7 @@ class SysFlow:
     density: float  # [kg/m^3]
     cp: float  # J/(kg K)]
     heat_rate: float  # [J/s = W]
+"""
 
 
 class TotalSystem:
@@ -72,7 +73,7 @@ class TotalSystem:
         self.num_nodes = len(lod)
         # node = SysNode()
         for n in range(self.num_nodes):
-            node = SysNode(label=lod[n]["label"],
+            node = CapacityNode(label=lod[n]["label"],
                            tag=lod[n]["tag"],
                            cap=lod[n]["capacity"],
                            temp=lod[n]["T_ini"])
@@ -89,7 +90,7 @@ class TotalSystem:
     def edges_from_dict(self, lol):
         self.num_edges = len(lol)
         for n in range(self.num_edges):
-            edge = SysEdge(label="",
+            edge = CondEdge(label="",
                            conn_nodes=[lol[n][0], lol[n][1]],
                            cond=lol[n][2])
             self.edges.append(edge)
@@ -99,7 +100,7 @@ class TotalSystem:
 
     def boundaries_from_dict(self, lod):
         for n in range(len(lod)):
-            node = FixedSysNode(label=lod[n]["label"],
+            node = FixedNode(label=lod[n]["label"],
                                 temp=lod[n]["T_ini"],
                                 connected_to=lod[n]["connected_to"])
 
