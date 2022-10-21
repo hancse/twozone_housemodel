@@ -22,6 +22,9 @@ class FixedNode:
     temp: float        # [K]
 # if methods are defined this turns into a normal class object
 
+    def update(self, new_value):
+        self.temp = new_value
+
 
 @dataclass
 class CondEdge:

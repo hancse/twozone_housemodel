@@ -43,7 +43,7 @@ CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False, xl=False):
     param = load_config(str(CONFIGDIR / "xl_for_2R2Chouse_buffer.yml"))
-    days_sim = 365    # param['timing']['days_sim']
+    days_sim = int(param['timing']['Duration'] / 24)
     print(days_sim)
 
     h = House()
@@ -81,7 +81,6 @@ def main(show=False, xl=False):
     r.boundaries_from_dict(param["boundaries"])
     r.T_amb = 20.0
 
-
     #Loading the radiator and buffervessel parameters
     #Heat transfer coefficient of the radiator and het capacity
     # UAradiator = house_param["chains"][0]["links"][2]["Conductance"]
@@ -98,7 +97,8 @@ def main(show=False, xl=False):
     time_sim = df_irr.iloc[0:days_sim*24, 0].values
 
     # Interval in seconds the control algorithm
-    control_interval = param["Timescale"]*60
+    # Timestep is in minutes
+    control_interval = param["timing"]["Timestep"]*60
 
     Qsolar = (df_irr.total_E * param['solar_irradiation']['E'] +
               df_irr.total_SE * param['solar_irradiation']['SE'] +
@@ -126,10 +126,10 @@ def main(show=False, xl=False):
     SP_sim = SP[0:days_sim * 24].flatten()
 
     # make predictable part of q_dot vector
-    q_vector = np.zeros((num_links,days_sim*24))
+    q_vector = np.zeros((t.num_nodes,days_sim*24))
     leak_to_amb = param["chains"][0]["links"][0]["Conductance"]
-    q_vector[0,:] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
-    q_vector[1,:] = (1 - CF) * Qsolar_sim
+    q_vector[0, :] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
+    q_vector[1, :] = (1 - CF) * Qsolar_sim
 
     # Interpolation of data
     interp_func = interp1d(time_sim, q_vector, fill_value='extrapolate')
@@ -212,6 +212,7 @@ def main(show=False, xl=False):
             ws.append(r)
         # df_out.to_excel('tst.xlsx', index=False, startrow=10)
         wb.save('tst_ML.xlsx')
+
 
 if __name__ == "__main__":
     main(show=True, xl=True)  # temporary solution, recommended syntax
