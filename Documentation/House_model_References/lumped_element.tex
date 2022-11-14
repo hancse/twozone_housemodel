@@ -1532,39 +1532,63 @@ caption={Fixed Node}]
 caption={Conductance Edges}] 
 {../../housemodel/buildings/components.py}
 
-\subsubsection{flow edges}
-\emph{NOTE}:I am not sure whether this is useful. Flows have been defined earlier based on a ordered list which gives all edges directly. The flows we have envisioned so far are based on closed loops. The loops may be interconnected with each other, creating a network of flows. Each loop should contain a pump that drives the flow. A flow edge connects \textbf{two} flow nodes. Within the edge no heat loss is taken into account. A split of the flow should be modeled by adding a node with more than two connected flow edges. 
 
-\textbf{description} A flow edge represents the possibility of heat transfer between capacities by the flow of a medium. In contrast to a heat conductance edge the transfer is uni-directional, in the direction of the flow. 
-\textbf{properties}
-\begin{itemize}	
-	\item node\_in: node from which the flow comes. 
-	\item node\_out: node to which the flow goes. 	
-	\item flow\_rate: this is variable and should be controlled somehow. The flow rate in a edge depends on the incoming flow (what comes in should go out) 
-\end{itemize}
-
-\lstinputlisting[label=lst:capnode, linerange={35-41}, 
-caption={Flow Edges}] 
-{../../housemodel/buildings/components.py}
-
-\subsection{flow node}
-\begin{itemize}
-	\item nr\_connections: should be greater or equal 2. Each connection may be either incoming or outgoing, depending on the pump rates that drive the flows through the connected edges. As the pump rates may change the solution to the flow rate through each flow connection may change as well. Solving this for an arbitrary network will need further research. (The procedure might be very similar as solving for currents in an electrical network using Kirchhoff's circuit laws, possibly interesting material can also be found in the field of "\textit{pipe network analysis}". The pipe networks in the model should remain relatively basic. It is possibly taking it to far, making the modeling concept so generic that it will solve arbitrary flow networks. However, alternatively some check is needed whether the system is set-up as expected. 
-	\item flow division ratio: When multiple outgoing connections are available one can potentially add the concept of controlling the division of the outgoing flows by some valve. Adding this feature to the model would make it even more complex. A network solving method would be needed to incorporate this. 
-	\item heat\_capacity: unlike the edges, a flow node can have a heat capacity (like a capacity node). It does not need to have it when it would be used as a pipe junction. In this case the capacity will be zero. Nodes with a positive heat capacity can also be connected in a heat conductance network. 
-	\item temperature: temperature of the medium in the node (only needed when the node has a positive capacity)
-\end{itemize}
-
-\subsection{flow pump node}
-\textbf{description}: A flow pump is a node in the flow 'network' which determines the flow rate of the fluid going through the flow-network, both upstream and down stream of the pump. 
+\subsubsection{fluid flow}
+\emph{NOTE}: the definition of the fluid flows in this section has its limitations. Only basic closed loops without splits in the 'pipes' can be modeled. This is fine as a starting point. However, when more complex scenarios with complex fluid flows are required a more generic formalism is needed for the modeling of the fluid flows. In this case, a system with flow edges and flow nodes may be a possible solution. The open challenges here are: 1. how to define the flow network (next to / in combination with the heat conductance network),  2. how to compute the flow rates in the more complex system. 
+\textbf{description:} A fluid flow represents a \emph{closed} loop over a set of nodes (with or without heat capacity). The flow rate is the same for all nodes and edges within the loop. The flow rate may change over time, but is assumed to be constant within a given time interval, and changes are assumed to be instantaneous. Thus, the flow rate can be described by a step-function. This flow rate should be controlled, either in a on/off manner, or in m
 
 \textbf{properties}
 \begin{itemize}
-	\item flow\_rate
-	\item incoming\_connection: in order to be able to define a flow direction the notion of the incoming link and outgoing link is needed. 
-	\item outgoing\_connection
-\end{itemize}  
+	\item \emph{label}: name of the fluid flow. This should be provided in the \textbf{input}.
+	\item \emph{connected\_nodes}: An \emph{ordered} list of the nodes through which the fluid flow runs, the order is determined by the direction the fluid will be pumped through the network. Start and end of the list need to be the same node. This ensures the required closed loop. This should be provided in the \textbf{input}. From this ordered list a "directed-flow-matrix" can be set-up as indicated in Section \ref{s:flow_matrices}. 
+	\item \emph{flow\_rate}: The flow rate of the fluid in $\text{m}^3/\text{s}$ (or another unit that fits). This flow rate may change over time, matrices related to the heat transfer induced by the fluid flow need to be updated accordingly, see Section \ref{s:flow_matrices}. 
+	\item \emph{density}: density of the fluid in [$\frac{kg}{m^3}$]. One fixed density will be used (no temperature dependence is taken into account here). This should be provided in the \textbf{input}.
+	\item \emph{heat\_capacity}: heat capacity of the fluid in [$\frac{J}{kg \cdot K}$]. This should be provided in the \textbf{input}.
+\end{itemize}
 
+\subsubsection{flow network}
+\textbf{description}: multiple fluid flows can be combined in a flow network. The current  methodology is limited to two flows (specifically, two flows that both are connected to a buffer vessel). 
+
+\textbf{properties}
+\begin{itemize}
+	\item \emph{sum\_flows}: based on the directed flow matrices and the flow rates, a total matrix can be created (cf. Section \ref{s:flow_matrices})
+	\item \emph{heat\_transfer\_matrix}: from the sum\_flow matrix, and the fluid density and heat capacity the corresponding heat transfer matrix can be created.  
+\end{itemize}
+%
+%
+%\subsubsection{flow edges}
+%\emph{NOTE}:This and the following parts on flows are a first step to a more general flow network design. Flows have been defined earlier based on a ordered list which gives all edges directly. The flows we have envisioned so far are based on closed loops. The loops may be interconnected with each other, creating a network of flows. Each loop should contain a pump that drives the flow. A flow edge connects \textbf{two} flow nodes. Within the edge no heat loss is taken into account. A split of the flow should be modeled by adding a node with more than two connected flow edges. 
+%
+%\textbf{description} A flow edge represents the possibility of heat transfer between capacities by the flow of a medium. In contrast to a heat conductance edge the transfer is uni-directional, in the direction of the flow. 
+%\textbf{properties}
+%\begin{itemize}	
+	%\item node\_in: node from which the flow comes. 
+	%\item node\_out: node to which the flow goes. 	
+	%\item flow\_rate: this is variable and should be controlled somehow. The flow rate in a edge depends on the incoming flow (what comes in should go out) 
+%\end{itemize}
+%
+%\lstinputlisting[label=lst:capnode, linerange={35-41}, 
+%caption={Flow Edges}] 
+%{../../housemodel/buildings/components.py}
+%
+%\subsubsection{flow node}
+%\begin{itemize}
+	%\item nr\_connections: should be greater or equal 2. Each connection may be either incoming or outgoing, depending on the pump rates that drive the flows through the connected edges. As the pump rates may change the solution to the flow rate through each flow connection may change as well. Solving this for an arbitrary network will need further research. (The procedure might be very similar as solving for currents in an electrical network using Kirchhoff's circuit laws, possibly interesting material can also be found in the field of "\textit{pipe network analysis}". The pipe networks in the model should remain relatively basic. It is possibly taking it to far, making the modeling concept so generic that it will solve arbitrary flow networks. However, alternatively some check is needed whether the system is set-up as expected. 
+	%\item flow division ratio: When multiple outgoing connections are available one can potentially add the concept of controlling the division of the outgoing flows by some valve. Adding this feature to the model would make it even more complex. A network solving method would be needed to incorporate this. 
+	%\item heat\_capacity: unlike the edges, a flow node can have a heat capacity (like a capacity node). It does not need to have it when it would be used as a pipe junction. In this case the capacity will be zero. Nodes with a positive heat capacity can also be connected in a heat conductance network. 
+	%\item temperature: temperature of the medium in the node (only needed when the node has a positive capacity)
+%\end{itemize}
+%
+%\subsubsection{flow pump node}
+%\textbf{description}: A flow pump is a node in the flow 'network' which determines the flow rate of the fluid going through the flow-network, both upstream and down stream of the pump. 
+%
+%\textbf{properties}
+%\begin{itemize}
+	%\item flow\_rate
+	%\item incoming\_connection: in order to be able to define a flow direction the notion of the incoming link and outgoing link is needed. 
+	%\item outgoing\_connection
+%\end{itemize}  
+%
 
 \subsubsection{house module}
 \textbf{description}: The house module is an abstraction of the main heat capacities of a house, and the heat conductances within. \emph{NOTE}, capacities can be connected to other model modules by means of heat conductance edges or possibly flow edges. There is potentially much freedom in the model design here. Question to be solved here is how do we define the inter-connectivity in the input? Which module is 'leading' in making the connection. My (Marijn) first idea is to let the house module be 'passive' here, that is, connections to the house module are part of the connecting-module.    
