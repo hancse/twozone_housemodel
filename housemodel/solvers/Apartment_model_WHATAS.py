@@ -131,6 +131,7 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     Treturn = np.ones(len(t)) * Twall0
     Power = np.ones(len(t)) * Twall0
     Power_buffervessel = np.ones(len(t)) * Twall0
+    electrical_power = np.ones(len(t)) * Twall0
     mdots_array = np.ones(len(t)) * Twall0
     TBuffervessel1 = np.ones(len(t)) * TBuffervessel0
     TBuffervessel2 = np.ones(len(t)) * TBuffervessel0
@@ -194,7 +195,7 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         radiator_flow_normalized = np.clip(float(interp_func_flow(Qinst/max_power)), 0, 1)
 
         #mdotd = Qinst/(cp_water*LMTD)
-        mdotd = radiator_flow_normalized * (max_power/(cp_water*(70-return_temp)))
+        mdotd = radiator_flow_normalized * (max_power/(cp_water*(TBuffervessel1[i]-return_temp)))
 
         # Calculate the supply and demand waterflow for the buffervessel
         toplevel = TBuffervessel1[i]
@@ -206,10 +207,12 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         MV = thermostat.send(toplevel)
         MV2 = thermostat2.send(toplevel)
         MV3 = thermostat3.send(toplevel)
-        mdots = (47110) / (cp_water * (TBuffervessel1[i] - TBuffervessel8[i])) * MV
-        mdots2 = (47110) / (cp_water * (TBuffervessel1[i] - TBuffervessel8[i])) * MV2
-        mdots3 = (47110) / (cp_water * (TBuffervessel1[i] - TBuffervessel8[i])) * MV3
+        mdots = (49770) / (cp_water * (TBuffervessel1[i] - TBuffervessel8[i])) * MV
+        mdots2 = (49770) / (cp_water * (TBuffervessel1[i] - TBuffervessel8[i])) * MV2
+        mdots3 = (49770) / (cp_water * (TBuffervessel1[i] - TBuffervessel8[i])) * MV3
         mdots = mdots + mdots2 + mdots3
+
+
         """
         if(toplevel>73):
             mdots = (47110*1)/(cp_water*(TBuffervessel1[i]-TBuffervessel8[i]))*MV
@@ -242,13 +245,15 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         Treturn[i] = return_temp
         Power[i] = Qinst
         Power_buffervessel[i] = heating_power_buffervessel
+        electrical_power[i] = (heating_power_buffervessel/2.78) + (333 * ((1-MV) + (1-MV2) + (1-MV3)))
         mdots_array[i] = mdots
         TBuffervessel1[i+1] = result_buffervessel.y[0, -1]
         TBuffervessel8[i+1] = result_buffervessel.y[7, -1]
+
 
         #Use last result as a initial value for the ext step
         y0 = result.y[:, -1]
         y0buffervessel = result_buffervessel.y[:, -1]
 
-    return t, Tair, Twall, Power, Treturn,  TBuffervessel1, TBuffervessel8, Power_buffervessel, mdots_array
+    return t, Tair, Twall, Power, Treturn,  TBuffervessel1, TBuffervessel8, Power_buffervessel, mdots_array, electrical_power
 

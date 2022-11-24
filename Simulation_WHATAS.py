@@ -159,6 +159,7 @@ def main(show=False, xl=False):
         ax[1, 0].set_ylabel(('Power (kW)'))
 
         ax[1, 1].plot(data[0], data[7]/1000, label='Power Buffervessel',color='b')
+        ax[1, 1].plot(data[0], data[9]/1000, label='Power Buffervessel', color='g')
         ax[1, 1].legend(loc='upper right')
         ax[1, 1].set_title('Thermal power heat pump')
         ax[1, 1].set_xlabel(('Time (s)'))
@@ -178,34 +179,25 @@ def main(show=False, xl=False):
         plt.suptitle(Path(__file__).stem)
         plt.show()
 
-        electrical_power_bruto = data[7]/2.653
-
-        #electrical_power_netto = np.where(electrical_power_bruto < 1000, 1000, electrical_power_bruto)
-
-
-        electrical_energy_bruto = np.trapz(electrical_power_bruto, data[0])
-        #electrical_energy_netto = np.trapz(electrical_power_netto, data[0])
-
-
         energy = np.trapz(data[3], data[0])
         energykWh = energy/3600000
         energyGasM3 = energykWh/10.2
 
-        energy_for_compressor = np.trapz(data[7], data[0])
-        COP_bruto = energy_for_compressor/electrical_energy_bruto
-        #COP_netto = energy_for_compressor/electrical_energy_netto
-
-        print(f'COP bruto = {COP_bruto}')
-        #print(f'COP netto = {COP_netto}')
+        electrical_energy_compressor = np.trapz(data[9], data[0])
+        energykWh_compressor = electrical_energy_compressor / 3600000
 
         energy_buffervessel = np.trapz(data[7], data[0])
         energykWh_buffervessel = energy_buffervessel / 3600000
         energyGasM3_buffervessel = energykWh_buffervessel / 10.2
 
+        COP = energy_buffervessel/electrical_energy_compressor
 
-        #print(energyGasM3)
+        print(f'COP: {COP}')
+        print(f'Elektrische energie: {energykWh_compressor}')
+        print(f'Thermische energie: {energykWh_buffervessel}')
+
+
         print(f'Totaal aan gas voor appartementencomplex in [m3]: {energyGasM3_buffervessel}')
-
         print(f'Totaal aan gas voor per woning voor verwarming in [m3]: {energyGasM3/48}')
         print(f'Totaal aan gas voor per woning in [m3]: {energyGasM3_buffervessel/48}')
         print(f'Totaal aan gas voor per woning voor tapwater in [m3]: {energyGasM3_buffervessel / 48 - energyGasM3/48}')
