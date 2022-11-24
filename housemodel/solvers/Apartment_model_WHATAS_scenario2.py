@@ -5,10 +5,15 @@ house model base on 2R2C model with a buffervessel and a radiator
 from scipy.integrate import solve_ivp       # ODE solver
 import numpy as np                          # linear algebra
 from housemodel.controls.ivPID.PID import PID
-from housemodel.controls.heating_curves import hyst
 from housemodel.sourcesink.buffervessels.buffer_vessel import StratifiedBuffer
-from housemodel.sourcesink.radiators import  LMTD_radiator
+
 cp_water = 4190
+def relay(d, SP):
+    MV = 0
+    while True:
+        PV = yield MV
+        MV_prev = MV
+        MV = 1 if PV < SP - d else 0 if PV > SP + d else MV_prev
 
 
 def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
@@ -134,7 +139,8 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     Power_buffervessel = np.ones(len(t)) * Twall0
     Power_middlevessel = np.ones(len(t)) * Twall0
     Power_lowervessel = np.ones(len(t)) * Twall0
-    Total_power = np.ones(len(t)) * Twall0
+    Total_heating_power = np.ones(len(t)) * Twall0
+    Total_electric_power = np.ones(len(t)) * Twall0
     mdots_array = np.ones(len(t)) * Twall0
 
     TBuffervessel1 = np.ones(len(t)) * TBuffervessel0
@@ -182,10 +188,19 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     pid_buffer_flow3.setBounds(0, 0.717)
     pid_buffer_flow3.setWindup(0.717/control_interval)
 
+    thermostat = relay(1, 72)  # create thermostat
+    thermostat.send(None)  # initialize thermostat
+
+    thermostat2 = relay(2, 60.5)  # create thermostat
+    thermostat2.send(None)  # initialize thermostat
+
+    thermostat3 = relay(2, 48)  # create thermostat
+    thermostat3.send(None)  # initialize thermostat
+
     #Buffervessel initialization
     sb = StratifiedBuffer(1, 2.5, 8)
-    sb2 = StratifiedBuffer(0.5, 2.5, 8)
-    sb3 = StratifiedBuffer(0.5, 2.5, 8)
+    sb2 = StratifiedBuffer(.5, 2.5, 8)
+    sb3 = StratifiedBuffer(.5, 2.5, 8)
 
     inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
 
@@ -207,25 +222,36 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         mdotd = radiator_flow_normalized * (max_power/(cp_water*(TBuffervessel1[i]-return_temp)))
 
         # Flow calculation top buffervessel
-        pid_buffer_flow.setBounds(0, 49770/(cp_water*(TBuffervessel1[i]-TBuffervessel8[i])))
-        pid_buffer_flow.update(TBuffervessel1[i], t[i])
-        mdots = pid_buffer_flow.output
+        #pid_buffer_flow.setBounds(0, 49770/(cp_water*(TBuffervessel1[i]-TBuffervessel8[i])))
+        #pid_buffer_flow.update(TBuffervessel1[i], t[i])
+        #mdots = pid_buffer_flow.output
 
 
         # Flow calculation middle buffervessel
-        pid_buffer_flow2.setBounds(0, 48820/(cp_water*(Tmiddlevessel1[i]-Tmiddlevessel8[i])))
-        pid_buffer_flow2.update(Tmiddlevessel1[i], t[i])
-        mdots2 = pid_buffer_flow2.output
+        #pid_buffer_flow2.setBounds(0, 48820/(cp_water*(Tmiddlevessel1[i]-Tmiddlevessel8[i])))
+        #pid_buffer_flow2.update(Tmiddlevessel1[i], t[i])
+        #mdots2 = pid_buffer_flow2.output
 
 
         # Flow calculation lower buffervessel
-        pid_buffer_flow3.setBounds(0, 41250/(cp_water*(Tlowervessel1[i]-Tlowervessel8[i])))
-        pid_buffer_flow3.update(Tlowervessel1[i], t[i])
-        mdots3 = pid_buffer_flow3.output
+        #pid_buffer_flow3.setBounds(0, 41250/(cp_water*(Tlowervessel1[i]-Tlowervessel8[i])))
+        #pid_buffer_flow3.update(Tlowervessel1[i], t[i])
+        #mdots3 = pid_buffer_flow3.output
+
+        MV = thermostat.send(TBuffervessel1[i])
+        MV2 = thermostat2.send(Tmiddlevessel1[i])
+        MV3 = thermostat3.send(Tlowervessel1[i])
+        mdots = (49770) / (cp_water * (TBuffervessel1[i] - TBuffervessel8[i])) * MV
+        mdots2 = (48820) / (cp_water * (TBuffervessel1[i] - TBuffervessel8[i])) * MV2
+        mdots3 = (41250) / (cp_water * (TBuffervessel1[i] - TBuffervessel8[i])) * MV3
 
         heating_power_buffervessel = (mdots*cp_water*(TBuffervessel1[i]-TBuffervessel8[i]))
         heating_power_middlevessel = (mdots2*cp_water*(Tmiddlevessel1[i]-Tmiddlevessel8[i]))
         heating_power_lowervessel = (mdots3*cp_water*(Tlowervessel1[i]-Tlowervessel8[i]))
+
+        electric_power_buffervessel = (mdots * cp_water * (TBuffervessel1[i] - TBuffervessel8[i]))/2.78 + (333 * ((1-MV)))
+        electric_power_middlevessel = (mdots2 * cp_water * (Tmiddlevessel1[i] - Tmiddlevessel8[i]))/3.22 + (333 * ((1-MV2)))
+        electric_power_lowervessel = (mdots3 * cp_water * (Tlowervessel1[i] - Tlowervessel8[i]))/4.18 + (333 * ((1-MV3)))
 
         tapwater_flow = waterflow_sim[i]/60
         total_flow = mdotd + tapwater_flow
@@ -261,7 +287,8 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         Power_buffervessel[i] = heating_power_buffervessel
         Power_middlevessel[i] = heating_power_middlevessel
         Power_lowervessel[i] = heating_power_lowervessel
-        Total_power[i] = heating_power_buffervessel + heating_power_middlevessel + heating_power_lowervessel
+        Total_heating_power[i] = heating_power_buffervessel + heating_power_middlevessel + heating_power_lowervessel
+        Total_electric_power[i] = electric_power_buffervessel + electric_power_middlevessel + electric_power_lowervessel
         mdots_array[i] = mdots
         TBuffervessel1[i+1] = result_buffervessel.y[0, -1]
         TBuffervessel8[i+1] = result_buffervessel.y[7, -1]
@@ -278,5 +305,5 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         y0buffervessel2 = result_buffervessel2.y[:, -1]
         y0buffervessel3 = result_buffervessel3.y[:, -1]
 
-    return t, Tair, Twall, Power, Treturn,  TBuffervessel1, TBuffervessel8, Power_buffervessel, Tmiddlevessel1, Tmiddlevessel8, Tlowervessel1, Tlowervessel8, Power_middlevessel, Power_lowervessel, Total_power
+    return t, Tair, Twall, Power, Treturn,  TBuffervessel1, TBuffervessel8, Power_buffervessel, Tmiddlevessel1, Tmiddlevessel8, Tlowervessel1, Tlowervessel8, Power_middlevessel, Power_lowervessel, Total_heating_power, Total_electric_power
 

@@ -38,7 +38,7 @@ CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False, xl=False):
     house_param = load_config(str(CONFIGDIR / "Simulation_WHATAS.yaml"))
-    days_sim = 5
+    days_sim = 365
     CF = house_param['ventilation']['CF']
 
     num_links = len(house_param["chains"][0]["links"])
@@ -190,19 +190,23 @@ def main(show=False, xl=False):
         energykWh = energy/3600000
         energyGasM3 = energykWh/10.2
 
-        energy_buffervessel = np.trapz(data[14], data[0])
-        energykWh_buffervessel = energy_buffervessel / 3600000
+        thermal_energy_buffervessel = np.trapz(data[14], data[0])
+        energykWh_buffervessel = thermal_energy_buffervessel / 3600000
         energyGasM3_buffervessel = energykWh_buffervessel / 10.2
 
+        electric_energy_buffervessel = np.trapz(data[15], data[0])
+        energykWh_compressor = electric_energy_buffervessel / 3600000
+        SCOP = thermal_energy_buffervessel/electric_energy_buffervessel
 
-        print(energyGasM3)
-        print(energyGasM3_buffervessel)
+        print(f'COP: {SCOP}')
+        print(f'Elektrische energie: {energykWh_compressor}')
+        print(f'Thermische energie: {energykWh_buffervessel}')
 
-        print(energyGasM3/48)
-        print(energyGasM3_buffervessel/48)
 
-        print('600')
-        print('900')
+        print(f'Totaal aan gas voor appartementencomplex in [m3]: {energyGasM3_buffervessel}')
+        print(f'Totaal aan gas voor per woning voor verwarming in [m3]: {energyGasM3/48}')
+        print(f'Totaal aan gas voor per woning in [m3]: {energyGasM3_buffervessel/48}')
+        print(f'Totaal aan gas voor per woning voor tapwater in [m3]: {energyGasM3_buffervessel / 48 - energyGasM3/48}')
 
     if xl:
         # df_out = pd.DataFrame(data[0], columns=['Timestep'])
