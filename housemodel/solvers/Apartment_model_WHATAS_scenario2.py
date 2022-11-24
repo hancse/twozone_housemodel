@@ -166,29 +166,26 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     pid_buffer_flow.SetPoint=74.0
     pid_buffer_flow.setSampleTime(0)
     pid_buffer_flow.setBounds(0, 0.717)
-    pid_buffer_flow.setWindup(2/control_interval)
+    pid_buffer_flow.setWindup(0.717/control_interval)
 
     # Flow controller middle buffervessel
-    pid_buffer_flow2 = PID(100, 0, 0, t[0])
+    pid_buffer_flow2 = PID(1, 0, 0, t[0])
     pid_buffer_flow2.SetPoint=62.5
     pid_buffer_flow2.setSampleTime(0)
     pid_buffer_flow2.setBounds(0, 0.717)
-    pid_buffer_flow2.setWindup(2/control_interval)
+    pid_buffer_flow2.setWindup(0.717/control_interval)
 
     # Flow controller lower buffervessel
-    pid_buffer_flow3 = PID(100, 0, 0, t[0])
+    pid_buffer_flow3 = PID(1, 0, 0, t[0])
     pid_buffer_flow3.SetPoint=50
     pid_buffer_flow3.setSampleTime(0)
     pid_buffer_flow3.setBounds(0, 0.717)
-    pid_buffer_flow3.setWindup(2/control_interval)
-
-    # define hysteresis object for Room temperature and buffervessel top layer temperature
-    buffervessel_hyst = hyst(dead_band=3, state=True)
+    pid_buffer_flow3.setWindup(0.717/control_interval)
 
     #Buffervessel initialization
-    sb = StratifiedBuffer(0.7, 2.5, 8)
-    sb2 = StratifiedBuffer(0.7, 2.5, 8)
-    sb3 = StratifiedBuffer(0.7, 2.5, 8)
+    sb = StratifiedBuffer(1, 2.5, 8)
+    sb2 = StratifiedBuffer(0.5, 2.5, 8)
+    sb3 = StratifiedBuffer(0.5, 2.5, 8)
 
     inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
 
@@ -207,22 +204,22 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
 
         return_temp = float(interp_func_retour(Qinst/max_power))
         radiator_flow_normalized = np.clip(float(interp_func_flow(Qinst/max_power)), 0, 1)
-        mdotd = radiator_flow_normalized * (max_power/(cp_water*(70-return_temp)))
+        mdotd = radiator_flow_normalized * (max_power/(cp_water*(TBuffervessel1[i]-return_temp)))
 
         # Flow calculation top buffervessel
-        pid_buffer_flow.setBounds(0, 47000/(cp_water*(TBuffervessel1[i]-TBuffervessel8[i])))
+        pid_buffer_flow.setBounds(0, 49770/(cp_water*(TBuffervessel1[i]-TBuffervessel8[i])))
         pid_buffer_flow.update(TBuffervessel1[i], t[i])
         mdots = pid_buffer_flow.output
 
 
         # Flow calculation middle buffervessel
-        pid_buffer_flow2.setBounds(0, 39850/(cp_water*(Tmiddlevessel1[i]-Tmiddlevessel8[i])))
+        pid_buffer_flow2.setBounds(0, 48820/(cp_water*(Tmiddlevessel1[i]-Tmiddlevessel8[i])))
         pid_buffer_flow2.update(Tmiddlevessel1[i], t[i])
         mdots2 = pid_buffer_flow2.output
 
 
         # Flow calculation lower buffervessel
-        pid_buffer_flow3.setBounds(0, 40000/(cp_water*(Tlowervessel1[i]-Tlowervessel8[i])))
+        pid_buffer_flow3.setBounds(0, 41250/(cp_water*(Tlowervessel1[i]-Tlowervessel8[i])))
         pid_buffer_flow3.update(Tlowervessel1[i], t[i])
         mdots3 = pid_buffer_flow3.output
 

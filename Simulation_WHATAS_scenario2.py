@@ -37,8 +37,8 @@ from pathlib import Path
 CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False, xl=False):
-    house_param = load_config(str(CONFIGDIR / "Simulation_WHATAS_scenario2.yaml"))
-    days_sim = 365
+    house_param = load_config(str(CONFIGDIR / "Simulation_WHATAS.yaml"))
+    days_sim = 5
     CF = house_param['ventilation']['CF']
 
     num_links = len(house_param["chains"][0]["links"])
@@ -68,7 +68,7 @@ def main(show=False, xl=False):
     control_interval = house_param["Timescale"]*60
 
     #Read the waterflow demand
-    df_water = pd.read_excel(open(r'C:\Users\Uitleen\Documents\appartementencomplex_2.xlsx', 'rb'),
+    df_water = pd.read_excel(open(r'appartementencomplex.xlsx', 'rb'),
                        sheet_name='Tapwater', skiprows=[0, 1, 2, 3])
 
     time_water = df_water.iloc[:]["Seconden"]
@@ -121,8 +121,8 @@ def main(show=False, xl=False):
     time_sim = np.arange(0, time_sim[-1]+(6*600), control_interval)
 
     #interpolation of radiator data
-    df_radiator = pd.read_excel(open(r'C:\Users\Uitleen\Documents\appartementencomplex_3.xlsx', 'rb'),
-                             sheet_name='Radiator', skiprows=[0, 1, 2])
+    df_radiator = pd.read_excel(open(r'appartementencomplex.xlsx', 'rb'),
+                             sheet_name='Radiator', skiprows=[0, 1, 2, 3])
     Power_normalized = df_radiator.iloc[:]["P/Pref radiator"]
     Flow_normalized = df_radiator.iloc[:]["Flow"]
     Return_temp = df_radiator.iloc[:]["Tretour"]
