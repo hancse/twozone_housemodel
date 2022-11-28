@@ -246,7 +246,6 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         Power[i] = Qinst
         Power_buffervessel[i] = heating_power_buffervessel
         electrical_power[i] = (heating_power_buffervessel/2.78) + (333 * ((1-MV) + (1-MV2) + (1-MV3)))
-        mdots_array[i] = mdots
         TBuffervessel1[i+1] = result_buffervessel.y[0, -1]
         TBuffervessel8[i+1] = result_buffervessel.y[7, -1]
 
@@ -255,5 +254,5 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         y0 = result.y[:, -1]
         y0buffervessel = result_buffervessel.y[:, -1]
 
-    return t, Tair, Twall, Power, Treturn,  TBuffervessel1, TBuffervessel8, Power_buffervessel, mdots_array, electrical_power
+    return t, Tair, Twall, Power, Treturn,  TBuffervessel1, TBuffervessel8, Power_buffervessel, electrical_power
 

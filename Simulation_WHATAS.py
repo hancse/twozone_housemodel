@@ -38,7 +38,7 @@ CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False, xl=False):
     house_param = load_config(str(CONFIGDIR / "Simulation_WHATAS.yaml"))
-    days_sim = 5
+    days_sim = 2
     CF = house_param['ventilation']['CF']
 
     num_links = len(house_param["chains"][0]["links"])
@@ -52,9 +52,8 @@ def main(show=False, xl=False):
         cond_list.append(house_param["chains"][0]["links"][n]["Conductance"])
 
     cond_mat = add_chain_to_k(np.array([cond_list[0]]), cond_list[1], 0)
-
+    #add construction leak in the conductance matrix
     leak_construction = (1/3) * house_param["chains"][0]["links"][0]["Conductance"]
-
     cond_mat[1, 1] += leak_construction
 
     # read NEN5060 data from spreadsheet NEN5060-2018.xlsx into pandas DataFrame
@@ -67,10 +66,9 @@ def main(show=False, xl=False):
     # Interval in seconds the control algorithm
     control_interval = house_param["Timescale"]*60
 
-    #Read the waterflow demand
+    #Read the daily waterflow demand determined by the appratementencomplex file, and repeat for numbers of days in simulation
     df_water = pd.read_excel(open(r'appartementencomplex.xlsx', 'rb'),
                        sheet_name='Tapwater', skiprows=[0, 1, 2, 3])
-
     time_water = df_water.iloc[:]["Seconden"]
     water_demand = df_water.iloc[:]["(l/min)"]
     water_time_sim = np.arange(0, 86400, 600)
@@ -120,7 +118,7 @@ def main(show=False, xl=False):
     Qinternal_sim = interp_func_Q_internal(np.arange(0, time_sim[-1]+(6*600), control_interval))
     time_sim = np.arange(0, time_sim[-1]+(6*600), control_interval)
 
-    #interpolation of radiator data
+    #interpolation of radiator return temperatures based on the appartementencomplex file
     df_radiator = pd.read_excel(open(r'appartementencomplex.xlsx', 'rb'),
                              sheet_name='Radiator', skiprows=[0, 1, 2,3])
     Power_normalized = df_radiator.iloc[:]["P/Pref radiator"]
@@ -144,29 +142,29 @@ def main(show=False, xl=False):
     if show:
         fig, ax = plt.subplots(2, 2, sharex=True)
         ax[0, 0].plot(data[0],data[1], label='Tair')
-        ax[0, 0].plot(data[0],data[2], label='Twall')
+        #ax[0, 0].plot(data[0],data[2], label='Twall')
         ax[0, 0].plot(data[0], SP_sim, label='SP_Temperature')
         ax[0, 0].plot(data[0], T_outdoor_sim, label='Toutdoor')
         ax[0, 0].legend(loc='upper right')
-        ax[0, 0].set_title('Nodal Temperatures')
+        ax[0, 0].set_title('House Temperatures')
         ax[0, 0].set_xlabel(('Time (s)'))
         ax[0, 0].set_ylabel(('Temperature (°C)'))
 
         ax[1, 0].plot(data[0], data[3]/1000, label='Power', color='c')
         ax[1, 0].legend(loc='upper right')
-        ax[1, 0].set_title('Power')
+        ax[1, 0].set_title('Thermal power demand')
         ax[1, 0].set_xlabel(('Time (s)'))
         ax[1, 0].set_ylabel(('Power (kW)'))
 
-        ax[1, 1].plot(data[0], data[7]/1000, label='Power Buffervessel',color='b')
-        ax[1, 1].plot(data[0], data[9]/1000, label='Power Buffervessel', color='g')
+        ax[1, 1].plot(data[0], data[7]/1000, label='Thermal power output compressor',color='b')
+        ax[1, 1].plot(data[0], data[8]/1000, label='Electric power compressor', color='g')
         ax[1, 1].legend(loc='upper right')
-        ax[1, 1].set_title('Thermal power heat pump')
+        ax[1, 1].set_title('Compressor data')
         ax[1, 1].set_xlabel(('Time (s)'))
         ax[1, 1].set_ylabel(('Power [kW]'))
 
-        ax[0, 1].plot(data[0], data[5], label='Top')
-        ax[0, 1].plot(data[0], data[6], label='Bottom')
+        ax[0, 1].plot(data[0], data[5], label='Temperature of top level buffervessel')
+        ax[0, 1].plot(data[0], data[6], label='Temperature of bottom level buffervessel')
 
 
         #ax[0, 1].legend(loc='upper right')
