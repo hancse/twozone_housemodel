@@ -64,6 +64,7 @@ if __name__ == "__main__":
     q = np.array([[0.5],
                   [0.6]])
 
+    # https: // www.delftstack.com / howto / python / print - matrix - python /
     for row in C:
         print('  '.join(map(str, row)))
     print()
@@ -79,6 +80,10 @@ if __name__ == "__main__":
     q1 = np.array([[1], [2]])
     B = np.array([10, 11, 12]).reshape(-1, 1)
     q2 = np.array([[3], [4]])
-    qt = add_q(q1, q2)
+
+    qt = np.add(q1, q2)
     print(qt)
+    for row in qt:
+        print('  '.join(map(str, row)))
+    print()
 
