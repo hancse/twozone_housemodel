@@ -53,13 +53,43 @@ In order to transform
 \subsection{PV-panel efficiency}
 A PV-panel converts the energy of the incoming solar irradiation to electrical energy. The efficiency of the conversion depends on the temperature of the panels according to the relationship [REF to dictaat Marc]:
 \begin{equation}
-  \eta_{\text{cell}}(T_{\text{cell}}) = \eta_{\text{cell,N}} \left( 1 + \gamma_{text{T}}\left(T_{\text{cell}} - T_{\text{cell,N}} \right) \right),
+  \eta_{\text{cell}}(T_{\text{cell}}) = \eta_{\text{cell,N}} \left( 1 + \gamma_{\text{T}}\left(T_{\text{cell}} - T_{\text{cell,N}} \right) \right),
+	\label{eq:efficiency_pv}
 \end{equation}   
 
-where $\eta_{\text{cell,N}} $ is the nominal efficiency according to the panel specifications, $\gamma_{text{T}}$ is temperature coefficient according to the panel specifications, $T_{\text{cell,N}}$ is the reference temperature at which the nominal efficiency is measured, and $T_{\text{cell}}$ is the actual temperature of the panel. 
+where $\eta_{\text{cell,N}} $ is the nominal efficiency according to the panel specifications, $\gamma_{\text{T}}$ is temperature coefficient according to the panel specifications, $T_{\text{cell,N}}$ is the reference temperature at which the nominal efficiency is measured, and $T_{\text{cell}}$ is the actual temperature of the panel. The nominal efficiency is measured at a solar irradiance of 1000 W/$\text{m}^2$, and is usually provided in the specs of the PV-panel. 
 
-The actual temperature can be approximated using the formula:
+The equation for the efficiency may be extended to accommodate for the effects of the level of irradiation other than the standard conditions. In \ref{SHC2020PVT}, two variants are provided, both without any further reference:
 \begin{equation}
-	T_{\text{cell}} \approx T_a + \left( 43.3 \text{exp} l\left[-0.61 \left(\frac{v_w}{\text{m/s}} \right)^{0.63} \right] + 2.1 \right)\left(\frac{I_{g,s}}{1000\text{W/m}^2} \right)
+  \eta_{\text{cell}}(T_{\text{cell}}) = \eta_{\text{cell,N}} \left( 1 + \gamma_{\text{T}}\left(T_{\text{cell}} - T_{\text{cell,N}} \right) \right)\cdot (1-k\cdot(G - G_{stc})),
+\end{equation}
+and
+\begin{equation}
+  \eta_{\text{cell}}(T_{\text{cell}}) = \eta_{\text{cell,N}} \left( 1 + \gamma_{\text{T}}\left(T_{\text{cell}} - T_{\text{cell,N}} \right) \right)\cdot \left(1-k'\cdot \text{ln}\left[\frac{G}{G_{STC}}\right] \right),
+\end{equation}
+where $G_{STC}$ represents the standard solar irradiance level of 1000 W/$\text{m}^2$. Note that the difference between the two equations is that the first considers the difference between the actual irradiance level with the standard level, while the second approach considers the differences of the log of levels. Which of these approximations is the best is unclear at time of writing, and may need some additional investigation. As long as this is unclear, I propose to stick with equation \ref{eq:efficiency_pv}, which ignores this effect. 
+
+
+In order to compute the efficiency the temperature of the PV-cells is required. The temperature can be approximated using the formula [REF to dictaat Marc]:
+\begin{equation}
+	T_{\text{cell}} \approx T_a + \left( 43.3 \cdot \text{exp} \left[-0.61 \left(\frac{v_w}{\text{m/s}} \right)^{0.63} \right] + 2.1 \right)\left(\frac{I_{g,s}}{1000\text{W/m}^2} \right), 
 \label{eq:temp_panel}
 \end{equation}
+where $T_a$ is the ambient temperature, $v_w$ is the wind speed and $I_{g,s}$ is the global irradiance level. 
+
+
+
+\subsection{PVT-panel}
+
+A PVT-panel combines a PV-panel with a thermal solar collector. 
+
+Kramer et al. \cite{SHC2020PVT} provide an overview of various models for determining both the thermal and electrical output of PVT-panels. The quality of this overview is varying between sections. Some parts lack the references to the original sources of the models that are discussed. The internal cross-referencing is often 'broken', which makes the relation between the discussed thermal models and electrical models unclear. However, this document can be used as a starting point for setting up a model that captures the both the electrical and thermal output of a PVT-panel.
+
+\subsubsection{electrical output}
+For modeling the electrical yield of a PVT-panel we can refer to the model of the PV-panel. The panel efficiency can be approximated by equation (\ref{eq:efficiency_pv}). However, the panel temperature is now largely influenced by the solar collector, and Equation (\ref{eq:temp_panel}) does not hold. The most basic approximation for the PV-cell temperature is $T_{\text{cell}} = T_{\text{fl,out}}$, where $T_{\text{fl,out}} $ is the temperature of the collector fluid at the outlet, cf. \cite{SHC2020PVT} page 22. The temperature at the outlet follows from the thermal analysis of the PVT.
+
+\subsubsection{thermal output}
+
+
+
+
