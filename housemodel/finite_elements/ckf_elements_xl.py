@@ -106,6 +106,15 @@ def flowlist_to_edges(fl: list):
 
 
 def flow_to_F_matrix(flowlist: list, rank: int):
+    """
+
+    Args:
+        flowlist: list of lists! hence flatten  why?
+        rank:
+
+    Returns:
+
+    """
     # flatten
     flattened = [val for f in flowlist for val in f]
 

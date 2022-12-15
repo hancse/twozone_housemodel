@@ -1,37 +1,87 @@
+# import numpy as np
+import networkx as nx
 import numpy as np
+
+from housemodel.tools.new_configurator import load_config
 
 
 class Flow:
     def __init__(self):
-        self.rate = None
         self.label = None
+        self.rate = None
         self.density = None
         self.cp = None
         self.node_list = []  # empty list
+        self.edges = []
         self.f_mat = None
 
-    def nodes_from_dict(self, lod: list):
+    def flow_from_dict(self, d: dict):
         """initializes "nodes" attribute with data from yaml file
 
         Args:
-            lod: list of dicts read from yaml file
+            d: dict read from yaml file
 
         Returns:
             None
         """
-        self.num_layers = len(lod)
-        for n in range(self.num_layers):
-            node = CapacityNode(label=lod[n]["label"],
-                              tag=lod[n]["tag"],
-                              cap=lod[n]["capacity"],
-                              temp=lod[n]["T_ini"])
-            # append by reference, therefore new node object in each iteration
-            self.nodes.append(node)
-        self.tag_list = [n.tag for n in self.nodes]
+        self.label = d["label"]
+        self.rate = d["flow_rate"]
+        self.density = d["density"]
+        self.cp = d["cp"]
+        self.node_list = d["pass_by"]
 
-    def calc_fmatrix(self):
-        pass
+    def nodelist_to_edges(self):
+        """converts self.nodelist to edge pairs for networkx.
+
+        """
+        # fl = list(range(10))
+        # el = [[fl[i], fl[i+1]] for i in range(len(fl)-1)]
+        # el2 = [[i, j] for i, j in zip(fl[:-1], fl[1:])]
+        self.edges = [[i, j] for i, j in zip(self.node_list, self.node_list[1:])]
+        # print(self.edges)
+
+    def make_Fmatrix(self, rank: int):
+        """converts nodelist into edges and F-matrix.
+
+        Args:
+            rank (int): order od total system matrix
+        Returns:
+            None
+        """
+        # check if attribute node_list exists
+        if not self.node_list:
+            return()
+        # make list with edges from node_list
+        self.edges = [[i, j] for i, j in zip(self.node_list, self.node_list[1:])]
+        # find missing elements in node_list
+        res = list(set(range(rank)) - set(self.node_list))
+        print(f"List of missing elements : {res}")
+
+        G = nx.DiGraph()
+        G.add_nodes_from(res)
+        G.add_edges_from(self.edges)
+
+        # print(f"nodes: {G.nodes}")
+        A = nx.adjacency_matrix(G, nodelist=list(range(G.order())))
+        B = A.toarray()
+        # sign changes ?
+        C = B - B.T
+        self.f_mat = C.astype('float64')
+        self.f_mat = np.multiply(self.f_mat,
+                                 (self.cp * self.density * self.rate))
 
 
 if __name__ == "__main__":
-    pass
+    from pathlib import Path
+    CONFIGDIR = Path(__file__).parent.parent.absolute() / "buildings"
+    param = load_config(str(CONFIGDIR / "xl_for_2R2Chouse_buffer.yml"))
+
+    flows = []
+    flows.append(Flow())
+    flows[0].flow_from_dict(param['flows'][0])
+
+    # flows[0].nodelist_to_edges()
+
+    flows[0].make_Fmatrix(5)
+    print(flows[0].f_mat)
+    print()

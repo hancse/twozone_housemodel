@@ -1535,16 +1535,21 @@ caption={Conductance Edges}]
 
 \subsubsection{fluid flow}
 \emph{NOTE}: the definition of the fluid flows in this section has its limitations. Only basic closed loops without splits in the 'pipes' can be modeled. This is fine as a starting point. However, when more complex scenarios with complex fluid flows are required a more generic formalism is needed for the modeling of the fluid flows. In this case, a system with flow edges and flow nodes may be a possible solution. The open challenges here are: 1. how to define the flow network (next to / in combination with the heat conductance network),  2. how to compute the flow rates in the more complex system. 
-\textbf{description:} A fluid flow represents a \emph{closed} loop over a set of nodes (with or without heat capacity). The flow rate is the same for all nodes and edges within the loop. The flow rate may change over time, but is assumed to be constant within a given time interval, and changes are assumed to be instantaneous. Thus, the flow rate can be described by a step-function. This flow rate should be controlled, either in a on/off manner, or in m
+
+\textbf{description:} A fluid flow represents a \emph{closed} loop over a set of nodes (with or without heat capacity). The flow rate is the same for all nodes and edges within the loop. The flow rate may change over time, but is assumed to be constant within a given time interval, and changes are assumed to be instantaneous. Thus, the flow rate can be described by a step-function. This flow rate should be controlled, either in a on/off manner, or in m (???)
 
 \textbf{properties}
 \begin{itemize}
 	\item \emph{label}: name of the fluid flow. This should be provided in the \textbf{input}.
-	\item \emph{connected\_nodes}: An \emph{ordered} list of the nodes through which the fluid flow runs, the order is determined by the direction the fluid will be pumped through the network. Start and end of the list need to be the same node. This ensures the required closed loop. This should be provided in the \textbf{input}. From this ordered list a "directed-flow-matrix" can be set-up as indicated in Section \ref{s:flow_matrices}. 
 	\item \emph{flow\_rate}: The flow rate of the fluid in $\text{m}^3/\text{s}$ (or another unit that fits). This flow rate may change over time, matrices related to the heat transfer induced by the fluid flow need to be updated accordingly, see Section \ref{s:flow_matrices}. 
 	\item \emph{density}: density of the fluid in [$\frac{kg}{m^3}$]. One fixed density will be used (no temperature dependence is taken into account here). This should be provided in the \textbf{input}.
 	\item \emph{heat\_capacity}: heat capacity of the fluid in [$\frac{J}{kg \cdot K}$]. This should be provided in the \textbf{input}.
+	\item \emph{connected\_nodes}: An \emph{ordered} list of the nodes through which the fluid flow runs, the order is determined by the direction the fluid will be pumped through the network. Start and end of the list need to be the same node. This ensures the required closed loop. This should be provided in the \textbf{input}. From this ordered list a "directed-flow-matrix" can be set-up as indicated in Section \ref{s:flow_matrices}. 
 \end{itemize}
+
+\lstinputlisting[label=lst:flows, linerange={7-15}, 
+caption={Flows}] 
+{../../housemodel/sourcesink/flows.py}
 
 \subsubsection{flow network}
 \textbf{description}: multiple fluid flows can be combined in a flow network. The current  methodology is limited to two flows (specifically, two flows that both are connected to a buffer vessel). 
