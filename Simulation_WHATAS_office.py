@@ -38,7 +38,7 @@ CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False, xl=False):
     house_param = load_config(str(CONFIGDIR / "Simulation_WHATAS_office.yaml"))
-    days_sim = 365
+    days_sim = 4
     CF = house_param['ventilation']['CF']
 
     num_links = len(house_param["chains"][0]["links"])

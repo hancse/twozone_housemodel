@@ -9,12 +9,12 @@ Arnhem, The Netherlands}
 
 \begin{document}
 	
-\ldf  % Set LaTeX default font
+\ldf          % LaTeX default font
 
 % Set up code listing style:
 \lstset{
 	language=Python,
-	% Fonts:23
+	% Fonts:
 	basicstyle=\ttfamily\footnotesize,
 	%keywordstyle=\ttfamily,
 	%identifierstyle=,
@@ -44,40 +44,30 @@ Arnhem, The Netherlands}
 	backgroundcolor=\color{lightgrey},
 	morekeywords={pthread_create},
 }
+
 %\renewcommand{\thelstlisting}{\thechapter.\arabic{lstlisting}}  % This is the default?
 %\numberwithin{lstlisting}{section}  % AMSmath: number code listings per section
 %\numberwithin{lstlisting}{chapter}  % AMSmath: number code listings per chapter
 
-\ldf
-
 \maketitle
+% \newpage
 
 %\begin{center}
 %	\today
 %\end{center}
 
 \tableofcontents
-
 \newpage
 
 \input{introduction}
-
 \input{RCvalues}
-
 \input{2R2Cmodel}
-
 \input{7R4Cmodel}
-
 \input{lumped_element}
-
 \input{finite_elements}
-
 \input{solar_irradiation}
-
 \input{PV_solar_collector}
-
 \input{NEN_ISO}
-
 \input{manual_huismodel}
 
 %\bibliography{mybibliography}
