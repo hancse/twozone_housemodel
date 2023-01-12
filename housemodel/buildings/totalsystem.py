@@ -107,6 +107,8 @@ class TotalSystem:
             # append by reference, therefore new node object in each iteration
             self.ambient = node
 
+
+
     def add_fixed_to_k(self):
         for c in self.ambient.connected_to:
             index = c[0]

@@ -1,0 +1,50 @@
+# General setting
+
+Identifier:            Definition file created by HAN
+Date:                                                          10/28/2021
+#
+# Climatefile with description of temperatures humidity and solar irradiation
+Climatefile:          ..\..\NEN5060.xls
+# Default simulation time in
+Timescale:                                                             10 #default timescale used in yaml file in minutes
+Duration:                                                            8760 # a year in the defined timescale
+Timestep:                                                               1 # default timestep in time integration. Required until new integration subroutine is implemented
+
+solar_irradiation:
+                      E:                                                                       108
+                      SE:                                                                        0
+                      S:                                                                       108
+                      SW:                                                                        0
+                      W:                                                                       108
+                      NW:                                                                        0
+                      N:                                                                       108
+                      NE:                                                                        0
+                      g_value:                                                                 0.7
+
+chains:
+                    -
+                      designation:                                       2R2C, 1-node
+                      anchor:                                                        1             # De warmte-overdrachtsketen start bij de buitentemperatuur
+                      links:
+                                                                       -
+                                                                         Name:                    Internals
+                                                                         Conductance:                      5500 # W/K : 1/R1
+                                                                         Capacity:                     1.35E+08 # J/K: C1
+                                                                       -
+                                                                         Name:                    Load_bearing_constructon
+                                                                         Conductance:                     24960 # W/K: 1/R2
+                                                                         Capacity:                      9.66E+8 # J/K: C2
+ventilation:
+                      n:                                                                      0.55
+                      CF:                                                                      0.8
+internal:
+                      delta_Q:                                                                   0
+                      Q_day:                                                                 20544
+                      t1:                                                                        8
+                      t2:                                                                       23
+
+controller:
+                      kp:                                                                    15000
+                      ki:                                                                    1000
+                      kd:                                                                        0
+                      Maximum_power:                                                        150000

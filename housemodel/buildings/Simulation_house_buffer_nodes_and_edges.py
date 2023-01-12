@@ -19,7 +19,7 @@ from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         stack_q)
 
 from housemodel.sourcesink.NEN5060 import run_qsun
-from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
+from housemodel.sourcesink.internal_heat_gain import internal_heat_gain, simple_internal
 from housemodel.controls.Temperature_SP import simple_thermostat
 from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
@@ -28,6 +28,7 @@ from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
 from housemodel.sourcesink.radiators import Radiator
 from housemodel.sourcesink.flows import Flow
 from housemodel.buildings.totalsystem import TotalSystem
+from housemodel.buildings.components import FixedNode
 
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -80,7 +81,7 @@ def main(show=False, xl=False):
 
     r = Radiator(1.3)
     r.boundaries_from_dict(param["boundaries"])
-    r.T_amb = 20.0
+    r.T_amb = 20.0  # = h.Tini
 
     # calculate flow matrices and combine into f_mat_all
     flows = []
@@ -135,6 +136,12 @@ def main(show=False, xl=False):
     Qsolar *= param['solar_irradiation']['g_value']
     Qsolar_sim = Qsolar[0:days_sim*24]
 
+    # q_int = simple_internal(t_on=param['internal']['t1'],
+    #                         t_off=param['internal']['t2'],
+    #                         Q_day=param['internal']['Q_day'],
+    #                         Q_night=param['internal']['Q_day'] - param['internal']['delta_Q'])
+    # Qinternal_sim = q_int[0:days_sim*24]
+
     Qint = internal_heat_gain(param['internal']['Q_day'],
                               param['internal']['delta_Q'],
                               param['internal']['t1'],
@@ -150,17 +157,17 @@ def main(show=False, xl=False):
     SP_sim = SP[0:days_sim * 24].flatten()
 
     # make predictable part of q_dot vector
-    q_vector = np.zeros((t.num_nodes,days_sim*24))
-    leak_to_amb = param["chains"][0]["links"][0]["Conductance"]
-    q_vector[0, :] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
-    q_vector[1, :] = (1 - CF) * Qsolar_sim
+    # q_vector = np.zeros((t.num_nodes,days_sim*24))
+    # leak_to_amb = param["chains"][0]["links"][0]["Conductance"]
+    # q_vector[0, :] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
+    # q_vector[1, :] = (1 - CF) * Qsolar_sim
 
     # Interpolation of data
-    interp_func = interp1d(time_sim, q_vector, fill_value='extrapolate')
-    interp_func_SP = interp1d(time_sim, SP_sim, fill_value='extrapolate')
+    # interp_func = interp1d(time_sim, q_vector, fill_value='extrapolate')
+    interp_func_SP = interp1d(time_sim, SP_sim, kind='nearest', fill_value='extrapolate')
     interp_func_Q_internal = interp1d(time_sim, Qinternal_sim, fill_value='extrapolate')
     interp_func_Toutdoor = interp1d(time_sim, T_outdoor_sim, fill_value='extrapolate')
-    q_vector = interp_func(np.arange(0, time_sim[-1]+(6*600), control_interval))
+    # q_vector = interp_func(np.arange(0, time_sim[-1]+(6*600), control_interval))
     SP_sim = interp_func_SP(np.arange(0, time_sim[-1]+(6*600), control_interval))
     T_outdoor_sim = interp_func_Toutdoor(np.arange(0, time_sim[-1]+(6*600), control_interval))
     Qinternal_sim = interp_func_Q_internal(np.arange(0, time_sim[-1]+(6*600), control_interval))
@@ -181,14 +188,19 @@ def main(show=False, xl=False):
 
 
     # Input PID values in to control
-    control_parameters = np.zeros(3)
-    control_parameters[0] = param['controller']['kp']
-    control_parameters[1] = param['controller']['ki']
-    control_parameters[2] = param['controller']['kd']
+    controllers = []
+    for n in range(len(param['controllers'])):
+        c = param['controllers'][n]
+        controllers.append(c)
+
+    t.ambient = h.ambient
+    t.ambient.temp = T_outdoor_sim[0]
+
 
     # solve ODE
-    data = house_radiator_m(t.c_inv_mat, t.k_mat, t.q_vec,
-                            SP_sim, time_sim, control_interval, control_parameters)
+    data = house_radiator_m(time_sim, total,
+                            T_outdoor_sim,
+                            SP_sim, control_interval, controllers)
 
     # if show=True, plot the results
     if show:

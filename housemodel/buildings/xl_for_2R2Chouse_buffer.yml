@@ -104,7 +104,7 @@ internal:
   distribution:
     - [0, 1.0]
 
-controller:
+controllers:
   -
     label: GasBoiler
     kp: 4999   # [W/K]
