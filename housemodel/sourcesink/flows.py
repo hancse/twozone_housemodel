@@ -79,9 +79,15 @@ if __name__ == "__main__":
     flows = []
     flows.append(Flow())
     flows[0].flow_from_dict(param['flows'][0])
+    flows.append(Flow())
+    flows[1].flow_from_dict(param['flows'][1])
 
     # flows[0].nodelist_to_edges()
 
-    flows[0].make_Fmatrix(5)
+    flows[0].make_Fmatrix(7)
     print(flows[0].f_mat)
+    print()
+
+    flows[1].make_Fmatrix(7)
+    print(flows[1].f_mat)
     print()
