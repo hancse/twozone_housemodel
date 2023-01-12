@@ -36,22 +36,20 @@ Based on the clearness index $k_t$ the fraction of the diffuse horizontal irradi
 	\text{interval:} & k_t > 0.8 & k_d = 0.165 .
 \label{eq:diffuse_fraction}
 \end{eqnarray} 
-Now, using $k_d$ we can determine the diffuse contribution of the irradiance on the horizontal plane $I_{dif,h} = k_d \cdot I_t$. The direct irradiance onthe horizontal plane is the complementary part, $I_{dir,h} = I_t - I_{diff,h}$. 
+Now, using $k_d$ we can determine the diffuse contribution of the irradiance on the horizontal plane $I_{dif,h} = k_d \cdot I_t$. The direct irradiance on the horizontal plane is the complementary part, $I_{dir,h} = I_t - I_{diff,h}$. 
 
 \subsection{irradiation on an inclined surface}
-In order to be able to compute the output power of the PV-panel we need to compute the contributions of both the diffuse and direct irradiance on the oriented surface of the PV-panel. For the direct irradiance ($I_{dir,p}$) this ca be done by using the location and orientation of the panels and the orientation of the sun.
+In order to be able to compute the output power of the PV-panel we need to compute the contributions of both the diffuse and direct irradiance on the oriented surface of the PV-panel. For the direct irradiance ($I_{dir,p}$) this can be done by using the location and orientation of the panels and the orientation of the sun.
 \begin{equation}
 		I_{dir,p} = \frac{\text{cos}\theta}{\text{sin}h}
 \label{eq:direct_plane}
 \end{equation}
-
-
-In order to transform    
+ 
 
 
 
 \subsection{PV-panel efficiency}
-A PV-panel converts the energy of the incoming solar irradiation to electrical energy. The efficiency of the conversion depends on the temperature of the panels according to the relationship [REF to dictaat Marc]:
+A PV-panel converts the energy of the incoming solar irradiation to electrical energy. The efficiency of the conversion depends on the temperature of the panels according to the relationship \cite{VanderSluys2021}:
 \begin{equation}
   \eta_{\text{cell}}(T_{\text{cell}}) = \eta_{\text{cell,N}} \left( 1 + \gamma_{\text{T}}\left(T_{\text{cell}} - T_{\text{cell,N}} \right) \right),
 	\label{eq:efficiency_pv}
@@ -59,7 +57,7 @@ A PV-panel converts the energy of the incoming solar irradiation to electrical e
 
 where $\eta_{\text{cell,N}} $ is the nominal efficiency according to the panel specifications, $\gamma_{\text{T}}$ is temperature coefficient according to the panel specifications, $T_{\text{cell,N}}$ is the reference temperature at which the nominal efficiency is measured, and $T_{\text{cell}}$ is the actual temperature of the panel. The nominal efficiency is measured at a solar irradiance of 1000 W/$\text{m}^2$, and is usually provided in the specs of the PV-panel. 
 
-The equation for the efficiency may be extended to accommodate for the effects of the level of irradiation other than the standard conditions. In \ref{SHC2020PVT}, two variants are provided, both without any further reference:
+The equation for the efficiency may be extended to accommodate for the effects of the level of irradiation other than the standard conditions. In \cite{SHC2020PVT}, two variants are provided, both without any further reference:
 \begin{equation}
   \eta_{\text{cell}}(T_{\text{cell}}) = \eta_{\text{cell,N}} \left( 1 + \gamma_{\text{T}}\left(T_{\text{cell}} - T_{\text{cell,N}} \right) \right)\cdot (1-k\cdot(G - G_{stc})),
 \end{equation}
@@ -70,7 +68,7 @@ and
 where $G_{STC}$ represents the standard solar irradiance level of 1000 W/$\text{m}^2$. Note that the difference between the two equations is that the first considers the difference between the actual irradiance level with the standard level, while the second approach considers the differences of the log of levels. Which of these approximations is the best is unclear at time of writing, and may need some additional investigation. As long as this is unclear, I propose to stick with equation \ref{eq:efficiency_pv}, which ignores this effect. 
 
 
-In order to compute the efficiency the temperature of the PV-cells is required. The temperature can be approximated using the formula [REF to dictaat Marc]:
+In order to compute the efficiency the temperature of the PV-cells is required. The temperature can be approximated using the formula \cite{VanderSluys2021}:
 \begin{equation}
 	T_{\text{cell}} \approx T_a + \left( 43.3 \cdot \text{exp} \left[-0.61 \left(\frac{v_w}{\text{m/s}} \right)^{0.63} \right] + 2.1 \right)\left(\frac{I_{g,s}}{1000\text{W/m}^2} \right), 
 \label{eq:temp_panel}
@@ -86,9 +84,24 @@ A PVT-panel combines a PV-panel with a thermal solar collector.
 Kramer et al. \cite{SHC2020PVT} provide an overview of various models for determining both the thermal and electrical output of PVT-panels. The quality of this overview is varying between sections. Some parts lack the references to the original sources of the models that are discussed. The internal cross-referencing is often 'broken', which makes the relation between the discussed thermal models and electrical models unclear. However, this document can be used as a starting point for setting up a model that captures the both the electrical and thermal output of a PVT-panel.
 
 \subsubsection{electrical output}
-For modeling the electrical yield of a PVT-panel we can refer to the model of the PV-panel. The panel efficiency can be approximated by equation (\ref{eq:efficiency_pv}). However, the panel temperature is now largely influenced by the solar collector, and Equation (\ref{eq:temp_panel}) does not hold. The most basic approximation for the PV-cell temperature is $T_{\text{cell}} = T_{\text{fl,out}}$, where $T_{\text{fl,out}} $ is the temperature of the collector fluid at the outlet, cf. \cite{SHC2020PVT} page 22. The temperature at the outlet follows from the thermal analysis of the PVT.
+For modeling the electrical yield of a PVT-panel we can refer to the model of the PV-panel. The panel efficiency can be approximated by equation (\ref{eq:efficiency_pv}). However, the panel temperature is now largely influenced by the solar collector, and Equation (\ref{eq:temp_panel}) does not hold. The most basic approximation for the PV-cell temperature is $T_{\text{cell}} = T_{\text{fl,out}}$, where $T_{\text{fl,out}} $ is the temperature of the collector fluid at the outlet, cf. \cite{SHC2020PVT} page 22. The temperature at the outlet should follow from the thermal analysis of the PVT.
 
 \subsubsection{thermal output}
+Section 2.1 of the report Status Quo of PVT Characterization \cite{SHC2020PVT} gives an overview of various modelling approaches for obtaining the thermal yield of a thermal solar collector.
+Here we briefly address the various approaches.
+
+The first approach is based on the \textbf{Standard ISO 9806}. Under steady-state test conditions the thermal power $\dot{Q}_{th}$ is given by:
+\begin{equation}
+\dot{Q}_th = A_G\cdot G\cdot \left[\eta_{0,hem} - a_1 \cdot \frac{\theta_m - \theta_a}{G} - a_2 \cdot G \cdot \left(\frac{\theta_m - \theta_a}{G}\right)^2 \right] ,
+\label{eq:thermal_ISO}
+\end{equation} 
+here $A_G$ is the gross area of the collector,  $G$ is the hemispherical solar irradiance (Global solar irradiance), $\theta_m$ is the mean temperature of the heat transfer fluid and $\theta_a$ is the measured ambient temperature. $a_1$ and $a_2$ are two coefficients that are specify the collector's temperature dependent heat loss. These coefficients are not directly available, and should be determined by fitting the model to experimental data. (Possibly a manufacturer could provide these parameters?). An additional down side of this model is that it needs the mean temperature of the collector fluid as input. This is largely dependent on the operational conditions. Under the norm's  the steady-state test conditions these might be well defined and controlled, in practice these conditions will vary and are not controllable. $\theta_m$ will be in general not available as a basic input. This makes the model not directly practically applicable.  
+The equation \ref{eq:thermal_ISO} is the most basic version of a series. This model has been further extended to add wind speed dependencies and radiation losses. However, the limitation in usability remains. 
+
+
+The second model is a one dimensional energy balance model. The description in \cite{SHC2020PVT} is not so clear. It seems that this model provides a steady state solution for the temperature distribution in the direction of the flow of the collector fluid. This yields a function for the outflow temperature dependent on the inflow temperature. According to the description this is a simple linear relationship. However, the exact parameters are obscure. In case we want to use this model the math needs to be worked out in detail. Downside of this model is the lack of time dependence. In a steady state situation, with little fluctuation in the inflow temperature, this model might suffice. 
+
+ 
 
 
 
