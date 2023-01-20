@@ -37,16 +37,19 @@ CONFIGDIR = Path(__file__).parent.absolute()
 
 
 def main(show=False, xl=False):
+    # load configuration file: 2R2c house model with radiator
     house_param = load_config(str(CONFIGDIR / "excel_for_companies.yaml"))
     days_sim = 365 # house_param['timing']['days_sim']
     CF = house_param['ventilation']['CF']
 
+    # make capacity matrix C^(-1)
     num_links = len(house_param["chains"][0]["links"])
     cap_list = []
     for n in range(num_links):
         cap_list.append(house_param["chains"][0]["links"][n]["Capacity"])
     cap_mat_inv = make_c_inv_matrix(cap_list)
 
+    # make heat conduction matrix K
     cond_list = []
     for n in range(num_links):
         cond_list.append(house_param["chains"][0]["links"][n]["Conductance"])
@@ -55,8 +58,9 @@ def main(show=False, xl=False):
     cond_mat = add_chain_to_k(cond_mat, cond_list[2], 0)
     print(days_sim)
 
-    # Loading the radiator and buffervessel parameters
-    # Heat transfer coefficient of the radiator and heat capacity
+    # Loading the radiator parameters:
+    # Heat transfer coefficient U*A of the radiator and heat capacity C_rad
+    # not used actually
     UAradiator = house_param["chains"][0]["links"][2]["Conductance"]
     Crad =  house_param["chains"][0]["links"][2]["Capacity"]
 
@@ -65,14 +69,19 @@ def main(show=False, xl=False):
     # generate and insert timezone-aware UTC and local timestamps (with DST)
     df_nen = NENdatehour2datetime(df_nen)
 
+    # calculate solar irradiance according with qsun
     df_irr = run_qsun(df_nen)
     print(df_irr.head())
 
+    # slice simulation period from hourly data of NEN 5060
     time_sim = df_irr.iloc[0:days_sim*24, 0].values
 
-    # Interval in seconds the control algorithm
+    # Control interval in seconds (input for control algorithm)
     control_interval = house_param["Timescale"]*60
 
+    # Estimate solar energy input in house by assuming glass surfaces in 8 directions
+    # Multiply this input by "g-value": effective glass transmission under 45 degrees
+    # select solar energy input over simulation period
     Qsolar = (df_irr.total_E * house_param['solar_irradiation']['E'] +
               df_irr.total_SE * house_param['solar_irradiation']['SE'] +
               df_irr.total_S * house_param['solar_irradiation']['S'] +
@@ -84,6 +93,9 @@ def main(show=False, xl=False):
     Qsolar *= house_param['solar_irradiation']['g_value']
     Qsolar_sim = Qsolar[0:days_sim*24]
 
+    # estimate internal energy production in house using "internal_heat_gain"
+    # convert 2D column output  to 1D row vector
+    # select result over simulation period
     Qint = internal_heat_gain(house_param['internal']['Q_day'],
                               house_param['internal']['delta_Q'],
                               house_param['internal']['t1'],
@@ -91,24 +103,30 @@ def main(show=False, xl=False):
     Qint = Qint.flatten()
     Qinternal_sim = Qint[0:days_sim*24]
 
+    # read outdoor temperatures from NEN dataframe
+    # convert column to 1D row
+    # select result over simulation period
     Toutdoor = df_nen.loc[:, 'temperatuur'].values
     Toutdoor = Toutdoor.flatten()   # temperature
     T_outdoor_sim = Toutdoor[0:days_sim*24]
 
+    # "program" thermostat for a year and select result over simulation period
     SP = simple_thermostat(8, 23, 20, 17)
     SP_sim = SP[0:days_sim * 24].flatten()
 
     # make predictable part of q_dot vector
+    # result is 2D vector with 2 rows and 8760 columns
     q_vector = np.zeros((num_links,days_sim*24))
     leak_to_amb = house_param["chains"][0]["links"][0]["Conductance"]
     q_vector[0,:] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
     q_vector[1,:] = (1 - CF) * Qsolar_sim
 
-    # Interpolation of data
+    # Interpolation of data (not perfect)
     interp_func = interp1d(time_sim, q_vector, fill_value='extrapolate')
     interp_func_SP = interp1d(time_sim, SP_sim, fill_value='extrapolate')
     interp_func_Q_internal = interp1d(time_sim, Qinternal_sim, fill_value='extrapolate')
     interp_func_Toutdoor = interp1d(time_sim, T_outdoor_sim, fill_value='extrapolate')
+
     q_vector = interp_func(np.arange(0, time_sim[-1]+(6*600), control_interval))
     SP_sim = interp_func_SP(np.arange(0, time_sim[-1]+(6*600), control_interval))
     T_outdoor_sim = interp_func_Toutdoor(np.arange(0, time_sim[-1]+(6*600), control_interval))
@@ -124,10 +142,9 @@ def main(show=False, xl=False):
     interp_func_cloud = interp1d(time_sim, cloud, fill_value='extrapolate')
     cloud_interp = interp_func_cloud(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
 
+    # resampling of time_sim array from hourly to control_interval
     time_sim = np.arange(0, time_sim[-1]+(6*600), control_interval)
-
-    # time_sim = np.linspace(0, time_sim[-1], (8760-1)*6, endpoint=False)
-
+    # time_sim = np.linspace(0, time_sim[-1], (8760-1)*6, endpoint=False)  # old
 
     # Input PID values in to control
     control_parameters = np.zeros(3)

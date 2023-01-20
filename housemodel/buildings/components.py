@@ -16,7 +16,7 @@ class CapacityNode:
 
 
 @dataclass
-class FixedNode:
+class FixedNode:   # external node?
     label: str
     connected_to: []
     temp: float        # [K]
