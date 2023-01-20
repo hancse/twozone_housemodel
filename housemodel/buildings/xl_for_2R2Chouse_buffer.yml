@@ -34,10 +34,19 @@ Buffer:
       capacity: 8.6e+6    #J/K
       T_ini: 20.0
 
+Radiator:
+  nodes:
+    -
+      label: rad
+      tag: 5
+      capacity: 3.0e+4  #J/K = Crad
+      T_ini: 20.0
+
 edges:
-  - [0, 1, 201.9611831]  # W/K : 1/R1
+  - [0, 1, 201.9611831]   # W/K : 1/R1
   - [2, 3, 201.9611831 ]  # W/K : 1/R1
-  - [3, 4, 201.9611831]  # W/K : 1/R1
+  - [3, 4, 201.9611831]   # W/K : 1/R1
+  - [0, 5, 20.000]        # W/K : 1/R1 = U*A
 
 flows:
   -
@@ -45,14 +54,14 @@ flows:
     flow_rate: 50.0e-6   # [m^3/s]
     density: 1000     # [kg/m^3]
     cp: 4200         # J/(kg K)]
-    pass_by: [4, 3, 2, 5, 4]
+    pass_by: [4, 3, 2, 4]
     # [2, 1, 0, 2]
   -
     label: hp_flow
     flow_rate: 100.0e-6   # [m^3/s]
     density: 1000     # [kg/m^3]
     cp: 4200         # J/(kg K)]
-    pass_by: [2, 3, 4, 6, 2]
+    pass_by: [2, 3, 4, 2]
     #  [0, 1, 2, 0]
   # -
     # label: floor_flow
@@ -75,7 +84,7 @@ boundaries:
       - [ 4, 0.1 ]
   -
     label: indoor
-    T_ini: 20.0
+    T_ini: 18.0
     connected_to:
       - [2, 0.1]
       - [3, 0.11]

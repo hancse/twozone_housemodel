@@ -1,5 +1,4 @@
 import numpy as np
-from dataclasses import dataclass, field
 
 from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         add_c_inv_block,
@@ -8,47 +7,28 @@ from housemodel.tools.new_configurator import load_config
 from housemodel.buildings.components import (CapacityNode,
                                              FixedNode,
                                              CondEdge)
+import logging
 
-"""
-@dataclass
-class HouseNode:
-    # first
-    label: str = field(default="label")
-    tag: int = field(default=-1)
-    cap: float = field(default=0.0)     # [J/K]
-    temp: float = field(default=20.0)  # [K]
-
-
-@dataclass
-class FixedNode:
-    label: str
-    connected_to: []
-    temp: float     # [K]
-# if methods are defined this turns into a normal class object
-
-
-@dataclass
-class HouseEdge:
-    label: str
-    conn_nodes: []  # empty list (tuple, ndarray)
-    cond: float     # [W/K]
-    # src: int
-    # sink: int
-"""
+logging.basicConfig(level="DEBUG")
+# logging.basicConfig(level="INFO")
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.INFO)
 
 
 class House:
-    def __init__(self):
+    def __init__(self, name=""):
+        self.name = name
         self.num_nodes = 0
         self.num_edges = 0
-        self.nodes = []  # np.zeros(self.num_nodes, dtype=object)
-        self.edges = []  # np.zeros(self.num_nodes - 1)
+        self.nodes = []            # np.zeros(self.num_nodes, dtype=object)
+        self.edges = []            # np.zeros(self.num_nodes - 1)
         self.boundaries = []
         self.ambient = None
 
         self.c_inv_mat = None  # np.zeros((self.num_nodes, self.num_nodes))
-        self.k_mat = None  # np.zeros_like(self.c_inv_mat)
-        self.q_vec = None  # np.zeros(self.num_nodes, 1)
+        self.k_mat = None      # np.zeros_like(self.c_inv_mat)
+        self.q_vec = None      # np.zeros(self.num_nodes, 1)
 
         self.q_solar = None
         self.q_int = None
@@ -56,6 +36,8 @@ class House:
         self.tag_list = []
         self.cap_list = []
         self.cond_list = []
+
+        logging.info(f" House object {self.name} created")
 
     def nodes_from_dict(self, lod: list):
         """initializes "nodes" attribute with data from yaml file
@@ -68,7 +50,6 @@ class House:
             None
         """
         self.num_nodes = len(lod)
-        # node = HouseNode()
         for n in range(self.num_nodes):
             node = CapacityNode(label=lod[n]["label"],
                                 tag=lod[n]["tag"],
@@ -76,14 +57,17 @@ class House:
                                 temp=lod[n]["T_ini"])
             # append by reference, therefore new node object in each iteration
             self.nodes.append(node)
+            logging.debug(f" node '{node.label}' with tag {node.tag} appended to {self.name}")
         self.tag_list = [n.tag for n in self.nodes]
+        logging.debug(f" tag_list {self.tag_list}")
 
     def fill_c_inv(self):
         self.cap_list = [n.cap for n in self.nodes]
         if len(self.cap_list) > 0:
             self.c_inv_mat = make_c_inv_matrix(self.cap_list)
+            logging.debug(f" c_inv_matrix: \n {self.c_inv_mat}")
         else:
-            print(f"Error: cap_list empty")
+            logging.error(f" Error: cap_list empty")
 
     def edges_from_dict(self, lol):
         self.num_edges = len(lol)
@@ -92,18 +76,17 @@ class House:
                             conn_nodes=[lol[n][0], lol[n][1]],
                             cond=lol[n][2])
             self.edges.append(edge)
+            logging.debug(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
 
     def fill_k(self, lol):
-        """ select local edges belonging to object and make k-matrix.
+        """select local edges belonging to object and make k-matrix.
 
         Args:
             lol: list of edge lists [from, to, weight]
-
-        Returns:
-
         """
         el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
         self.k_mat = make_edges(el)
+        logging.debug(f" k_matrix: \n {self.k_mat}")
 
     def boundaries_from_dict(self, lod):
         for n in range(len(lod)):
@@ -112,14 +95,16 @@ class House:
                              connected_to=lod[n]["connected_to"])
             # append by reference, therefore new node object in each iteration
             self.boundaries.append(node)
+            logging.debug(f" boundary '{node.label}' appended to {self.name}")
+
         self.ambient = [fn for fn in self.boundaries if fn.label == "outdoor"][0]
+        logging.debug(f" ambient is '{self.ambient.label}' for {self.name}")
 
+    """
     def add_fixed_to_k(self):
-        """
+        # add conductivities to boundary "ambient" to diagonal elements of k-matrix.
 
-        Returns:
-
-        """
+        # 
         # fnl = [fn for fn in self.boundaries for index in fn.connected_to if index[0] in self.tag_list]
         # res = []
         # [res.append(x) for x in fnl if x not in res]
@@ -127,15 +112,50 @@ class House:
             index = c[0]
             cond = c[1]
             self.k_mat[index, index] -= cond
+            logging.debug(f" ambient connected to node '{self.nodes[index].label}'")
+    """
 
-    def make_q_vec(self):
-        self.q_vec = np.zeros((self.num_nodes, 1))
+    def add_ambient_to_k(self):
+        """selectively add conductivity to boundary condition "ambient" to diagonal elements of k-matrix.
 
-    def add_fixed_to_q(self):
+        """
         for c in self.ambient.connected_to:
-            index = c[0]
+            idx = self.tag_list.index(c[0])
             cond = c[1]
-            self.q_vec[index] += cond
+            self.k_mat[idx, idx] -= cond
+            logging.debug(f" ambient connected to node '{self.nodes[idx].label}'")
+        logging.debug(f" k_matrix: \n {self.k_mat}")
+
+    def make_empty_q_vec(self):
+        self.q_vec = np.zeros((self.num_nodes, 1))
+        logging.debug(f" empty q-vector created of rank {self.num_nodes}")
+
+    """
+    def add_fixed_to_q(self):
+        # add terms from ALL boundary conditions (external nodes) like T_outdoor and T_indoor.
+
+           # - loops over ALL FixedNode object in self.boundaries
+           # - for each FixedNode adds T/Rth to the corresponding element of self.q_vec
+           # - the right element is found via the index of the tag in self.taglist
+        
+        for b in self.boundaries:
+            for c in b.connected_to:
+                idx = self.tag_list.index(c[0])
+                cond = c[1]
+                self.q_vec[idx] += cond * b.temp
+                logging.debug(f" ambient added to q-vector element {idx}")
+        logging.debug(f" q_vector: \n {self.q_vec}")
+    """
+
+    def add_ambient_to_q(self):
+        """selectively add terms from boundary condition "ambient" to elements of q-vector.
+        """
+        for c in self.ambient.connected_to:
+            idx = self.tag_list.index(c[0])
+            cond = c[1]
+            self.q_vec[idx] += cond * self.ambient.temp
+            logging.debug(f" ambient added to q-vector element {idx} ({self.nodes[idx].label})")
+        logging.debug(f" q_vector: \n {self.q_vec}")
 
 
 if __name__ == "__main__":
