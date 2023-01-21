@@ -1692,15 +1692,19 @@ Simulations can be run as a Python script or as an IPython (Jupyter) notebook. T
 	\begin{equation}
 		\mathbf{K} \cdot \boldsymbol{\theta} =
 		\left[~
+		\underbrace{
 		\begin{bmatrix}
 			\frac{1}{R_{air, wall}} & \frac{-1}{R_{air, wall}} \\
 			\frac{-1}{R_{air, wall}} &  \frac{1}{R_{air, wall}}
 		\end{bmatrix}
+	    }_{\mathbf{K}_{int}}
 	    +
+	    \underbrace{
 	    \begin{bmatrix}
 	    	\frac{1}{R_{air, amb}} & 0 \\
 	    	0 &  0
 	    \end{bmatrix}
+        }_{\mathbf{K}_{ext}}
         ~\right]
 		\cdot
 		\begin{bmatrix}
@@ -1708,20 +1712,54 @@ Simulations can be run as a Python script or as an IPython (Jupyter) notebook. T
 			T_{wall}
 		\end{bmatrix}
 	\end{equation}
-
+\\
 \begin{itemize}
 	\item Similarly, a buffer vessel can be created with \texttt{b = StratifiedBuffer("Buffervessel")}.
 	\item run \texttt{b.nodes\_from\_dict(param["Buffer"]["nodes"])} and \texttt{b.fill\_c\_inv()} to create the inverse capacity matrix $\mathbf{C^{-1}}$ for the buffer vessel. The nodes are equivalent to the layers of a stratified buffer tank.
 	\item The buffer vessel has a "ambient" temperature which is an "indoor" temperature for an attic or basement room. This temperature can be taken as a constant for the complete simulation period. Apply the functions \texttt{b.boundaries\_from\_dict(param["boundaries"])} (selects "indoor" as ambient) and 
 	\texttt{b.add\_ambient\_to\_k()}.
-	
+\end{itemize}
+
+\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\left[~
+    \underbrace{
+	\begin{bmatrix}
+		\frac{1}{R_{top, mid}}  & \frac{-1}{R_{top, mid}} & 0\\
+		\frac{-1}{R_{top, mid}} &  \frac{1}{R_{top, mid}} + \frac{1}{R_{mid, bot}} & \frac{-1}{R_{mid, bot}}\\
+		0  &  \frac{-1}{R_{mid, bot}} & \frac{1}{R_{mid, bot}}
+	\end{bmatrix}
+	}_{\mathbf{K}_{int}}
+	+
+	\underbrace{
+	\begin{bmatrix}
+		\frac{1}{R_{top, amb}} & 0 & 0 \\
+	    0 & \frac{1}{R_{mid, amb}} & 0  \\
+	    0 & 0 & \frac{1}{R_{bot, amb}} 
+	\end{bmatrix}
+    }_{\mathbf{K}_{ext}}
+	~\right]
+	\cdot
+	\begin{bmatrix}
+		T_{top} \\
+		T_{mid}  \\
+		T_{bot} 
+	\end{bmatrix}
+\end{equation}
+\\
+
+\begin{itemize}
 	\item  A very simple radiator model consists of a CapacityNode, coupled to the contents ("air") of the Building subsystem. This can be implemented by calling \texttt{r = LinearRadiator("SimpleRadiator")}, \\
 	\texttt{r.nodes\_from\_dict(param["Radiator"]["nodes"])} and \texttt{r.fill\_c\_inv()}. $\mathbf{C^{-1}}$ is a matrix of rank 1 in this case (numpy.ndarray(1,1)), and not a scalar.
 	\item the LinearRadiator object does not have an "ambient" fixed (external) node contributing to the $\mathbf{K}$-matrix.
+\end{itemize}
+
+\begin{itemize}
 	\item a complete model can be assembled from the partial models. it is created with \\ \texttt{total = TotalSystem("HouseWithRadiator")}.
 	\item compose the $\mathbf{C^{-1}}$-matrix from the subsystems with 
 	\texttt{total.c\_inv\_mat = add\_c\_inv\_block(h.c\_inv\_mat, r.c\_inv\_mat)}.
 	\item merge the tag\_lists with \texttt{total.tag\_list = [*h.tag\_list, *r.tag\_list]} and sort with \\
 	\texttt{total.tag\_list.sort()}.
 \end{itemize}
+
 \newpage

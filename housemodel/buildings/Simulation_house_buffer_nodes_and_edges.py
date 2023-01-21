@@ -24,7 +24,7 @@ from housemodel.sourcesink.internal_heat_gain import internal_heat_gain, simple_
 from housemodel.controls.Temperature_SP import simple_thermostat
 from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
-from housemodel.buildings.house import House
+from housemodel.buildings.building import Building
 from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
 from housemodel.buildings.linear_radiator import LinearRadiator
 
@@ -113,7 +113,7 @@ def main(show=False, xl=False):
     print(days_sim)
 
     # create House object
-    h = House("MyHouse")
+    h = Building("MyHouse")
     # read nodes attribute from dictionary and create capacity matrix
     h.nodes_from_dict(param["Building"]["nodes"])
     h.fill_c_inv()
@@ -161,7 +161,8 @@ def main(show=False, xl=False):
     r.make_empty_q_vec()  # no "ambient" for LinearRadiator
 
     # create Totalsystem object
-    total = TotalSystem("HouseWithRadiator")
+    # total = TotalSystem("HouseWithRadiator")
+    total = TotalSystem("HouseWithRadiator", (h, r))
     # compose c-1-matrix from parts
     total.c_inv_mat = add_c_inv_block(h.c_inv_mat, r.c_inv_mat)
     # https: // www.geeksforgeeks.org / python - ways - to - concatenate - two - lists /

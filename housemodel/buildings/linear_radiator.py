@@ -15,13 +15,10 @@ logging.basicConfig(level="DEBUG")
 # logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.INFO)
 
-from typing import List, Tuple
 
-
-class TotalSystem:
-    def __init__(self, name="", parts=()):   # immutable "list" = tuple
+class LinearRadiator:
+    def __init__(self, name=""):
         self.name = name
-        self.parts = parts
         self.num_nodes = 0
         self.num_edges = 0
         self.nodes = []            # np.zeros(self.num_nodes, dtype=object)
@@ -32,7 +29,6 @@ class TotalSystem:
         self.c_inv_mat = None  # np.zeros((self.num_nodes, self.num_nodes))
         self.k_mat = None      # np.zeros_like(self.c_inv_mat)
         self.q_vec = None      # np.zeros(self.num_nodes, 1)
-        self.f_mat = None      # np.zeros(self.num_nodes, self.num_nodes)
 
         self.q_solar = None
         self.q_int = None
@@ -41,11 +37,11 @@ class TotalSystem:
         self.cap_list = []
         self.cond_list = []
 
-        logging.info(f" TotalSystem object {self.name} created")
+        logging.info(f" House object {self.name} created")
 
     def nodes_from_dict(self, lod: list):
         """initializes "nodes" attribute with data from yaml file
-           makes a list from tags belonging to the TotalSystem object
+           makes a list from tags belonging to the House object
 
         Args:
             lod: list of dicts read from yaml file
@@ -82,24 +78,16 @@ class TotalSystem:
             self.edges.append(edge)
             logging.debug(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
 
+    def make_empty_k_mat(self):
+        self.k_mat = np.zeros((self.num_nodes, self.num_nodes))
+        logging.debug(f" empty k-matrix created of rank {self.num_nodes}")
+
     def fill_k(self, lol):
-        """select global edges belonging to total system and make k-matrix.
+        """select local edges belonging to object and make k-matrix.
 
         Args:
             lol: list of edge lists [from, to, weight]
         """
-        # selection should not be necessary
-        # el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
-        self.k_mat = make_edges(lol)
-        logging.debug(f" k_matrix: \n {self.k_mat}")
-
-    def complete_k(self, lol):
-        """add global edges BETWEEN subsystems to complete k-matrix.
-
-        Args:
-            lol: list of edge lists [from, to, weight] read from config file
-        """
-        # selection should not be necessary
         el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
         self.k_mat = make_edges(el)
         logging.debug(f" k_matrix: \n {self.k_mat}")
@@ -112,14 +100,15 @@ class TotalSystem:
             # append by reference, therefore new node object in each iteration
             self.boundaries.append(node)
             logging.debug(f" boundary '{node.label}' appended to {self.name}")
-        # for total system, "ambient" is "outdoor"
+
         self.ambient = [fn for fn in self.boundaries if fn.label == "outdoor"][0]
         logging.debug(f" ambient is '{self.ambient.label}' for {self.name}")
 
+    """
     def add_fixed_to_k(self):
-        """add conductivities to boundary "ambient" to diagonal elements of k-matrix.
+        # add conductivities to boundary "ambient" to diagonal elements of k-matrix.
 
-        """
+        # 
         # fnl = [fn for fn in self.boundaries for index in fn.connected_to if index[0] in self.tag_list]
         # res = []
         # [res.append(x) for x in fnl if x not in res]
@@ -128,18 +117,31 @@ class TotalSystem:
             cond = c[1]
             self.k_mat[index, index] -= cond
             logging.debug(f" ambient connected to node '{self.nodes[index].label}'")
+    """
+
+    def add_ambient_to_k(self):
+        """selectively add conductivity to boundary condition "ambient" to diagonal elements of k-matrix.
+
+        """
+        for c in self.ambient.connected_to:
+            idx = self.tag_list.index(c[0])
+            cond = c[1]
+            self.k_mat[idx, idx] -= cond
+            logging.debug(f" ambient connected to node '{self.nodes[idx].label}'")
+        logging.debug(f" k_matrix: \n {self.k_mat}")
 
     def make_empty_q_vec(self):
         self.q_vec = np.zeros((self.num_nodes, 1))
         logging.debug(f" empty q-vector created of rank {self.num_nodes}")
 
+    """
     def add_fixed_to_q(self):
-        """add terms from ALL boundary conditions (external nodes) like T_outdoor and T_indoor.
+        # add terms from ALL boundary conditions (external nodes) like T_outdoor and T_indoor.
 
-            - loops over ALL FixedNode object in self.boundaries
-            - for each FixedNode adds T/Rth to the corresponding element of self.q_vec
-            - the right element is found via the index of the tag in self.taglist
-        """
+           # - loops over ALL FixedNode object in self.boundaries
+           # - for each FixedNode adds T/Rth to the corresponding element of self.q_vec
+           # - the right element is found via the index of the tag in self.taglist
+        
         for b in self.boundaries:
             for c in b.connected_to:
                 idx = self.tag_list.index(c[0])
@@ -147,11 +149,10 @@ class TotalSystem:
                 self.q_vec[idx] += cond * b.temp
                 logging.debug(f" ambient added to q-vector element {idx}")
         logging.debug(f" q_vector: \n {self.q_vec}")
+    """
 
     def add_ambient_to_q(self):
         """selectively add terms from boundary condition "ambient" to elements of q-vector.
-
-        TotalSystem needs this function to update the q_vector in the solver
         """
         for c in self.ambient.connected_to:
             idx = self.tag_list.index(c[0])
@@ -162,7 +163,7 @@ class TotalSystem:
 
 
 if __name__ == "__main__":
-    t = TotalSystem()
+    h = House()
     c_list = [1.0, 2.0]
     c1 = make_c_inv_matrix(c_list)
     print(c1, "\n")
