@@ -90,6 +90,17 @@ class TotalSystem:
         self.k_mat = make_edges(lol)
         logging.debug(f" k_matrix: \n {self.k_mat}")
 
+    def complete_k(self, lol):
+        """add global edges BETWEEN subsystems to complete k-matrix.
+
+        Args:
+            lol: list of edge lists [from, to, weight] read from config file
+        """
+        # selection should not be necessary
+        el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
+        self.k_mat = make_edges(el)
+        logging.debug(f" k_matrix: \n {self.k_mat}")
+
     def boundaries_from_dict(self, lod):
         for n in range(len(lod)):
             node = FixedNode(label=lod[n]["label"],

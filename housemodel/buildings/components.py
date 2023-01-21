@@ -34,6 +34,7 @@ class CondEdge:
     # src: int
     # sink: int
 
+""" notinuse
 
 @dataclass
 class FlowEdge:
@@ -42,3 +43,4 @@ class FlowEdge:
     density: float    # [kg/m^3]
     cp: float         # J/(kg K)]
     heat_rate: float  # [J/s = W]
+"""

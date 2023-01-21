@@ -1481,10 +1481,10 @@ The Radiator class uses a helper function \textsf{LMTD\_radiator} to determine t
 caption={LMTD\_radiator function}] 
 {../../housemodel/sourcesink/radiators.py}
 
-\subsection{model component properties towards an integrated implementation}
+\subsection{Model component properties towards an integrated implementation}
 Here we summarize the properties of the different model components. 
 
-\subsubsection{capacity node}
+\subsubsection{Capacity Node}
 
 \textbf{description}: A capacity node represents the heat capacity of a part of the system, \textit{for example}, the air in a room, or the water in a layer of the buffer vessel. Within the model, for each capacity node the evolution of the temperature over time will be computed. The capacity nodes are used in the components of the house model and the buffer vessel. 
 \\
@@ -1492,33 +1492,41 @@ Here we summarize the properties of the different model components.
 
 \begin{itemize}
 	\item \emph{label}: unique `name' for the node. This should be provided in the \textbf{input}.
-	\item \emph{tag}: index of the node in the resulting model. Translates to row-index in the \textbf{q}-vector.
+	\item \emph{tag}: index of the node in the resulting model. Translates to row-index in the matrices and $\mathbf{\dot{q}}$-vector.
 	\item \emph{heat\_capacity}: the heat capacity [J/K]. This is constant over time and should be provided in the \textbf{input}. Capacity should be greater than zero and finite.  
 	\item \emph{temperature}: the temperature [K]. This will be computed by the model. For each node the model should be able to output a temperature profile over the duration of the simulation
 \end{itemize}
 
+In the listing below, from the module \texttt{components.py}, the definition of the component as a \texttt{dataclass} is shown: 
+\begin{minipage}{\linewidth}
 \lstinputlisting[label=lst:capnode, linerange={10-15}, 
-caption={Capacitor Node}] 
+caption={Capacity Node}]
 {../../housemodel/buildings/components.py}
+\end{minipage}
 
-\subsubsection{fixed temperature node}
-\textbf{description}: This is a node with a predefined temperature. This temperature will not change due to heat exchange with its surrounding nodes. The predefined temperature should be constant within a given time interval. This node represents a part of the system with a very large heat capacity (much larger than other components), \textit{for example}, the ambient air or the ground. 
+\subsubsection{Fixed temperature Node (external node)}
+\textbf{description}: This is a node with a predefined temperature. This temperature will not change due to heat exchange with its surrounding nodes. The predefined (external) temperature should be constant within a given time interval. This node represents a part of the system with a very large heat capacity (much larger than other components), \textit{for example}, the ambient air or the ground. 
 
 \textbf{properties}
 \begin{itemize}
 	\item \emph{label}: unique 'name' for identification. This should be provided in the \textbf{input}.
 	\item \emph{connection(s)} to other model nodes: every fixed temperature node is connected to at least one capacity node, via a heat conductance edge. This edge, and its corresponding heat conductance, "belongs" to the fixed temperature node.
-	\item \emph{temperature} [K] or [\degree C]: for every given time the temperature of this node should be defined. For this a temperature profile should be provided in the \textbf{input}. The temperature profile can be a list of tuples of the form [start\_time , temperature]. At every time interval for which the model is evaluated the corresponding temperature of the node should be obtained. For this a function \texttt{set\_node\_temperature} is needed. 
 	\item contribution to \textbf{K}-matrix: based on the (time-dependent) temperature and the conductances, the diagonal element in the \textbf{K}-matrix corresponding to the connected capacity nodes should be updated.
+	\item \emph{temperature} [K] or [\degree C]: for every given time the temperature of this node should be defined. For this a temperature profile should be provided in the \textbf{input}. The temperature profile can be a list of tuples of the form [start\_time , temperature]. At every time interval for which the model is evaluated the corresponding temperature of the node should be obtained. For this a function \texttt{set\_node\_temperature} is needed. 
 	\item contribution to \textbf{q}-vector: based on the (time-dependent) temperature and the conductances, the element in the \textbf{q}-vector corresponding capacity nodes should be updated. This is update may be done in the same function as the update for the \textbf{K}-matrix. The update value is the same for both terms, except for the sign. 
 \end{itemize}
 \emph{NOTE}: The temperature of the node should remain constant over the entire interval of model solving, so moments of switching temperature should coincide with the start and end of these intervals. This may be enforced by limiting the options for 'start\_time' (for example only multiples of 10 minutes). An alternative could be that the profile is always defined based on the times as given by the NEN5060. The NEN5060 will, most likely, provide the profile of the ambient air temperature. When we would require all profiles of the same shape and size the reading and processing can be done in the same fashion for all nodes. 
 
-\lstinputlisting[label=lst:capnode, linerange={18-23}, 
-caption={Fixed Node}] 
+In the listing below, from the module \texttt{components.py}, the definition of the component as a \texttt{dataclass} is shown:
+\begin{minipage}{\linewidth}
+\lstinputlisting[label=lst:capnode, linerange={18-26}, 
+caption={Fixed Node (external node)}] 
 {../../housemodel/buildings/components.py}
+\end{minipage}
 
-\subsubsection{heat conductance edges}
+The attribute \texttt{connected\_to} is a list with elements \texttt{[tag, conductivity]}. This attribute contains all information for building the \textbf{k}-matrix. In most cases the attribute \texttt{connected\_to} does not change during a simulation. Only the attribute \texttt{temp} is updated at regular intervals (see method \texttt{update}). The contribution to the $\mathbf{\dot{q}}$-vector then has to be updated as well.
+
+\subsubsection{Heat conductance Edges}
 \textbf{description}: A heat conductance edge represents the possibility to exchange heat between the two connected nodes (either capacity node or temperature node). Heat will be transferred from the node with high temperature to the node with low temperature. For example, an edge between the nodes 'air' and 'walls' indicates that heat can be transferred from the air to the wall, and the other way around.  
 
 \textbf{properties}
@@ -1528,12 +1536,11 @@ caption={Fixed Node}]
 	\item \emph{conductance\_value} [J/K] or [J/\degree C]. This should be provided in the \textbf{input}.
 \end{itemize}
 
-\lstinputlisting[label=lst:capnode, linerange={26-32}, 
+\lstinputlisting[label=lst:capnode, linerange={29-33}, 
 caption={Conductance Edges}] 
 {../../housemodel/buildings/components.py}
 
-
-\subsubsection{fluid flow}
+\subsubsection{Fluid Flow}
 \emph{NOTE}: the definition of the fluid flows in this section has its limitations. Only basic closed loops without splits in the 'pipes' can be modeled. This is fine as a starting point. However, when more complex scenarios with complex fluid flows are required a more generic formalism is needed for the modeling of the fluid flows. In this case, a system with flow edges and flow nodes may be a possible solution. The open challenges here are: 1. how to define the flow network (next to / in combination with the heat conductance network),  2. how to compute the flow rates in the more complex system. 
 
 \textbf{description:} A fluid flow represents a \emph{closed} loop over a set of nodes (with or without heat capacity). The flow rate is the same for all nodes and edges within the loop. The flow rate may change over time, but is assumed to be constant within a given time interval, and changes are assumed to be instantaneous. Thus, the flow rate can be described by a step-function. This flow rate should be controlled, either in a on/off manner, or in m (???)
@@ -1547,8 +1554,8 @@ caption={Conductance Edges}]
 	\item \emph{connected\_nodes}: An \emph{ordered} list of the nodes through which the fluid flow runs, the order is determined by the direction the fluid will be pumped through the network. Start and end of the list need to be the same node. This ensures the required closed loop. This should be provided in the \textbf{input}. From this ordered list a "directed-flow-matrix" can be set-up as indicated in Section \ref{s:flow_matrices}. 
 \end{itemize}
 
-\lstinputlisting[label=lst:flows, linerange={7-15}, 
-caption={Flows}] 
+\lstinputlisting[label=lst:flows, linerange={8-16}, 
+caption={Flow}] 
 {../../housemodel/sourcesink/flows.py}
 
 \subsubsection{flow network}
@@ -1665,4 +1672,56 @@ From commit \textsf{e74ce58} the files in the \textsf{twozone\_housemodel-git} r
 
 \textit{Note}: Running the simulations and tests is best done from the \emph{repository root}. All simulations and tests have been updated to find the package, subpackages and configuration files from this directory.
 
+\subsection{Scripts}
+
+Simulations can be run as a Python script or as an IPython (Jupyter) notebook. The structure of a script can be summarized as follows:
+
+\begin{itemize}
+	\item read configuration file. This file is written in \textsf{*.yaml} format. The parameters in the file are converted to a variable (suggested name: \texttt{param}) of type \texttt{dict}.
+	\item create an instance of the \texttt{House} class. Example: \texttt{h = House("MyHouse")}.
+	\lstinputlisting[label=lst:house, linerange={19-38}, 
+	caption={The House class}] 
+	{../../housemodel/buildings/house.py}
+	\item read the nodes of the House model with the method \texttt{nodes\_from\_dict(param["Building"]["nodes"])}
+	\item fill the inverse of the capacity matrix $\mathbf{C^{-1}}$ using the method \texttt{fill\_c\_inv}().
+	\item read \emph{all} fixed nodes using the method \texttt{boundaries\_from\_dict(param["boundaries"])}. The method copies the "outdoor" external node to the House.ambient node.
+	\item initialize the $\mathbf{K}$-matrix and add the conductivity between the house nodes and ambient to the diagonal elements using the method \texttt{add\_ambient\_to\_k()}.
+	\item at this point we can read \emph{all} edges in the model using the method \texttt{edges\_from\_dict(param["edges"])} and add the non-diagonal elements to $\mathbf{K}$ with the method \texttt{fill\_k(param["edges"])}. However, this can only be done for the thermal conductivities \emph{within} the Building subsystem. Thermal conductivities \emph{between} subsystems (\textit{e.g.} between the Building contents and a Radiator) have to be added after assembly of the subsystems (matrices) into a complete model (set of differential equations). Therefore, the $\mathbf{K}$-matrix is completed \emph{after} merging the subsystems.
+\end{itemize}
+
+	\begin{equation}
+		\mathbf{K} \cdot \boldsymbol{\theta} =
+		\left[~
+		\begin{bmatrix}
+			\frac{1}{R_{air, wall}} & \frac{-1}{R_{air, wall}} \\
+			\frac{-1}{R_{air, wall}} &  \frac{1}{R_{air, wall}}
+		\end{bmatrix}
+	    +
+	    \begin{bmatrix}
+	    	\frac{1}{R_{air, amb}} & 0 \\
+	    	0 &  0
+	    \end{bmatrix}
+        ~\right]
+		\cdot
+		\begin{bmatrix}
+			T_{air} \\
+			T_{wall}
+		\end{bmatrix}
+	\end{equation}
+
+\begin{itemize}
+	\item Similarly, a buffer vessel can be created with \texttt{b = StratifiedBuffer("Buffervessel")}.
+	\item run \texttt{b.nodes\_from\_dict(param["Buffer"]["nodes"])} and \texttt{b.fill\_c\_inv()} to create the inverse capacity matrix $\mathbf{C^{-1}}$ for the buffer vessel. The nodes are equivalent to the layers of a stratified buffer tank.
+	\item The buffer vessel has a "ambient" temperature which is an "indoor" temperature for an attic or basement room. This temperature can be taken as a constant for the complete simulation period. Apply the functions \texttt{b.boundaries\_from\_dict(param["boundaries"])} (selects "indoor" as ambient) and 
+	\texttt{b.add\_ambient\_to\_k()}.
+	
+	\item  A very simple radiator model consists of a CapacityNode, coupled to the contents ("air") of the Building subsystem. This can be implemented by calling \texttt{r = LinearRadiator("SimpleRadiator")}, \\
+	\texttt{r.nodes\_from\_dict(param["Radiator"]["nodes"])} and \texttt{r.fill\_c\_inv()}. $\mathbf{C^{-1}}$ is a matrix of rank 1 in this case (numpy.ndarray(1,1)), and not a scalar.
+	\item the LinearRadiator object does not have an "ambient" fixed (external) node contributing to the $\mathbf{K}$-matrix.
+	\item a complete model can be assembled from the partial models. it is created with \\ \texttt{total = TotalSystem("HouseWithRadiator")}.
+	\item compose the $\mathbf{C^{-1}}$-matrix from the subsystems with 
+	\texttt{total.c\_inv\_mat = add\_c\_inv\_block(h.c\_inv\_mat, r.c\_inv\_mat)}.
+	\item merge the tag\_lists with \texttt{total.tag\_list = [*h.tag\_list, *r.tag\_list]} and sort with \\
+	\texttt{total.tag\_list.sort()}.
+\end{itemize}
 \newpage

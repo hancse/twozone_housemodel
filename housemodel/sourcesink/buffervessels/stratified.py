@@ -80,7 +80,7 @@ class StratifiedBuffer:
         """select local edges belonging to object and make k-matrix.
 
         Args:
-            lol: list of edge lists [from, to, weight]
+            lol: list of edge lists [from, to, weight] read from config file
         """
         el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
         self.k_mat = make_edges(el)

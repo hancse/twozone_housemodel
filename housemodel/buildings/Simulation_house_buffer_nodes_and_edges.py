@@ -26,7 +26,9 @@ from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
 from housemodel.buildings.house import House
 from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
-from housemodel.sourcesink.radiators import Radiator
+from housemodel.buildings.linear_radiator import LinearRadiator
+
+# from housemodel.sourcesink.radiators import Radiator
 from housemodel.sourcesink.flows import Flow
 from housemodel.buildings.totalsystem import TotalSystem
 # from housemodel.buildings.components import FixedNode
@@ -148,12 +150,31 @@ def main(show=False, xl=False):
 
     logger.info(f" \n\n {b.c_inv_mat} \n\n {b.k_mat}, \n\n {b.q_vec} \n")
 
+    r = LinearRadiator("SimpleRadiator")
+    r.nodes_from_dict(param["Radiator"]["nodes"])
+    r.fill_c_inv()
+
+    r.edges_from_dict(param['edges'])
+    # r.fill_k(param["edges"])  # impossible because no internal edges
+    r.make_empty_k_mat()
+
+    r.make_empty_q_vec()  # no "ambient" for LinearRadiator
+
     # create Totalsystem object
-    total = TotalSystem("HouseWithBuffer")
+    total = TotalSystem("HouseWithRadiator")
     # compose c-1-matrix from parts
-    total.c_inv_mat = add_c_inv_block(h.c_inv_mat, b.c_inv_mat)
+    total.c_inv_mat = add_c_inv_block(h.c_inv_mat, r.c_inv_mat)
+    # https: // www.geeksforgeeks.org / python - ways - to - concatenate - two - lists /
+    total.tag_list = [*h.tag_list, *r.tag_list]
+    total.tag_list.sort()
     # compose k-matrix from parts
-    total.k_mat = add_k_block(h.k_mat, b.k_mat)
+    total.k_mat = add_k_block(h.k_mat, r.k_mat)
+
+    total.edges_from_dict(param["edges"])
+    # test_mat = total.fill_k(param["edges"])
+    # add unused edge from radiator to room (air-rad)
+    total.complete_k(param["edges"])
+
     # read boundaries from configuration file
     total.boundaries_from_dict(param["boundaries"])
     # but DO NOT ADD them to the k_matrix; this has been done in the subsystems
@@ -161,15 +182,15 @@ def main(show=False, xl=False):
 
     total.make_empty_q_vec()
     # compose q-vector from parts; ONLY as an excercise
-    total.q_vec = stack_q(h.q_vec, b.q_vec)
+    total.q_vec = stack_q(h.q_vec, r.q_vec)
     # DO NOT ADD boundaries to TotalSystem.q_vec
     # total.add_fixed_to_q()
 
     logger.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
 
-    r = Radiator(1.3)
-    r.boundaries_from_dict(param["boundaries"])
-    r.T_amb = 20.0  # = h.Tini
+    # r = Radiator(1.3)
+    # r.boundaries_from_dict(param["boundaries"])
+    # r.T_amb = 20.0  # = h.Tini
 
     # calculate flow matrices and combine into f_mat_all
     flows = []
