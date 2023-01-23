@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.linalg import block_diag
 
 from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         add_c_inv_block,
@@ -7,6 +8,9 @@ from housemodel.tools.new_configurator import load_config
 from housemodel.buildings.components import (CapacityNode,
                                              FixedNode,
                                              CondEdge)
+from housemodel.buildings.building import Building
+from housemodel.buildings.linear_radiator import LinearRadiator
+
 import logging
 
 logging.basicConfig(level="DEBUG")
@@ -17,11 +21,22 @@ logging.basicConfig(level="DEBUG")
 
 from typing import List, Tuple
 
+# input parameter parts contains the subsystems of TotalSystem
+# like Building, StratifiedBuffer or LinearRadiator objects
+# if parts is a tuple, the variable is immutable, and can have a default value parts=()
+# if parts is a list, it is mutable (sortable)
+# then it must have a default value of parts=None and a default statement
+# if parts is None: parts = []
+# see: https://stackoverflow.com/questions/61260600/avoiding-default-argument-value-is-mutable-warning-pycharm
+
 
 class TotalSystem:
-    def __init__(self, name="", parts=()):   # immutable "list" = tuple
+    def __init__(self, name="", parts=None):   # immutable "list" = tuple
         self.name = name
-        self.parts = parts
+        if parts is None:
+            self.parts = []
+        else:
+            self.parts = parts
         self.num_nodes = 0
         self.num_edges = 0
         self.nodes = []            # np.zeros(self.num_nodes, dtype=object)
@@ -31,6 +46,7 @@ class TotalSystem:
 
         self.c_inv_mat = None  # np.zeros((self.num_nodes, self.num_nodes))
         self.k_mat = None      # np.zeros_like(self.c_inv_mat)
+        self.k_ext_mat = None  # np.zeros_like(self.c_inv_mat)
         self.q_vec = None      # np.zeros(self.num_nodes, 1)
         self.f_mat = None      # np.zeros(self.num_nodes, self.num_nodes)
 
@@ -43,37 +59,10 @@ class TotalSystem:
 
         logging.info(f" TotalSystem object {self.name} created")
 
-    def nodes_from_dict(self, lod: list):
-        """initializes "nodes" attribute with data from yaml file
-           makes a list from tags belonging to the TotalSystem object
-
-        Args:
-            lod: list of dicts read from yaml file
-
-        Returns:
-            None
-        """
-        self.num_nodes = len(lod)
-        for n in range(self.num_nodes):
-            node = CapacityNode(label=lod[n]["label"],
-                                tag=lod[n]["tag"],
-                                cap=lod[n]["capacity"],
-                                temp=lod[n]["T_ini"])
-            # append by reference, therefore new node object in each iteration
-            self.nodes.append(node)
-            logging.debug(f" node '{node.label}' with tag {node.tag} appended to {self.name}")
-        self.tag_list = [n.tag for n in self.nodes]
-        logging.debug(f" tag_list {self.tag_list}")
-
-    def fill_c_inv(self):
-        self.cap_list = [n.cap for n in self.nodes]
-        if len(self.cap_list) > 0:
-            self.c_inv_mat = make_c_inv_matrix(self.cap_list)
-            logging.debug(f" c_inv_matrix: \n {self.c_inv_mat}")
-        else:
-            logging.error(f" Error: cap_list empty")
-
     def edges_from_dict(self, lol):
+        """reads ALL edges from parameter dict
+
+        """
         self.num_edges = len(lol)
         for n in range(self.num_edges):
             edge = CondEdge(label="",
@@ -88,9 +77,9 @@ class TotalSystem:
         Args:
             lol: list of edge lists [from, to, weight]
         """
-        # selection should not be necessary
-        # el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
-        self.k_mat = make_edges(lol)
+        # selection is always necessary!
+        el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
+        self.k_mat = make_edges(el)
         logging.debug(f" k_matrix: \n {self.k_mat}")
 
     def complete_k(self, lol):
@@ -160,9 +149,49 @@ class TotalSystem:
             logging.debug(f" ambient added to q-vector element {idx} ({self.nodes[idx].label})")
         logging.debug(f" q_vector: \n {self.q_vec}")
 
+    def myFunc(self, p):
+        return p.tag_list[0]
+
+    def sort_parts(self):
+        """sorting parts according to the first element in their attribute 'tag_list'.
+        """
+        if type(self.parts) is list:
+            self.parts.sort(key=self.myFunc)
+        elif type(self.parts) is tuple:
+            part_list = list(self.parts)
+            part_list.sort(key=self.myFunc)
+            self.parts = tuple(part_list)
+
+    def merge_c_inv(self):
+        """merge inverse capacity matrices of parts by block diagonal addition
+        """
+        my_tup = (p.c_inv_mat for p in self.parts)
+        self.c_inv_mat = block_diag(*my_tup)
+
+    def merge_tag_lists(self):
+        """merge tag_lists from parts. This should always yield a sorted tag_list
+        since the parts are already sorted on parts.tag_list[0]
+        See: https://www.geeksforgeeks.org/python-ways-to-concatenate-two-lists
+        See: https://stackoverflow.com/questions/18114415/how-do-i-concatenate-3-lists-using-a-list-comprehension
+        """
+        self.tag_list = [t for tag in [p.tag_list for p in self.parts] for t in tag]
+
+    def merge_k_ext(self):
+        """merge external conductivity matrices of parts by block diagonal addition
+        """
+        my_tup = (p.k_ext_mat for p in self.parts)
+        self.k_ext_mat = block_diag(*my_tup)
+
 
 if __name__ == "__main__":
-    t = TotalSystem()
+    house = Building()
+    house.tag_list = [0, 1]
+    radiator = LinearRadiator()
+    radiator.tag_list = [2]
+    t = TotalSystem("Test", [radiator, house])
+    logging.info(f"parts (unsorted): {t.parts}")
+    t.sort_parts()
+    logging.info(f"parts (sorted): {t.parts}")
     c_list = [1.0, 2.0]
     c1 = make_c_inv_matrix(c_list)
     print(c1, "\n")

@@ -28,6 +28,7 @@ class Building:
 
         self.c_inv_mat = None  # np.zeros((self.num_nodes, self.num_nodes))
         self.k_mat = None      # np.zeros_like(self.c_inv_mat)
+        self.k_ext_mat = None  # np.zeros_like(self.c_inv_mat)
         self.q_vec = None      # np.zeros(self.num_nodes, 1)
 
         self.q_solar = None
@@ -45,9 +46,6 @@ class Building:
 
         Args:
             lod: list of dicts read from yaml file
-
-        Returns:
-            None
         """
         self.num_nodes = len(lod)
         for n in range(self.num_nodes):
@@ -115,16 +113,19 @@ class Building:
             logging.debug(f" ambient connected to node '{self.nodes[index].label}'")
     """
 
-    def add_ambient_to_k(self):
-        """selectively add conductivity to boundary condition "ambient" to diagonal elements of k-matrix.
+    def make_k_ext_and_add_ambient(self):
+        """make external "k_ext" matrix and selectively add conductivity to boundary condition "ambient"
+        to diagonal elements
 
         """
-        for c in self.ambient.connected_to:
-            idx = self.tag_list.index(c[0])
-            cond = c[1]
-            self.k_mat[idx, idx] -= cond
-            logging.debug(f" ambient connected to node '{self.nodes[idx].label}'")
-        logging.debug(f" k_matrix: \n {self.k_mat}")
+        if self.num_nodes > 0:                                            # c-1 matrix and rank has to be defined
+            self.k_ext_mat = np.zeros((self.num_nodes, self.num_nodes))   # initialize with zeros
+            for c in self.ambient.connected_to:
+                idx = self.tag_list.index(c[0])
+                cond = c[1]
+                self.k_ext_mat[idx, idx] += cond
+                logging.debug(f" ambient connected to node '{self.nodes[idx].label}'")
+            logging.debug(f" k_ext matrix: \n {self.k_ext_mat}")
 
     def make_empty_q_vec(self):
         self.q_vec = np.zeros((self.num_nodes, 1))

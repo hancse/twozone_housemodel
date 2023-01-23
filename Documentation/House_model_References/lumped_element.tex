@@ -1678,15 +1678,17 @@ Simulations can be run as a Python script or as an IPython (Jupyter) notebook. T
 
 \begin{itemize}
 	\item read configuration file. This file is written in \textsf{*.yaml} format. The parameters in the file are converted to a variable (suggested name: \texttt{param}) of type \texttt{dict}.
-	\item create an instance of the \texttt{House} class. Example: \texttt{h = House("MyHouse")}.
-	\lstinputlisting[label=lst:house, linerange={19-38}, 
-	caption={The House class}] 
-	{../../housemodel/buildings/house.py}
-	\item read the nodes of the House model with the method \texttt{nodes\_from\_dict(param["Building"]["nodes"])}
+	\item create an instance of the \texttt{Building} class. Example: \texttt{h = Building("MyHouse")}.
+	
+	\lstinputlisting[label=lst:house, linerange={19-39}, 
+	caption={The Building class}] 
+	{../../housemodel/buildings/building.py}
+	
+	\item read the nodes of the Building model with the method \texttt{nodes\_from\_dict(param["Building"]["nodes"])}
 	\item fill the inverse of the capacity matrix $\mathbf{C^{-1}}$ using the method \texttt{fill\_c\_inv}().
-	\item read \emph{all} fixed nodes using the method \texttt{boundaries\_from\_dict(param["boundaries"])}. The method copies the "outdoor" external node to the House.ambient node.
-	\item initialize the $\mathbf{K}$-matrix and add the conductivity between the house nodes and ambient to the diagonal elements using the method \texttt{add\_ambient\_to\_k()}.
-	\item at this point we can read \emph{all} edges in the model using the method \texttt{edges\_from\_dict(param["edges"])} and add the non-diagonal elements to $\mathbf{K}$ with the method \texttt{fill\_k(param["edges"])}. However, this can only be done for the thermal conductivities \emph{within} the Building subsystem. Thermal conductivities \emph{between} subsystems (\textit{e.g.} between the Building contents and a Radiator) have to be added after assembly of the subsystems (matrices) into a complete model (set of differential equations). Therefore, the $\mathbf{K}$-matrix is completed \emph{after} merging the subsystems.
+	\item read \emph{all} fixed nodes using the method \texttt{boundaries\_from\_dict(param["boundaries"])}. \\ The method copies the "outdoor" external node to the \texttt{Building.ambient} node.
+	\item initialize the $\mathbf{K}$-matrix and add the conductivity between the building nodes and ambient to the diagonal elements using the method \texttt{make\_k\_ext\_and\_add\_ambient()}.
+	\item at this point we can read \emph{all} edges in the model using the method \texttt{edges\_from\_dict(param["edges"])} and add the non-diagonal elements to $\mathbf{K}$ with the method \texttt{fill\_k(param["edges"])}. However, this can only be done for the thermal conductivities \emph{within} the Building subsystem. Thermal conductivities \emph{between} subsystems (\textit{e.g.} between the Building contents and a Radiator) have to be added after assembly of the subsystems (matrices) into a complete model (set of differential equations). Therefore, the $\mathbf{K}$-matrix is completed \emph{after} merging the matrices of the subsystems. 
 \end{itemize}
 
 	\begin{equation}
@@ -1755,11 +1757,13 @@ Simulations can be run as a Python script or as an IPython (Jupyter) notebook. T
 \end{itemize}
 
 \begin{itemize}
-	\item a complete model can be assembled from the partial models. it is created with \\ \texttt{total = TotalSystem("HouseWithRadiator")}.
-	\item compose the $\mathbf{C^{-1}}$-matrix from the subsystems with 
-	\texttt{total.c\_inv\_mat = add\_c\_inv\_block(h.c\_inv\_mat, r.c\_inv\_mat)}.
-	\item merge the tag\_lists with \texttt{total.tag\_list = [*h.tag\_list, *r.tag\_list]} and sort with \\
-	\texttt{total.tag\_list.sort()}.
+	\item a complete model can be assembled from the partial models. it is created with \\ \texttt{total = TotalSystem("HouseWithRadiator", [r, h])}. The list \texttt{[r, h]} of partial models is then sorted with     \texttt{total.sort\_parts()} so that the previously assigned tags correspond to the rows of the total system matrices.
+	\item compose the $\mathbf{C^{-1}}$-matrix from the parts with \texttt{total.merge\_c\_inv()}.
+	\item merge the tag\_lists with \texttt{total.merge\_tag\_lists()}. TotalSystem.tag\_list should be ordered.
+	
+	\item compose the $\mathbf{K}$-matrix from the parts with \texttt{total.edges\_from\_dict(param["edges"])} and \\ \texttt{total.fill\_k(param["edges"])}.
+	\item compose the $\mathbf{K_{ext}}$-matrix from the parts with \texttt{total.merge\_k\_ext()}.
+	\item add $\mathbf{K}$ and $\mathbf{K_{ext}}$ with \texttt{total.k\_mat += total.k\_ext\_mat}.
 \end{itemize}
 
 \newpage

@@ -114,67 +114,63 @@ def main(show=False, xl=False):
 
     # create House object
     h = Building("MyHouse")
+    section = param["Building"]
     # read nodes attribute from dictionary and create capacity matrix
-    h.nodes_from_dict(param["Building"]["nodes"])
+    h.nodes_from_dict(section["nodes"])
     h.fill_c_inv()
-    # read ALL edges in the system; select edges connecting nodes in taglist; create conductivity matrix
-    h.edges_from_dict(param["edges"])
-    h.fill_k(param["edges"])
-    # read FixedNode objects (external nodes); add to diagonal elements of k-matrix
+    # read FixedNode objects (external nodes);
     h.boundaries_from_dict(param["boundaries"])  # function selects "outdoor" as ambient
-    #h.add_fixed_to_k()
-    h.add_ambient_to_k()
-    # create empty q-vector (all zeros)
-    h.make_empty_q_vec()
-    # h.add_fixed_to_q()  # to be multiplied with actual T_outdoor value!!!
-    # the q_vec is made in the iteration, after all elements of T_outdoor have been read from NEN5060
-    h.add_ambient_to_q()
+    h.make_k_ext_and_add_ambient()  # initialize k_ext_mat and add diagonal elements
 
-    logger.info(f" \n\n {h.c_inv_mat} \n\n {h.k_mat}, \n\n {h.q_vec} \n")
+    # read ALL edges in the system; select edges connecting nodes in taglist; create conductivity matrix
+    # h.edges_from_dict(param["edges"])
+    # h.fill_k(param["edges"])
+
+    # create empty q-vector (all zeros)
+    # h.make_empty_q_vec()
+    # the q_vec is made in the iteration, after all elements of T_outdoor have been read from NEN5060
+    # h.add_ambient_to_q()
+
+    logger.info(f" \n\n C^-1: \n {h.c_inv_mat} \n K_ext: \n {h.k_ext_mat}, \n q_vec: \n {h.q_vec} \n")
 
     # create StratifiedBuffer object
     b = StratifiedBuffer("Buffervessel")
-    b.nodes_from_dict(param["Buffer"]["nodes"])
+    section = param["Buffer"]
+    b.nodes_from_dict(section["nodes"])
     b.fill_c_inv()
-
-    b.edges_from_dict(param['edges'])
-    b.fill_k(param["edges"])
 
     b.boundaries_from_dict(param["boundaries"])  # function selects "indoor" as ambient
     # b.add_fixed_to_k()  # crashes because Fixed node connects to node 2,3,4 and b.k_matrix has rank 3 (index 0,1,2)
-    b.add_ambient_to_k()
+    b.make_k_ext_and_add_ambient()
 
-    b.make_empty_q_vec()
-    #b.add_fixed_to_q()
-    b.add_ambient_to_q()
+    # b.edges_from_dict(param['edges'])
+    # b.fill_k(param["edges"])
 
-    logger.info(f" \n\n {b.c_inv_mat} \n\n {b.k_mat}, \n\n {b.q_vec} \n")
+    # b.make_empty_q_vec()
+    # b.add_ambient_to_q()
+
+    logger.info(f" \n\n C^-1: \n {b.c_inv_mat} \n K_ext: \n {b.k_ext_mat}, \n q_vec: \n {b.q_vec} \n")
 
     r = LinearRadiator("SimpleRadiator")
     r.nodes_from_dict(param["Radiator"]["nodes"])
     r.fill_c_inv()
+    r.make_empty_k_ext_mat()
 
-    r.edges_from_dict(param['edges'])
-    # r.fill_k(param["edges"])  # impossible because no internal edges
-    r.make_empty_k_mat()
+    logger.info(f" \n\n C^-1: \n {r.c_inv_mat} \n K_ext: \n {r.k_ext_mat}, \n q_vec: \n {r.q_vec} \n")
 
-    r.make_empty_q_vec()  # no "ambient" for LinearRadiator
+    # create Totalsystem object and sort parts
+    total = TotalSystem("HouseWithRadiator", [r, h])
+    total.sort_parts()
+    # compose c-1-matrix from parts and merge tag_lists
+    total.merge_c_inv()
+    total.merge_tag_lists()
 
-    # create Totalsystem object
-    # total = TotalSystem("HouseWithRadiator")
-    total = TotalSystem("HouseWithRadiator", (h, r))
-    # compose c-1-matrix from parts
-    total.c_inv_mat = add_c_inv_block(h.c_inv_mat, r.c_inv_mat)
-    # https: // www.geeksforgeeks.org / python - ways - to - concatenate - two - lists /
-    total.tag_list = [*h.tag_list, *r.tag_list]
-    total.tag_list.sort()
     # compose k-matrix from parts
-    total.k_mat = add_k_block(h.k_mat, r.k_mat)
-
     total.edges_from_dict(param["edges"])
-    # test_mat = total.fill_k(param["edges"])
-    # add unused edge from radiator to room (air-rad)
-    total.complete_k(param["edges"])
+    total.fill_k(param["edges"])
+
+    total.merge_k_ext()
+    total.k_mat += total.k_ext_mat
 
     # read boundaries from configuration file
     total.boundaries_from_dict(param["boundaries"])
