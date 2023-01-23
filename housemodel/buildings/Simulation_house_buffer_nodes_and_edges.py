@@ -27,6 +27,7 @@ from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
 from housemodel.buildings.building import Building
 from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
 from housemodel.buildings.linear_radiator import LinearRadiator
+from housemodel.buildings.powersource import PowerSource
 
 # from housemodel.sourcesink.radiators import Radiator
 from housemodel.sourcesink.flows import Flow
@@ -152,11 +153,21 @@ def main(show=False, xl=False):
     logger.info(f" \n\n C^-1: \n {b.c_inv_mat} \n K_ext: \n {b.k_ext_mat}, \n q_vec: \n {b.q_vec} \n")
 
     r = LinearRadiator("SimpleRadiator")
-    r.nodes_from_dict(param["Radiator"]["nodes"])
+    section = param["Radiator"]
+    r.nodes_from_dict(section["nodes"])
     r.fill_c_inv()
     r.make_empty_k_ext_mat()
 
+    # r = Radiator(1.3)
+    # r.boundaries_from_dict(param["boundaries"])
+    # r.T_amb = 20.0  # = h.Tini
+
     logger.info(f" \n\n C^-1: \n {r.c_inv_mat} \n K_ext: \n {r.k_ext_mat}, \n q_vec: \n {r.q_vec} \n")
+
+    # Loading the radiator and buffervessel parameters
+    # Heat transfer coefficient of the radiator and het capacity
+    # UAradiator = house_param["chains"][0]["links"][2]["Conductance"]
+    # Crad =  house_param["chains"][0]["links"][2]["Capacity"]
 
     # create Totalsystem object and sort parts
     total = TotalSystem("HouseWithRadiator", [r, h])
@@ -175,10 +186,6 @@ def main(show=False, xl=False):
     total.make_empty_q_vec()
 
     logger.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
-
-    # r = Radiator(1.3)
-    # r.boundaries_from_dict(param["boundaries"])
-    # r.T_amb = 20.0  # = h.Tini
 
     # calculate flow matrices and combine into f_mat_all
     flows = []
@@ -202,11 +209,6 @@ def main(show=False, xl=False):
     row_sums = np.sum(f_mat_all, axis=1).tolist()
     f_mat_all = f_mat_all - np.diag(np.array(row_sums), k=0)
     print(f_mat_all, "\n")
-
-    # Loading the radiator and buffervessel parameters
-    # Heat transfer coefficient of the radiator and het capacity
-    # UAradiator = house_param["chains"][0]["links"][2]["Conductance"]
-    # Crad =  house_param["chains"][0]["links"][2]["Capacity"]
 
     # read NEN5060 data from spreadsheet NEN5060-2018.xlsx into pandas DataFrame
     df_nen = read_nen_weather_from_xl()
@@ -239,12 +241,16 @@ def main(show=False, xl=False):
     #                         Q_night=param['internal']['Q_day'] - param['internal']['delta_Q'])
     # Qinternal_sim = q_int[0:days_sim*24]
 
-    Qint = internal_heat_gain(param['internal']['Q_day'],
-                              param['internal']['delta_Q'],
-                              param['internal']['t1'],
-                              param['internal']['t2'])
-    Qint = Qint.flatten()
-    Qinternal_sim = Qint[0:days_sim * 24]
+    Qint = PowerSource("Q_internal")
+    Qint.connected_to = param['internal']['distribution']
+    Qint.powervalues = internal_heat_gain(param['internal']['Q_day'],
+                                          param['internal']['delta_Q'],
+                                          param['internal']['t1'],
+                                          param['internal']['t2'])
+    Qint.powervalues = Qint.powervalues.flatten()
+    Qint.powervalues = Qint.powervalues[0:days_sim * 24]
+
+    # Qinternal_sim = Qint[0:days_sim * 24]
 
     Toutdoor = df_nen.loc[:, 'temperatuur'].values
     Toutdoor = Toutdoor.flatten()  # temperature

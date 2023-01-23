@@ -119,4 +119,5 @@ controllers:
     kp: 4999.0   # [W/K]
     ki: 99.0     # [W/Ks]
     kd: 0.0      # [Ws/K]
+    maximum: 12000.0  # [W]
 

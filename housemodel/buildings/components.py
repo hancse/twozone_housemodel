@@ -34,6 +34,15 @@ class CondEdge:
     # src: int
     # sink: int
 
+
+""" notinuse
+@dataclass
+class PowerSource():
+    label: str
+    connected_to: []
+    power: np.ndarray      # in [W]
+"""
+
 """ notinuse
 
 @dataclass

@@ -1756,6 +1756,27 @@ Simulations can be run as a Python script or as an IPython (Jupyter) notebook. T
 	\item the LinearRadiator object does not have an "ambient" fixed (external) node contributing to the $\mathbf{K}$-matrix.
 \end{itemize}
 
+	\begin{equation}
+	\mathbf{K} \cdot \boldsymbol{\theta} =
+	\left[~
+	\underbrace{
+		\begin{bmatrix}
+			\frac{1}{R_{air, rad}} 
+		\end{bmatrix}
+	}_{\mathbf{K}_{int}}
+	+
+	\underbrace{
+		\begin{bmatrix}
+			0
+		\end{bmatrix}
+	}_{\mathbf{K}_{ext}}
+	~\right]
+	\cdot
+	\begin{bmatrix}
+		T_{rad}
+	\end{bmatrix}
+\end{equation}
+\\
 \begin{itemize}
 	\item a complete model can be assembled from the partial models. it is created with \\ \texttt{total = TotalSystem("HouseWithRadiator", [r, h])}. The list \texttt{[r, h]} of partial models is then sorted with     \texttt{total.sort\_parts()} so that the previously assigned tags correspond to the rows of the total system matrices.
 	\item compose the $\mathbf{C^{-1}}$-matrix from the parts with \texttt{total.merge\_c\_inv()}.
@@ -1765,7 +1786,7 @@ Simulations can be run as a Python script or as an IPython (Jupyter) notebook. T
 	\item compose the $\mathbf{K_{ext}}$-matrix from the parts with \texttt{total.merge\_k\_ext()}.
 	\item add $\mathbf{K}$ and $\mathbf{K_{ext}}$ with \texttt{total.k\_mat += total.k\_ext\_mat}.
 	
-	\item create an empty $\mathbf{\dot{q}}$-vector with \texttt{total.make\_empty\_q\_vec()}.
+	\item create an empty $\mathbf{\dot{q}}$-vector with \texttt{TotalSystem.make\_empty\_q\_vec()}.
 \end{itemize}
 
 \newpage
