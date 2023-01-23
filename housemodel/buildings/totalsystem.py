@@ -167,6 +167,8 @@ class TotalSystem:
         """
         my_tup = (p.c_inv_mat for p in self.parts)
         self.c_inv_mat = block_diag(*my_tup)
+        self.num_nodes = np.shape(self.c_inv_mat)[0]
+        assert self.num_nodes == sum([p.num_nodes for p in self.parts]), "total # nodes incorrect"
 
     def merge_tag_lists(self):
         """merge tag_lists from parts. This should always yield a sorted tag_list

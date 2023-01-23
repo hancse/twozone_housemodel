@@ -1764,6 +1764,8 @@ Simulations can be run as a Python script or as an IPython (Jupyter) notebook. T
 	\item compose the $\mathbf{K}$-matrix from the parts with \texttt{total.edges\_from\_dict(param["edges"])} and \\ \texttt{total.fill\_k(param["edges"])}.
 	\item compose the $\mathbf{K_{ext}}$-matrix from the parts with \texttt{total.merge\_k\_ext()}.
 	\item add $\mathbf{K}$ and $\mathbf{K_{ext}}$ with \texttt{total.k\_mat += total.k\_ext\_mat}.
+	
+	\item create an empty $\mathbf{\dot{q}}$-vector with \texttt{total.make\_empty\_q\_vec()}.
 \end{itemize}
 
 \newpage

@@ -172,16 +172,7 @@ def main(show=False, xl=False):
     total.merge_k_ext()
     total.k_mat += total.k_ext_mat
 
-    # read boundaries from configuration file
-    total.boundaries_from_dict(param["boundaries"])
-    # but DO NOT ADD them to the k_matrix; this has been done in the subsystems
-    # total.add_fixed_to_k()
-
     total.make_empty_q_vec()
-    # compose q-vector from parts; ONLY as an excercise
-    total.q_vec = stack_q(h.q_vec, r.q_vec)
-    # DO NOT ADD boundaries to TotalSystem.q_vec
-    # total.add_fixed_to_q()
 
     logger.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
 
