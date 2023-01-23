@@ -15,8 +15,8 @@ from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         stack_q)
 
 
-def model_radiator_ne(t, x, cap_mat_inv, cond_mat, q_vector,
-                     control_interval):
+def model_radiator_ne(t, x,
+                      tot_sys, control_interval):
     """model function for scipy.integrate.odeint.
 
     Args:
@@ -37,26 +37,26 @@ def model_radiator_ne(t, x, cap_mat_inv, cond_mat, q_vector,
     index = int(t/control_interval)
 
     # Equations :
-    local_q_vector = np.zeros((3,1))
-    local_q_vector[0,0] = q_vector[0,index]
-    local_q_vector[1,0] = q_vector[1,index]
-    local_q_vector[2,0] = q_vector[2,index]
+    #local_q_vector = tot_sys.q_vec
+    #local_q_vector[0,0] += q_vector[0,index]
+    #local_q_vector[1,0] = q_vector[1,index]
+    #local_q_vector[2,0] = q_vector[2,index]
 
     # Conversion of 1D array to a 2D array
     # https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
     x = np.array(x)[np.newaxis]
 
-    dTdt = (-cond_mat @ x.T) + local_q_vector
-    dTdt = np.dot(cap_mat_inv, dTdt)
+    dTdt = (-tot_sys.k_mat @ x.T) + tot_sys.q_vec
+    dTdt = np.dot(tot_sys.c_inv_mat, dTdt)
 
     return dTdt.flatten().tolist()
 
 
-def house_radiator_ne(time_sim, total_system,
+def house_radiator_ne(time_sim, tot_sys,
                       T_outdoor,
                       Q_solar,
                       Q_int,
-                      SP_T, control_interval, controllers):
+                      SP_T, cntrl_intrvl, cntrllrs):
     """Compute air and wall temperature inside the house.
 
     Args:
@@ -81,8 +81,12 @@ def house_radiator_ne(time_sim, total_system,
     # Tradiator0 = 40
     # y0 = [Tair0, Twall0, Tradiator0]
 
-    y0 = total_system.Tini
-    total_system.add_fixed_to_q()
+    y0 = [cn.temp for cn in [n for node in [p.nodes for p in tot_sys.parts] for n in node]]
+    # yn = [n for node in [p.nodes for p in tot_sys.parts] for n in node]
+    # y0 = [cn.temp for cn in yn]
+
+    q = [c for conn in [p.ambient.connected_to for p in tot_sys.parts if p.ambient is not None] for c in conn]
+    tot_sys.add_ambient_to_q()
 
     t = time_sim           # Define Simulation time with sampling time
     Tair = np.zeros(len(t))
@@ -96,17 +100,17 @@ def house_radiator_ne(time_sim, total_system,
     # ki = control_parameters[1]
     # kd = control_parameters[2]
 
-    pid = PID(controllers[0].kp,
-              controllers[0].ki,
-              controllers[0].kd,
+    pid = PID(cntrllrs[0]['kp'],
+              cntrllrs[0]['ki'],
+              cntrllrs[0]['kd'],
               t[0])
 
-    pid.SetPoint=17.0
+    pid.SetPoint = 17.0
     pid.setSampleTime(0)
     pid.setBounds(0, 12000)
-    pid.setWindup(12000/control_interval)
+    pid.setWindup(12000/cntrl_intrvl)
 
-    inputs = (total_system, control_interval)
+    inputs = (tot_sys, cntrl_intrvl)
 
     # Note: the algorithm can take an initial step
     # larger than the time between two elements of the "t" array
@@ -120,7 +124,7 @@ def house_radiator_ne(time_sim, total_system,
         pid.SetPoint = SP_T[i]
         pid.update(Tair[i], t[i])
         # q_vector[2, i] = pid.output
-        total_system.q_vec[2] = pid.output
+        tot_sys.q_vec[2] = pid.output
 
         # Simple PID controller
         # Qinst = (SP_T[i] - Tair[i]) * kp
@@ -137,7 +141,7 @@ def house_radiator_ne(time_sim, total_system,
         ts = [t[i], t[i+1]]
         result = solve_ivp(model_radiator_ne, ts, y0,
                            method='RK45', args=inputs,
-                           first_step=control_interval)
+                           first_step=cntrl_intrvl)
 
         Tair[i+1] = result.y[0, -1]
         Twall[i+1] = result.y[1, -1]
@@ -145,5 +149,5 @@ def house_radiator_ne(time_sim, total_system,
 
         y0 = result.y[:, -1]
 
-    return t, Tair, Twall, Tradiator, total_system.q_vec[2,:]/1000
+    return t, Tair, Twall, Tradiator, tot_sys.q_vec[2,:]/1000
 

@@ -9,7 +9,7 @@ Building:
       label: air
       tag: 0
       capacity: 8.59E+06  # J/K
-      T_ini: 20.0
+      T_ini: 15.0
     -
       label: wall
       tag: 1
@@ -40,7 +40,7 @@ Radiator:
       label: rad
       tag: 2
       capacity: 209000.0  # J/K = Crad
-      T_ini: 20.0
+      T_ini: 40.0
 
 edges:
   - [0, 1, 2024.0]        # W/K : 1/R1
@@ -116,7 +116,7 @@ internal:
 controllers:
   -
     label: GasBoiler
-    kp: 4999   # [W/K]
-    ki: 99     # [W/Ks]
-    kd: 0      # [Ws/K]
+    kp: 4999.0   # [W/K]
+    ki: 99.0     # [W/Ks]
+    kd: 0.0      # [Ws/K]
 

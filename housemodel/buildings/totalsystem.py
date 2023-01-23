@@ -142,11 +142,13 @@ class TotalSystem:
 
         TotalSystem needs this function to update the q_vector in the solver
         """
-        for c in self.ambient.connected_to:
-            idx = self.tag_list.index(c[0])
-            cond = c[1]
-            self.q_vec[idx] += cond * self.ambient.temp
-            logging.debug(f" ambient added to q-vector element {idx} ({self.nodes[idx].label})")
+        for p in self.parts:
+            if p.ambient is not None:
+                for c in p.ambient.connected_to:
+                    idx = self.tag_list.index(c[0])
+                    cond = c[1]
+                    self.q_vec[idx] += cond * p.ambient.temp
+                    # logging.debug(f" ambient added to q-vector element {idx} ({self.nodes[idx].label})")
         logging.debug(f" q_vector: \n {self.q_vec}")
 
     def myFunc(self, p):

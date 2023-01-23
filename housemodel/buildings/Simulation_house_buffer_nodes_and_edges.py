@@ -187,7 +187,7 @@ def main(show=False, xl=False):
         flows[n].flow_from_dict(param['flows'][n])
         flows[n].make_Fmatrix(rank=total.k_mat.shape[0])
 
-    # combine Fmatrices into matrix Fall
+    # combine F-matrices into matrix Fall
     f_mat_all = np.zeros_like(flows[0].f_mat)
     for n in range(len(flows)):
         f_mat_all += flows[n].f_mat
