@@ -48,7 +48,7 @@ def make_edges(edge_list):
     A = nx.adjacency_matrix(G)
     B = A.toarray()
     row_sums = np.sum(B, axis=1).tolist()
-    K_matrix = B - np.diag(np.array(row_sums), k=0)
+    K_matrix = -B + np.diag(np.array(row_sums), k=0)
     return K_matrix
 
 

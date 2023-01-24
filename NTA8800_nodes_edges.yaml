@@ -1,6 +1,6 @@
 timing:
   Timestep:  10   # [in minutes] default timestep in time integration
-  Duration:  8760 # [in hours]
+  Duration:  1200 # [in hours]
 # 24*365 = 8760 is a year
 
 Building:
@@ -76,7 +76,7 @@ boundaries:
     T_ini: 20.0
     connected_to:
       - [ 0, 201.9611831 ]  # W/K
-#      - [ 1, 0.11 ]
+#     - [ 1, 0.11 ]
   -
     label: return
     T_ini: 20.0

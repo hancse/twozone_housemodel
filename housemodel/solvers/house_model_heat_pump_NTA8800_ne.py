@@ -6,14 +6,9 @@ from scipy.integrate import solve_ivp       # ODE solver
 import numpy as np                       # linear algebra
 # from housemodel.tools.PIDsim import PID
 from housemodel.controls.ivPID.PID import PID
-
-from housemodel.buildings.totalsystem import TotalSystem
-from housemodel.tools.ckf_tools import (make_c_inv_matrix,
-                                        make_edges,
-                                        add_c_inv_block,
-                                        add_k_block,
-                                        stack_q)
-
+from housemodel.sourcesink.heatpumps.Heatpump_HM import Heatpump_NTA
+from housemodel.controls.heating_curves import hyst, outdoor_reset
+from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
 
 def model_radiator_ne(t, x,
                       tot_sys, control_interval):
@@ -37,8 +32,8 @@ def model_radiator_ne(t, x,
     index = int(t/control_interval)
 
     # Equations :
-    #local_q_vector = tot_sys.q_vec
-    #local_q_vector[0,0] += q_vector[0,index]
+    #local_q_vector = np.zeros((3,1))
+    #local_q_vector[0,0] = q_vector[0,index]
     #local_q_vector[1,0] = q_vector[1,index]
     #local_q_vector[2,0] = q_vector[2,index]
 
@@ -53,10 +48,10 @@ def model_radiator_ne(t, x,
 
 
 def house_radiator_ne(time_sim, tot_sys,
-                      T_outdoor,
-                      Q_solar,
-                      Q_int,
-                      SP_T, cntrl_intrvl, cntrllrs):
+                            T_outdoor_sim,
+                            Q_solar_sim,
+                            Qinternal_sim,
+                            SP_sim,  control_interval, controllers):
     """Compute air and wall temperature inside the house.
 
     Args:
@@ -75,76 +70,58 @@ def house_radiator_ne(time_sim, tot_sys,
 
         - Qinst ?	  (array):  instant heat from heat source such as HP or boiler [W].
     """
-    # initial values for solve_ivp
-    y0 = [cn.temp for cn in [n for node in [p.nodes for p in tot_sys.parts] for n in node]]
-    # yn = [n for node in [p.nodes for p in tot_sys.parts] for n in node]
-    # y0 = [cn.temp for cn in yn]
 
-    # initial values for q-vector
-    q = [c for conn in [p.ambient.connected_to for p in tot_sys.parts if p.ambient is not None] for c in conn]
-    tot_sys.add_ambient_to_q()
-
-    source_list = []
-    n = 0
-    for c in Q_solar.connected_to:
-        idx = tot_sys.tag_list.index(c[0])
-        tot_sys.q_vec[idx] += c[1]*Q_solar.values[n]
-        # logging.debug(f" ambient added to q-vector element {idx} ({p.nodes[idx].label})")
+    yn = [n for node in [p.nodes for p in tot_sys.parts] for n in node]
+    y0 = [cn.temp for cn in yn]
 
     t = time_sim           # Define Simulation time with sampling time
     Tair = np.zeros(len(t))
     Twall = np.zeros(len(t))
     Tradiator = np.zeros(len(t))
 
-    # Controller initialization
-    # heatingPID = PID(Kp=5000, Ki=0, Kd=0, beta=1, MVrange=(0, 12000), DirectAction=False)
-    # heating = 0
-    # kp = control_parameters[0]
-    # ki = control_parameters[1]
-    # kd = control_parameters[2]
+    # Heat pump initialization
+    nta = Heatpump_NTA()
+    nta.Pmax = 8
+    nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
 
-    pid = PID(cntrllrs[0]['kp'],
-              cntrllrs[0]['ki'],
-              cntrllrs[0]['kd'],
-              t[0])
+    nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
+                                  nta.cal_COP_val, order=1)
 
-    pid.SetPoint = 17.0
-    pid.setSampleTime(0)
-    pid.setBounds(0, cntrllrs[0]["maximum"])
-    pid.setWindup(cntrllrs[0]["maximum"]/cntrl_intrvl)
+    nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
+                                  nta.cal_Pmax_val, order=1)
 
-    inputs = (tot_sys, cntrl_intrvl)
+    water_temp = np.zeros_like(T_outdoor_sim)
+    cop_hp = np.zeros_like(T_outdoor_sim)
+
+    # define hysteresis object for heat pump
+    hp_hyst = hyst(dead_band=0.5, state=True)
+
+    inputs = (tot_sys, control_interval)
 
     # Note: the algorithm can take an initial step
     # larger than the time between two elements of the "t" array
     # this leads to an "index-out-of-range" error in the last evaluation
-    # of the model function, where e.g. SP_T[8760] is called.
+    # of the model function, where e.g SP_T[8760] is called.
     # Therefore set "first_step" equal or smaller than the spacing of "t".
     # https://github.com/scipy/scipy/issues/9198
 
     for i in range(len(t)-1):
-        # here comes the "arduino style" controller
-        pid.SetPoint = SP_T[i]
-        pid.update(Tair[i], t[i])
-        # q_vector[2, i] = pid.output
-        tot_sys.q_vec[2] = pid.output
+        # Heat pump NTA800
+        # p_hp = 0
+        # determine new setting for COP and heat pump power
+        water_temp[i] = outdoor_reset(T_outdoor_sim[i], 0.7, 20)
+        cop_hp[i], p_hp = nta.update(T_outdoor_sim[i], water_temp[i])
 
-        # Simple PID controller
-        # Qinst = (SP_T[i] - Tair[i]) * kp
-        # Qinst = np.clip(Qinst, 0, 12000)
-        # q_vector[2, i] = Qinst
+        # incorporate hysteresis to control
+        p_hp = hp_hyst.update(Tair[i], SP_sim[i], p_hp)
 
-        # Velocity PID controller (not working properly)
-        # heating  = heatingPID.update(t[i], SP_T[i], Tair[i], heating)
-        # print(f"{heating}")
-        # heating  = heatingPID.update(t[i], SP_T[i], Tair[i], heating)
-        # print(f"{heating}")
-        # q_vector[2, i] = heating
+        # update q_vector
+        q_vector[2, i] = p_hp*1000
 
         ts = [t[i], t[i+1]]
         result = solve_ivp(model_radiator_ne, ts, y0,
-                           method='RK45', args=inputs,
-                           first_step=cntrl_intrvl)
+                        method='RK45', args=inputs,
+                        first_step=control_interval)
 
         Tair[i+1] = result.y[0, -1]
         Twall[i+1] = result.y[1, -1]
@@ -152,5 +129,6 @@ def house_radiator_ne(time_sim, tot_sys,
 
         y0 = result.y[:, -1]
 
-    return t, Tair, Twall, Tradiator, tot_sys.q_vec[2,:]/1000
+
+    return t, Tair, Twall, Tradiator, q_vector[2,:]/1000, water_temp, cop_hp
 

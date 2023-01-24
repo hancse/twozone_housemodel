@@ -7,17 +7,13 @@ import math
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
-from scipy.interpolate import interp1d
+# from scipy.interpolate import interp1d
 
 from housemodel.solvers.house_model_for_companies_ne import \
     house_radiator_ne  # exposed function "house" in house module
 # function "model" in module house is private
 
 from housemodel.tools.new_configurator import load_config
-# from housemodel.tools.ckf_tools import make_c_inv_matrix, make_edges
-from housemodel.tools.ckf_tools import (add_c_inv_block,
-                                        add_k_block,
-                                        stack_q)
 
 from housemodel.sourcesink.NEN5060 import run_qsun
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain, simple_internal
@@ -224,16 +220,18 @@ def main(show=False, xl=False):
     # Timestep is in minutes
     control_interval = param["timing"]["Timestep"] * 60
 
-    Qsolar = (df_irr.total_E * param['solar_irradiation']['E'] +
-              df_irr.total_SE * param['solar_irradiation']['SE'] +
-              df_irr.total_S * param['solar_irradiation']['S'] +
-              df_irr.total_SW * param['solar_irradiation']['SW'] +
-              df_irr.total_W * param['solar_irradiation']['W'] +
-              df_irr.total_NW * param['solar_irradiation']['NW'] +
-              df_irr.total_N * param['solar_irradiation']['N'] +
-              df_irr.total_NE * param['solar_irradiation']['NE']).values
-    Qsolar *= param['solar_irradiation']['g_value']
-    Qsolar_sim = Qsolar[0:days_sim * 24]
+    Qsolar = PowerSource("Solar")
+    Qsolar.connected_to = param['solar_irradiation']['distribution']
+    Qsolar.values = (df_irr.total_E * param['solar_irradiation']['E'] +
+                     df_irr.total_SE * param['solar_irradiation']['SE'] +
+                     df_irr.total_S * param['solar_irradiation']['S'] +
+                     df_irr.total_SW * param['solar_irradiation']['SW'] +
+                     df_irr.total_W * param['solar_irradiation']['W'] +
+                     df_irr.total_NW * param['solar_irradiation']['NW'] +
+                     df_irr.total_N * param['solar_irradiation']['N'] +
+                     df_irr.total_NE * param['solar_irradiation']['NE']).values
+    Qsolar.values *= param['solar_irradiation']['g_value']
+    Qsolar.values = Qsolar.values[0:days_sim * 24]
 
     # q_int = simple_internal(t_on=param['internal']['t1'],
     #                         t_off=param['internal']['t2'],
@@ -243,21 +241,29 @@ def main(show=False, xl=False):
 
     Qint = PowerSource("Q_internal")
     Qint.connected_to = param['internal']['distribution']
-    Qint.powervalues = internal_heat_gain(param['internal']['Q_day'],
-                                          param['internal']['delta_Q'],
-                                          param['internal']['t1'],
-                                          param['internal']['t2'])
-    Qint.powervalues = Qint.powervalues.flatten()
-    Qint.powervalues = Qint.powervalues[0:days_sim * 24]
-
+    Qint.values = internal_heat_gain(param['internal']['Q_day'],
+                                     param['internal']['delta_Q'],
+                                     param['internal']['t1'],
+                                     param['internal']['t2'])
+    Qint.values = Qint.values.flatten()
+    Qint.values = Qint.values[0:days_sim * 24]
     # Qinternal_sim = Qint[0:days_sim * 24]
 
-    Toutdoor = df_nen.loc[:, 'temperatuur'].values
-    Toutdoor = Toutdoor.flatten()  # temperature
-    T_outdoor_sim = Toutdoor[0:days_sim * 24]
+    Toutdoor = PowerSource("T_outdoor")
+    Toutdoor.values = df_nen.loc[:, 'temperatuur'].values
+    Toutdoor.values = Toutdoor.values.flatten()
+    Toutdoor.values = Toutdoor.values[0:days_sim*24]
 
-    SP = simple_thermostat(8, 23, 20, 17)
-    SP_sim = SP[0:days_sim * 24].flatten()
+    # Toutdoor = df_nen.loc[:, 'temperatuur'].values
+    # Toutdoor = Toutdoor.flatten()  # temperature
+    # T_outdoor_sim = Toutdoor[0:days_sim * 24]
+
+    SP = PowerSource("SetPoint")
+    SP.values = simple_thermostat(8, 23, 20, 17)
+    SP.values = SP.values[0:days_sim*24].flatten()
+
+    # SP = simple_thermostat(8, 23, 20, 17)
+    # SP_sim = SP[0:days_sim * 24].flatten()
 
     # make predictable part of q_dot vector
     # q_vector = np.zeros((t.num_nodes,days_sim*24))
@@ -266,27 +272,35 @@ def main(show=False, xl=False):
     # q_vector[1, :] = (1 - CF) * Qsolar_sim
 
     # Interpolation of data
+    Qint.interpolate_power(time_sim, control_interval)
+    Toutdoor.interpolate_power(time_sim, control_interval)
+    SP.interpolate_power(time_sim, control_interval)
+
     # interp_func = interp1d(time_sim, q_vector, fill_value='extrapolate')
-    interp_func_SP = interp1d(time_sim, SP_sim, kind='nearest', fill_value='extrapolate')
-    interp_func_Q_internal = interp1d(time_sim, Qinternal_sim, fill_value='extrapolate')
-    interp_func_Toutdoor = interp1d(time_sim, T_outdoor_sim, fill_value='extrapolate')
+    # interp_func_SP = interp1d(time_sim, SP_sim, kind='nearest', fill_value='extrapolate')
+    # interp_func_Q_internal = interp1d(time_sim, Qinternal_sim, fill_value='extrapolate')
+    # interp_func_Toutdoor = interp1d(time_sim, T_outdoor_sim, fill_value='extrapolate')
     # q_vector = interp_func(np.arange(0, time_sim[-1]+(6*600), control_interval))
-    SP_sim = interp_func_SP(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
-    T_outdoor_sim = interp_func_Toutdoor(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
-    Qinternal_sim = interp_func_Q_internal(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
+    # SP_sim = interp_func_SP(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
+    # T_outdoor_sim = interp_func_Toutdoor(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
+    # Qinternal_sim = interp_func_Q_internal(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
 
-    glob = df_nen['globale_zonnestraling'].values
-    glob = glob.flatten()
-    interp_func_glob = interp1d(time_sim, glob, fill_value='extrapolate')
-    glob_interp = interp_func_glob(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
+    glob = PowerSource("Global")
+    glob.values= df_nen['globale_zonnestraling'].values
+    glob.values = glob.values.flatten()
+    glob.interpolate_power(time_sim, control_interval)
+    # interp_func_glob = interp1d(time_sim, glob, fill_value='extrapolate')
+    # glob_interp = interp_func_glob(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
 
-    cloud = df_nen['bewolkingsgraad'].values
-    cloud = cloud.flatten()
-    interp_func_cloud = interp1d(time_sim, cloud, fill_value='extrapolate')
-    cloud_interp = interp_func_cloud(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
+    cloud = PowerSource('cloud')
+    cloud.values = df_nen['bewolkingsgraad'].values
+    cloud.values = cloud.values.flatten()
+    cloud.interpolate_power(time_sim, control_interval)
+    # interp_func_cloud = interp1d(time_sim, cloud, fill_value='extrapolate')
+    # cloud_interp = interp_func_cloud(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
 
+    # interpolate time_sim itself (after all arrays are interpolated)
     time_sim = np.arange(0, time_sim[-1] + (6 * 600), control_interval)
-
     # time_sim = np.linspace(0, time_sim[-1], (8760-1)*6, endpoint=False)
 
     # Input PID values in to control
@@ -296,15 +310,15 @@ def main(show=False, xl=False):
         controllers.append(c)
 
     total.ambient = h.ambient
-    total.ambient.temp = T_outdoor_sim[0]
+    total.ambient.temp = Toutdoor.values[0]
 
     # solve ODE
     data = house_radiator_ne(time_sim, total,
-                             T_outdoor_sim,
-                             Qsolar_sim,
+                             Toutdoor,
+                             Qsolar,
                              # glob_interp, cloud_interp,
-                             Qinternal_sim,
-                             SP_sim, control_interval, controllers)
+                             Qint,
+                             SP, control_interval, controllers)
 
     # if show=True, plot the results
     if show:
@@ -312,8 +326,8 @@ def main(show=False, xl=False):
         plt.plot(data[0], data[1], label='Tair')
         plt.plot(data[0], data[2], label='Twall')
         plt.plot(data[0], data[3], label='Tradiator')
-        plt.plot(time_sim, SP_sim, label='SP_Temperature')
-        plt.plot(time_sim, T_outdoor_sim, label='Toutdoor')
+        plt.plot(time_sim, SP.values, label='SP_Temperature')
+        plt.plot(time_sim, Toutdoor.values, label='Toutdoor')
         plt.plot(data[0], data[4], label='Qinst')
         plt.legend(loc='best')
         plt.title("Simulation2R2C_companies")
@@ -322,18 +336,18 @@ def main(show=False, xl=False):
     if xl:
         # df_out = pd.DataFrame(data[0], columns=['Timestep'])
         df_out = pd.DataFrame({'Timestep': data[0]})
-        df_out['Outdoor temperature'] = T_outdoor_sim
-        df_out['NEN5060_global'] = glob_interp
-        df_out['cloud_cover'] = cloud_interp
+        df_out['Outdoor temperature'] = Toutdoor
+        df_out['NEN5060_global'] = glob.values
+        df_out['cloud_cover'] = cloud.values
         df_out["Heating"] = data[4].tolist()
-        df_out['Setpoint'] = SP_sim
+        df_out['Setpoint'] = SP.values
 
         for n in range(total.num_nodes):
             nodename = param['chains'][0]['links'][n]['Name']
             df_out["T_{}".format(n)] = data[n + 1].tolist()
             # df_out["Solar_{}".format(n)] = Qsolar_sim[n, :]
             if nodename == 'Internals':
-                df_out["Internal_{}".format(n)] = Qinternal_sim
+                df_out["Internal_{}".format(n)] = Qint.values
 
         df_out['Tradiator'] = data[3].tolist()
 
