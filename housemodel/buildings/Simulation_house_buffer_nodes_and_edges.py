@@ -7,7 +7,7 @@ import math
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
-# from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d
 
 from housemodel.solvers.house_model_for_companies_ne import \
     house_radiator_ne  # exposed function "house" in house module
@@ -44,8 +44,8 @@ import logging
 
 logging.basicConfig()
 logger = logging.getLogger('HBNE')
-logger.setLevel(logging.DEBUG)
-# logger.setLevel(logging.INFO)
+# logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 from pathlib import Path
 
@@ -179,6 +179,7 @@ def main(show=False, xl=False):
     total.merge_k_ext()
     total.k_mat += total.k_ext_mat
 
+    total.merge_ambients()  # assignment by reference, no copy!
     total.make_empty_q_vec()
 
     logger.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
@@ -254,50 +255,38 @@ def main(show=False, xl=False):
     Toutdoor.values = Toutdoor.values.flatten()
     Toutdoor.values = Toutdoor.values[0:days_sim*24]
 
-    # Toutdoor = df_nen.loc[:, 'temperatuur'].values
-    # Toutdoor = Toutdoor.flatten()  # temperature
-    # T_outdoor_sim = Toutdoor[0:days_sim * 24]
-
     SP = PowerSource("SetPoint")
     SP.values = simple_thermostat(8, 23, 20, 17)
     SP.values = SP.values[0:days_sim*24].flatten()
 
-    # SP = simple_thermostat(8, 23, 20, 17)
-    # SP_sim = SP[0:days_sim * 24].flatten()
+    source_list = [Qsolar, Qint]
+    Q_vectors = np.zeros((total.num_nodes, days_sim*24))
+    for n in range(days_sim*24):
+        total.parts[0].ambient.update(Toutdoor.values[n])
+        total.add_ambient_to_q()
+        for s in source_list:
+            total.add_source_to_q(s, n)
+        # logging.debug(f" q_vector: \n {total.q_vec}")
+        Q_vectors[:, [n]] = total.q_vec
+        total.make_empty_q_vec()
 
-    # make predictable part of q_dot vector
-    # q_vector = np.zeros((t.num_nodes,days_sim*24))
-    # leak_to_amb = param["chains"][0]["links"][0]["Conductance"]
-    # q_vector[0, :] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
-    # q_vector[1, :] = (1 - CF) * Qsolar_sim
+    interp_func = interp1d(time_sim, Q_vectors, fill_value='extrapolate')
+    Q_vectors = interp_func(np.arange(0, time_sim[-1]+(6*600), control_interval))
 
     # Interpolation of data
     Qint.interpolate_power(time_sim, control_interval)
     Toutdoor.interpolate_power(time_sim, control_interval)
     SP.interpolate_power(time_sim, control_interval)
 
-    # interp_func = interp1d(time_sim, q_vector, fill_value='extrapolate')
-    # interp_func_SP = interp1d(time_sim, SP_sim, kind='nearest', fill_value='extrapolate')
-    # interp_func_Q_internal = interp1d(time_sim, Qinternal_sim, fill_value='extrapolate')
-    # interp_func_Toutdoor = interp1d(time_sim, T_outdoor_sim, fill_value='extrapolate')
-    # q_vector = interp_func(np.arange(0, time_sim[-1]+(6*600), control_interval))
-    # SP_sim = interp_func_SP(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
-    # T_outdoor_sim = interp_func_Toutdoor(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
-    # Qinternal_sim = interp_func_Q_internal(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
-
     glob = PowerSource("Global")
     glob.values= df_nen['globale_zonnestraling'].values
     glob.values = glob.values.flatten()
     glob.interpolate_power(time_sim, control_interval)
-    # interp_func_glob = interp1d(time_sim, glob, fill_value='extrapolate')
-    # glob_interp = interp_func_glob(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
 
     cloud = PowerSource('cloud')
     cloud.values = df_nen['bewolkingsgraad'].values
     cloud.values = cloud.values.flatten()
     cloud.interpolate_power(time_sim, control_interval)
-    # interp_func_cloud = interp1d(time_sim, cloud, fill_value='extrapolate')
-    # cloud_interp = interp_func_cloud(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
 
     # interpolate time_sim itself (after all arrays are interpolated)
     time_sim = np.arange(0, time_sim[-1] + (6 * 600), control_interval)
@@ -309,11 +298,8 @@ def main(show=False, xl=False):
         c = param['controllers'][n]
         controllers.append(c)
 
-    total.ambient = h.ambient
-    total.ambient.temp = Toutdoor.values[0]
-
     # solve ODE
-    data = house_radiator_ne(time_sim, total,
+    data = house_radiator_ne(time_sim, total, Q_vectors,
                              Toutdoor,
                              Qsolar,
                              # glob_interp, cloud_interp,
@@ -330,7 +316,7 @@ def main(show=False, xl=False):
         plt.plot(time_sim, Toutdoor.values, label='Toutdoor')
         plt.plot(data[0], data[4], label='Qinst')
         plt.legend(loc='best')
-        plt.title("Simulation2R2C_companies")
+        plt.title("Simulation2R2C_companies Nodes and Edges")
         plt.show()
 
     if xl:
@@ -370,7 +356,7 @@ def main(show=False, xl=False):
 
 if __name__ == "__main__":
     # compatible with MvdB, TN
-    main(show=True, xl=True)  # temporary solution, recommended syntax
+    main(show=True, xl=False)  # temporary solution, recommended syntax
 
     # compatible with ReneJ (run_for_companies.py)
     # param = load_config(str(CONFIGDIR / "xl_for_2R2Chouse_buffer.yml"))

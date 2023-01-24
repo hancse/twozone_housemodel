@@ -1,20 +1,23 @@
 import numpy as np
 from scipy.linalg import block_diag
 
+from housemodel.tools.new_configurator import load_config
+
 from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         add_c_inv_block,
                                         make_edges)
-from housemodel.tools.new_configurator import load_config
-from housemodel.buildings.components import (CapacityNode,
-                                             FixedNode,
+
+from housemodel.buildings.components import (FixedNode,
                                              CondEdge)
+
 from housemodel.buildings.building import Building
+from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
 from housemodel.buildings.linear_radiator import LinearRadiator
 
 import logging
 
-logging.basicConfig(level="DEBUG")
-# logging.basicConfig(level="INFO")
+# logging.basicConfig(level="DEBUG")
+logging.basicConfig(level="INFO")
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.INFO)
@@ -41,8 +44,8 @@ class TotalSystem:
         self.num_edges = 0
         self.nodes = []            # np.zeros(self.num_nodes, dtype=object)
         self.edges = []            # np.zeros(self.num_nodes - 1)
-        self.boundaries = []
-        self.ambient = None
+        # self.boundaries = []
+        self.ambients = None
 
         self.c_inv_mat = None  # np.zeros((self.num_nodes, self.num_nodes))
         self.k_mat = None      # np.zeros_like(self.c_inv_mat)
@@ -54,8 +57,8 @@ class TotalSystem:
         self.q_int = None
 
         self.tag_list = []
-        self.cap_list = []
-        self.cond_list = []
+        # self.cap_list = []
+        # self.cond_list = []
 
         logging.info(f" TotalSystem object {self.name} created")
 
@@ -147,8 +150,9 @@ class TotalSystem:
                 for c in p.ambient.connected_to:
                     idx = self.tag_list.index(c[0])
                     cond = c[1]
-                    self.q_vec[idx] += cond * p.ambient.temp
-                    # logging.debug(f" ambient added to q-vector element {idx} ({self.nodes[idx].label})")
+                    new_power = cond * p.ambient.temp
+                    self.q_vec[idx] += new_power
+                    logging.debug(f" {p.ambient.label} ({new_power}) added to q-vector element {idx}")
         logging.debug(f" q_vector: \n {self.q_vec}")
 
     def myFunc(self, p):
@@ -185,6 +189,17 @@ class TotalSystem:
         """
         my_tup = (p.k_ext_mat for p in self.parts)
         self.k_ext_mat = block_diag(*my_tup)
+
+    def merge_ambients(self):
+        self.ambients = [p.ambient for p in self.parts if p.ambient is not None]
+
+    def add_source_to_q(self, source, src_index: int):
+        for c in source.connected_to:
+            idx = self.tag_list.index(c[0])
+            fraction = c[1]
+            new_power = fraction * source.values[src_index]
+            self.q_vec[idx] += new_power
+            logging.debug(f" source {source.name}[{src_index}] ({new_power}) added to q-vector element {idx}")
 
 
 if __name__ == "__main__":

@@ -14,9 +14,13 @@ from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         add_k_block,
                                         stack_q)
 
+import logging
+
+logging.basicConfig(level="INFO")
+
 
 def model_radiator_ne(t, x,
-                      tot_sys, control_interval):
+                      tot_sys, Q_vectors, control_interval):
     """model function for scipy.integrate.odeint.
 
     Args:
@@ -37,22 +41,25 @@ def model_radiator_ne(t, x,
     index = int(t/control_interval)
 
     # Equations :
-    #local_q_vector = tot_sys.q_vec
-    #local_q_vector[0,0] += q_vector[0,index]
-    #local_q_vector[1,0] = q_vector[1,index]
-    #local_q_vector[2,0] = q_vector[2,index]
+    local_q_vector = Q_vectors[:, [index]]
+    # local_q_vector[0,0] += q_vector[0,index]
+    # local_q_vector[1,0] = q_vector[1,index]
+    # local_q_vector[2,0] = q_vector[2,index]
+
+    # tot_sys.add_ambient_to_q()
+    # tot_sys.add_source_to_q(Q_solar, index)
 
     # Conversion of 1D array to a 2D array
     # https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
     x = np.array(x)[np.newaxis]
 
-    dTdt = (-tot_sys.k_mat @ x.T) + tot_sys.q_vec
+    dTdt = (-tot_sys.k_mat @ x.T) + local_q_vector
     dTdt = np.dot(tot_sys.c_inv_mat, dTdt)
 
     return dTdt.flatten().tolist()
 
 
-def house_radiator_ne(time_sim, tot_sys,
+def house_radiator_ne(time_sim, tot_sys, Q_vectors,
                       T_outdoor,
                       Q_solar,
                       Q_int,
@@ -60,11 +67,14 @@ def house_radiator_ne(time_sim, tot_sys,
     """Compute air and wall temperature inside the house.
 
     Args:
-        cap_mat:    (float):  diagonal heat capacity matrix
-        cond_mat:   (float):  symmetric conductance matrix
-        q_vector:   (float):  external heat sources and sinks
-        SP_T:       (array):  Setpoint temperature from thermostat.
-        time_sim:   (array)  :  simulation time
+        time_sim:   (array)  : simulation time
+        tot_sys:    (object) : total system C-1 and K matrices, q-vector
+        T_outdoor:  (array)  : outdoor temperature
+        Q_solar:    (array)  : solar irradiation
+        Q_int:      (array)  : internal heat generation
+        SP_T:       (array)  : setpoint room temperature from thermostat.
+        cntrl_intrvl: (int)  : control interval in seconds
+        cntrllrs:     (dict) : PID-like controller objects with kp, ki, kd and maximum output
 
     Returns:
         tuple :  (array) containing Tair, Twall, Tradiator and evaluation time:
@@ -76,25 +86,17 @@ def house_radiator_ne(time_sim, tot_sys,
         - Qinst ?	  (array):  instant heat from heat source such as HP or boiler [W].
     """
     # initial values for solve_ivp
-    y0 = [cn.temp for cn in [n for node in [p.nodes for p in tot_sys.parts] for n in node]]
-    # yn = [n for node in [p.nodes for p in tot_sys.parts] for n in node]
-    # y0 = [cn.temp for cn in yn]
-
-    # initial values for q-vector
-    q = [c for conn in [p.ambient.connected_to for p in tot_sys.parts if p.ambient is not None] for c in conn]
-    tot_sys.add_ambient_to_q()
-
-    source_list = []
-    n = 0
-    for c in Q_solar.connected_to:
-        idx = tot_sys.tag_list.index(c[0])
-        tot_sys.q_vec[idx] += c[1]*Q_solar.values[n]
-        # logging.debug(f" ambient added to q-vector element {idx} ({p.nodes[idx].label})")
+    # make a list of all nodes in total_system
+    yn = [n for node in [p.nodes for p in tot_sys.parts] for n in node]
+    # make a list of the (initial) temperatures of all nodes
+    y0 = [cn.temp for cn in yn]
+    # in one statement
+    # y0 = [cn.temp for cn in [n for node in [p.nodes for p in tot_sys.parts] for n in node]]
 
     t = time_sim           # Define Simulation time with sampling time
-    Tair = np.zeros(len(t))
-    Twall = np.zeros(len(t))
-    Tradiator = np.zeros(len(t))
+    Tair = np.ones(len(t)) * y0[0]
+    Twall = np.ones(len(t)) * y0[1]
+    Tradiator = np.ones(len(t)) * y0[2]
 
     # Controller initialization
     # heatingPID = PID(Kp=5000, Ki=0, Kd=0, beta=1, MVrange=(0, 12000), DirectAction=False)
@@ -113,7 +115,20 @@ def house_radiator_ne(time_sim, tot_sys,
     pid.setBounds(0, cntrllrs[0]["maximum"])
     pid.setWindup(cntrllrs[0]["maximum"]/cntrl_intrvl)
 
-    inputs = (tot_sys, cntrl_intrvl)
+    """
+    # build initial q-vector
+    tot_sys.parts[0].ambient.update(T_outdoor.values[0])  # initial
+    # add terms "ambient temperature*conductivity_to_ambient" to q-vector
+    q = [c for conn in [p.ambient.connected_to for p in tot_sys.parts if p.ambient is not None] for c in conn]
+    tot_sys.add_ambient_to_q()
+
+    source_list = [Q_solar, Q_int]
+    for s in source_list:
+        tot_sys.add_source_to_q(s, 0)
+    logging.debug(f" q_vector: \n {tot_sys.q_vec}")
+    """
+
+    inputs = (tot_sys, Q_vectors, cntrl_intrvl)
 
     # Note: the algorithm can take an initial step
     # larger than the time between two elements of the "t" array
@@ -124,10 +139,11 @@ def house_radiator_ne(time_sim, tot_sys,
 
     for i in range(len(t)-1):
         # here comes the "arduino style" controller
-        pid.SetPoint = SP_T[i]
+        pid.SetPoint = SP_T.values[i]
         pid.update(Tair[i], t[i])
         # q_vector[2, i] = pid.output
-        tot_sys.q_vec[2] = pid.output
+        # tot_sys.q_vec[2] = pid.output
+        Q_vectors[2, i] = pid.output
 
         # Simple PID controller
         # Qinst = (SP_T[i] - Tair[i]) * kp
@@ -152,5 +168,5 @@ def house_radiator_ne(time_sim, tot_sys,
 
         y0 = result.y[:, -1]
 
-    return t, Tair, Twall, Tradiator, tot_sys.q_vec[2,:]/1000
+    return t, Tair, Twall, Tradiator, Q_vectors[2, :]/1000
 

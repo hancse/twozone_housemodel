@@ -89,7 +89,6 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     pid.setBounds(0, 12000)
     pid.setWindup(12000/control_interval)
 
-
     inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
     # Note: the algorithm can take an initial step
     # larger than the time between two elements of the "t" array

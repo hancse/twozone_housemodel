@@ -116,10 +116,10 @@ def main(show=False, xl=False):
 
     # make predictable part of q_dot vector
     # result is 2D vector with 2 rows and 8760 columns
-    q_vector = np.zeros((num_links,days_sim*24))
+    q_vector = np.zeros((num_links, days_sim*24))
     leak_to_amb = house_param["chains"][0]["links"][0]["Conductance"]
-    q_vector[0,:] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
-    q_vector[1,:] = (1 - CF) * Qsolar_sim
+    q_vector[0, :] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
+    q_vector[1, :] = (1 - CF) * Qsolar_sim
 
     # Interpolation of data (not perfect)
     interp_func = interp1d(time_sim, q_vector, fill_value='extrapolate')
