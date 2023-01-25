@@ -49,7 +49,7 @@ logger.setLevel(logging.INFO)
 
 from pathlib import Path
 
-CONFIGDIR = Path(__file__).parent.parent.parent.absolute()
+CONFIGDIR = Path(__file__).parent.absolute()
 
 
 def show(sim):

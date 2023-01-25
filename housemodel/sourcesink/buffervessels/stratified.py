@@ -9,8 +9,8 @@ from housemodel.buildings.components import (CapacityNode,
                                              CondEdge)
 import logging
 
-logging.basicConfig(level="DEBUG")
-# logging.basicConfig(level="INFO")
+# logging.basicConfig(level="DEBUG")
+logging.basicConfig(level="INFO")
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.INFO)
@@ -56,7 +56,7 @@ class StratifiedBuffer:
                                 temp=lod[n]["T_ini"])
             # append by reference, therefore new node object in each iteration
             self.nodes.append(node)
-            logging.debug(f" node '{node.label}' with tag {node.tag} appended to {self.name}")
+            logging.info(f" node '{node.label}' with tag {node.tag} appended to {self.name}")
         self.tag_list = [n.tag for n in self.nodes]
         logging.debug(f" tag_list {self.tag_list}")
 

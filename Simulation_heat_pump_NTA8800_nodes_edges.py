@@ -12,8 +12,7 @@ from scipy.interpolate import interp1d
 from housemodel.solvers.house_model_heat_pump_NTA8800_ne import house_radiator_ne  # exposed function "house" in house module
 # function "model" in module house is private
 
-from housemodel.tools.new_configurator import (load_config,
-                                               add_chain_to_k, make_c_inv_matrix)
+from housemodel.tools.new_configurator import (load_config)
 from housemodel.sourcesink.NEN5060 import run_qsun
 
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
@@ -22,7 +21,7 @@ from housemodel.controls.Temperature_SP import simple_thermostat
 from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
 from housemodel.buildings.building import Building
-from housemodel.buildings.linear_radiator import LinearRadiator
+from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
 from housemodel.buildings.totalsystem import TotalSystem
 
 # import matplotlib

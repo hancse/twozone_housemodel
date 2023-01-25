@@ -9,8 +9,8 @@ from housemodel.buildings.components import (CapacityNode,
                                              CondEdge)
 import logging
 
-logging.basicConfig(level="DEBUG")
-# logging.basicConfig(level="INFO")
+# logging.basicConfig(level="DEBUG")
+logging.basicConfig(level="INFO")
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.INFO)

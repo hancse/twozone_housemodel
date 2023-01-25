@@ -11,8 +11,7 @@ from housemodel.buildings.components import (FixedNode,
                                              CondEdge)
 
 from housemodel.buildings.building import Building
-from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
-from housemodel.buildings.linear_radiator import LinearRadiator
+from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
 
 import logging
 
@@ -21,8 +20,6 @@ logging.basicConfig(level="INFO")
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.INFO)
-
-from typing import List, Tuple
 
 # input parameter parts contains the subsystems of TotalSystem
 # like Building, StratifiedBuffer or LinearRadiator objects
@@ -72,7 +69,7 @@ class TotalSystem:
                             conn_nodes=[lol[n][0], lol[n][1]],
                             cond=lol[n][2])
             self.edges.append(edge)
-            logging.debug(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
+            logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
 
     def fill_k(self, lol):
         """select global edges belonging to total system and make k-matrix.
@@ -83,7 +80,7 @@ class TotalSystem:
         # selection is always necessary!
         el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
         self.k_mat = make_edges(el)
-        logging.debug(f" k_matrix: \n {self.k_mat}")
+        logging.info(f" k_matrix: \n {self.k_mat}")
 
     def complete_k(self, lol):
         """add global edges BETWEEN subsystems to complete k-matrix.
@@ -94,7 +91,7 @@ class TotalSystem:
         # selection should not be necessary
         el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
         self.k_mat = make_edges(el)
-        logging.debug(f" k_matrix: \n {self.k_mat}")
+        logging.info(f" k_matrix: \n {self.k_mat}")
 
     def boundaries_from_dict(self, lod):
         for n in range(len(lod)):
@@ -103,10 +100,10 @@ class TotalSystem:
                              connected_to=lod[n]["connected_to"])
             # append by reference, therefore new node object in each iteration
             self.boundaries.append(node)
-            logging.debug(f" boundary '{node.label}' appended to {self.name}")
+            logging.info(f" boundary '{node.label}' appended to {self.name}")
         # for total system, "ambient" is "outdoor"
         self.ambient = [fn for fn in self.boundaries if fn.label == "outdoor"][0]
-        logging.debug(f" ambient is '{self.ambient.label}' for {self.name}")
+        logging.info(f" ambient is '{self.ambient.label}' for {self.name}")
 
     def add_fixed_to_k(self):
         """add conductivities to boundary "ambient" to diagonal elements of k-matrix.
@@ -119,11 +116,11 @@ class TotalSystem:
             index = c[0]
             cond = c[1]
             self.k_mat[index, index] -= cond
-            logging.debug(f" ambient connected to node '{self.nodes[index].label}'")
+            logging.info(f" ambient connected to node '{self.nodes[index].label}'")
 
     def make_empty_q_vec(self):
         self.q_vec = np.zeros((self.num_nodes, 1))
-        logging.debug(f" empty q-vector created of rank {self.num_nodes}")
+        # logging.info(f" empty q-vector created of rank {self.num_nodes}")
 
     def add_fixed_to_q(self):
         """add terms from ALL boundary conditions (external nodes) like T_outdoor and T_indoor.
@@ -137,8 +134,8 @@ class TotalSystem:
                 idx = self.tag_list.index(c[0])
                 cond = c[1]
                 self.q_vec[idx] += cond * b.temp
-                logging.debug(f" ambient added to q-vector element {idx}")
-        logging.debug(f" q_vector: \n {self.q_vec}")
+                logging.info(f" ambient added to q-vector element {idx}")
+        logging.info(f" q_vector: \n {self.q_vec}")
 
     def add_ambient_to_q(self):
         """selectively add terms from boundary condition "ambient" to elements of q-vector.
@@ -152,8 +149,8 @@ class TotalSystem:
                     cond = c[1]
                     new_power = cond * p.ambient.temp
                     self.q_vec[idx] += new_power
-                    logging.debug(f" {p.ambient.label} ({new_power}) added to q-vector element {idx}")
-        logging.debug(f" q_vector: \n {self.q_vec}")
+                    # logging.info(f" {p.ambient.label} ({new_power}) added to q-vector element {idx}")
+        # logging.info(f" q_vector: \n {self.q_vec}")
 
     def myFunc(self, p):
         return p.tag_list[0]
@@ -199,7 +196,7 @@ class TotalSystem:
             fraction = c[1]
             new_power = fraction * source.values[src_index]
             self.q_vec[idx] += new_power
-            logging.debug(f" source {source.name}[{src_index}] ({new_power}) added to q-vector element {idx}")
+            # logging.info(f" source {source.name}[{src_index}] ({new_power}) added to q-vector element {idx}")
 
 
 if __name__ == "__main__":
