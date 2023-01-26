@@ -40,7 +40,7 @@ CONFIGDIR = Path(__file__).parent.absolute()
 
 def main(show=False, xl=False):
     # read configuration file into dictionary
-    param = load_config(str(CONFIGDIR / "NTA8800_nodes_edges.yaml"))
+    param = load_config(str(CONFIGDIR / "for_NTA8800_nodes_edges.yaml"))
     days_sim = math.ceil(param['timing']['Duration'] / 24)
     print(days_sim)
     # CF = house_param['ventilation']['CF']
