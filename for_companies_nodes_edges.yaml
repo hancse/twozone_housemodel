@@ -1,0 +1,68 @@
+timing:
+  Timestep:  10   # [in minutes] default timestep in time integration
+  Duration:  8760 # [in hours]
+# 24*365 = 8760 is a year
+
+Building:
+  nodes:
+    -
+      label: air
+      tag: 0
+      capacity: 8.59E+06  # J/K
+      T_ini: 15.0
+    -
+      label: wall
+      tag: 1
+      capacity: 4.68E+07    #J/K
+      T_ini: 20.0
+
+Radiator:
+  nodes:
+    -
+      label: rad
+      tag: 2
+      capacity: 209000.0  # J/K = Crad
+      T_ini: 40.0
+
+edges:
+  - [0, 1, 2024.0]        # W/K : 1/R1
+  - [0, 2, 300.0]         # W/K : 1/R1 = U*A
+
+boundaries:
+  -
+    label: outdoor
+    T_ini: 20.0
+    connected_to:
+      - [ 0, 201.9611831 ]  # W/K
+#      - [ 1, 0.11 ]
+
+solar_irradiation:
+  E:  9.5
+  SE: 0
+  S:  0
+  SW: 0
+  W:  9.5
+  NW: 0
+  N:  0
+  NE: 0
+  g_value: 0.7
+  distribution:
+    - [0, 0.8]
+    - [1, 0.2]
+
+internal:
+  delta_Q:  150
+  Q_day:    400
+  t1:       8
+  t2:       23
+  distribution:
+    - [0, 1.0]
+
+controllers:
+  -
+    label: GasBoiler
+    kp: 4999.0   # [W/K]
+    ki: 99.0     # [W/Ks]
+    kd: 0.0      # [Ws/K]
+    maximum: 12000.0  # [W]
+

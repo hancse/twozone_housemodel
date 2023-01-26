@@ -138,9 +138,12 @@ class TotalSystem:
         logging.info(f" q_vector: \n {self.q_vec}")
 
     def add_ambient_to_q(self):
-        """selectively add terms from boundary condition "ambient" to elements of q-vector.
+        """selectively add terms "ambient temperature*conductivity_to_ambient" to q-vector.
 
         TotalSystem needs this function to update the q_vector in the solver
+
+        Note: using list comprehension:
+            q = [c for conn in [p.ambient.connected_to for p in tot_sys.parts if p.ambient is not None] for c in conn]
         """
         for p in self.parts:
             if p.ambient is not None:
