@@ -201,6 +201,18 @@ class TotalSystem:
             self.q_vec[idx] += new_power
             # logging.info(f" source {source.name}[{src_index}] ({new_power}) added to q-vector element {idx}")
 
+    def find_node_label_from_tag(self, tag):
+        for p in self.parts:
+            for n in p.nodes:
+                if n.tag == tag:
+                    return n.label
+
+    def find_tag_from_node_label(self, label):
+        for p in self.parts:
+            for n in p.nodes:
+                if n.label == label:
+                    return n.tag
+
 
 if __name__ == "__main__":
     house = Building()

@@ -188,6 +188,9 @@ def main(show=False, xl=False):
         c = param['controllers'][n]
         controllers.append(c)
 
+    nm = total.find_node_label_from_tag(2)
+    tg = total.find_tag_from_node_label("rad")
+
     # solve ODE
     data = house_radiator_ne(time_sim, total, Q_vectors,
                              Toutdoor,
