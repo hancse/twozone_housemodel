@@ -213,6 +213,8 @@ def main(show=False, xl=False):
         plt.show()
 
     if xl:
+        xlname = 'tst_ML.xlsx'
+        logger.info(f"writing Excel file {xlname}...")
         # df_out = pd.DataFrame(data[0], columns=['Timestep'])
         df_out = pd.DataFrame({'Timestep': data[0]})
         df_out['Outdoor temperature'] = Toutdoor.values
@@ -221,14 +223,12 @@ def main(show=False, xl=False):
         df_out["Heating"] = data[4].tolist()
         df_out['Setpoint'] = SP.values
 
-        for n in range(total.num_nodes):
-            nodename = param['chains'][0]['links'][n]['Name']
-            df_out["T_{}".format(n)] = data[n + 1].tolist()
+        for n in total.tag_list:
+            lbl = total.find_node_label_from_tag(n)
+            df_out["T_{}".format(lbl)] = data[n + 1].tolist()
             # df_out["Solar_{}".format(n)] = Qsolar_sim[n, :]
-            if nodename == 'Internals':
-                df_out["Internal_{}".format(n)] = Qint.values
-
-        df_out['Tradiator'] = data[3].tolist()
+            if lbl == 'air':
+                df_out["Internal_{}".format(lbl)] = Qint.values
 
         wb = Workbook()
         ws = wb.active
@@ -244,10 +244,11 @@ def main(show=False, xl=False):
         for r in dataframe_to_rows(df_out, index=False):
             ws.append(r)
         # df_out.to_excel('tst.xlsx', index=False, startrow=10)
-        wb.save('tst_ML.xlsx')
+        wb.save(xlname)
+        logger.info(f"Excel file {xlname} written")
 
 
 if __name__ == "__main__":
     # compatible with MvdB, TN
-    main(show=True, xl=False)  # temporary solution, recommended syntax
+    main(show=True, xl=True)  # temporary solution, recommended syntax
 
