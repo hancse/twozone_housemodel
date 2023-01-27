@@ -7,8 +7,8 @@ from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         add_c_inv_block,
                                         make_edges)
 
-from housemodel.buildings.components import (FixedNode,
-                                             CondEdge)
+from housemodel.basics.components import (FixedNode,
+                                          CondEdge)
 
 from housemodel.buildings.building import Building
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator

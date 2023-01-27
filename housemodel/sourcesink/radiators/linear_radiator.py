@@ -4,9 +4,9 @@ from housemodel.tools.ckf_tools import (make_c_inv_matrix,
                                         add_c_inv_block,
                                         make_edges)
 from housemodel.tools.new_configurator import load_config
-from housemodel.buildings.components import (CapacityNode,
-                                             FixedNode,
-                                             CondEdge)
+from housemodel.basics.components import (CapacityNode,
+                                          FixedNode,
+                                          CondEdge)
 import logging
 
 logging.basicConfig(level="DEBUG")

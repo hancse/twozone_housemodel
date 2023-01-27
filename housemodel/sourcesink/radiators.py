@@ -2,7 +2,6 @@
 # https://www.buildingservicesindex.co.uk/entry/136540/AEL-Heating-Solutions-Ltd/How-to-calculate-the-delta-T-for-a-radiator/
 
 import numpy as np
-from dataclasses import dataclass, field
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -10,9 +9,7 @@ from scipy import interpolate
 from scipy.optimize import root
 from housemodel.sourcesink.heatexchangers import LMTD
 
-from housemodel.buildings.components import (CapacityNode,
-                                             FixedNode,
-                                             CondEdge)
+from housemodel.basics.components import (FixedNode)
 matplotlib.use("Qt5Agg")
 
 

@@ -21,16 +21,13 @@ from housemodel.controls.Temperature_SP import simple_thermostat
 from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
 from housemodel.buildings.building import Building
-from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
-from housemodel.buildings.powersource import PowerSource
+from housemodel.basics.powersource import PowerSource
 
 # from housemodel.sourcesink.radiators import Radiator
-from housemodel.sourcesink.flows import Flow
-from housemodel.buildings.totalsystem import TotalSystem
+from housemodel.basics.totalsystem import TotalSystem
 # from housemodel.buildings.components import FixedNode
 
-from housemodel.constants import *
 # from housemodel.simulation2 import Simulation2
 # from housemodel.for_companies_solver import SolverForCompanies
 

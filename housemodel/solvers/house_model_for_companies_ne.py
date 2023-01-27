@@ -7,13 +7,6 @@ import numpy as np                       # linear algebra
 # from housemodel.tools.PIDsim import PID
 from housemodel.controls.ivPID.PID import PID
 
-from housemodel.buildings.totalsystem import TotalSystem
-from housemodel.tools.ckf_tools import (make_c_inv_matrix,
-                                        make_edges,
-                                        add_c_inv_block,
-                                        add_k_block,
-                                        stack_q)
-
 import logging
 
 logging.basicConfig(level="INFO")
@@ -116,13 +109,15 @@ def house_radiator_ne(time_sim, tot_sys, Q_vectors,
     # Therefore set "first_step" equal or smaller than the spacing of "t".
     # https://github.com/scipy/scipy/issues/9198
 
+    rad_node = tot_sys.find_tag_from_node_label("rad")
+
     for i in range(len(t)-1):
         # here comes the "arduino style" controller
         pid.SetPoint = SP_T.values[i]
         pid.update(Tair[i], t[i])
         # q_vector[2, i] = pid.output
         # tot_sys.q_vec[2] = pid.output
-        Q_vectors[2, i] = pid.output
+        Q_vectors[rad_node, i] = pid.output
 
         # Simple PID controller
         # Qinst = (SP_T[i] - Tair[i]) * kp
@@ -147,5 +142,5 @@ def house_radiator_ne(time_sim, tot_sys, Q_vectors,
 
         y0 = result.y[:, -1]
 
-    return t, Tair, Twall, Tradiator, Q_vectors[2, :]/1000
+    return t, Tair, Twall, Tradiator, Q_vectors[rad_node, :]/1000
 

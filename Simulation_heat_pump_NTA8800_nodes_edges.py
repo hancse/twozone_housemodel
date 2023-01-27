@@ -22,7 +22,7 @@ from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
 from housemodel.buildings.building import Building
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
-from housemodel.buildings.totalsystem import TotalSystem
+from housemodel.basics.totalsystem import TotalSystem
 
 # import matplotlib
 # matplotlib.use('qt5agg')
