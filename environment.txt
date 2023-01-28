@@ -26,6 +26,7 @@ conda install colored-traceback
 
 conda install networkx
 conda install requests
+conda install tqdm
 
 pip install solarenergy
 

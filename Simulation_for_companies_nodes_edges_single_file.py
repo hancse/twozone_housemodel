@@ -9,6 +9,8 @@ from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from scipy.interpolate import interp1d
 from scipy.integrate import solve_ivp  # ODE solver
+from tqdm import tqdm, trange
+
 from housemodel.controls.ivPID.PID import PID
 
 from housemodel.tools.new_configurator import load_config
@@ -252,7 +254,7 @@ def main(show=False, xl=False):
 
     rad_node = total.find_tag_from_node_label("rad")
 
-    for i in range(len(t) - 1):
+    for i in trange(len(t) - 1):
         # here comes the "arduino style" controller
         pid.SetPoint = SP.values[i]
         pid.update(Tair[i], t[i])
