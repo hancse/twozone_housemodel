@@ -254,7 +254,7 @@ def main(show=False, xl=False):
 
     rad_node = total.find_tag_from_node_label("rad")
 
-    for i in trange(len(t) - 1):
+    for i in tqdm(range(len(t) - 1)):
         # here comes the "arduino style" controller
         pid.SetPoint = SP.values[i]
         pid.update(Tair[i], t[i])
