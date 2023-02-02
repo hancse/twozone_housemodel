@@ -22,6 +22,7 @@ from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
 from housemodel.buildings.building import Building
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
+from housemodel.basics.powersource import PowerSource
 from housemodel.basics.totalsystem import TotalSystem
 
 # import matplotlib
@@ -41,9 +42,10 @@ CONFIGDIR = Path(__file__).parent.absolute()
 def main(show=False, xl=False):
     # read configuration file into dictionary
     param = load_config(str(CONFIGDIR / "for_NTA8800_nodes_edges.yaml"))
+
+    # Obtain the number of days simulated
     days_sim = math.ceil(param['timing']['Duration'] / 24)
     print(days_sim)
-    # CF = house_param['ventilation']['CF']
 
     # create House object
     h = Building("MyHouse")
@@ -52,14 +54,16 @@ def main(show=False, xl=False):
     h.nodes_from_dict(section["nodes"])
     h.fill_c_inv()
 
-    # read FixedNode objects (external nodes);
+    # read FixedNode objects (external nodes)
     h.boundaries_from_dict(param["boundaries"])  # function selects "outdoor" as ambient
     h.make_k_ext_and_add_ambient()  # initialize k_ext_mat and add diagonal elements
 
     logger.info(f" \n\n C^-1: \n {h.c_inv_mat} \n K_ext: \n {h.k_ext_mat}, \n q_vec: \n {h.q_vec} \n")
 
+    # Create an object for a radiator
     r = LinearRadiator("SimpleRadiator")
     section = param["Radiator"]
+    # Fill in the parameters of the radiator
     r.nodes_from_dict(section["nodes"])
     r.fill_c_inv()
     r.make_empty_k_ext_mat()
@@ -79,6 +83,8 @@ def main(show=False, xl=False):
 
     total.merge_k_ext()
     total.k_mat += total.k_ext_mat
+    # TODO Ask Paul why this is added
+    total.merge_ambients()
 
     total.make_empty_q_vec()
     logger.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
@@ -87,26 +93,27 @@ def main(show=False, xl=False):
     df_nen = read_nen_weather_from_xl()
     # generate and insert timezone-aware UTC and local timestamps (with DST)
     df_nen = NENdatehour2datetime(df_nen)
-
     df_irr = run_qsun(df_nen)
     print(df_irr.head())
-
     time_sim = df_irr.iloc[0:days_sim*24, 0].values
 
-    # Interval in seconds the control algorithm
-    # Timestep is in minutes
+    # Read control interval from config file
     control_interval = param["timing"]["Timestep"] * 60
 
-    Qsolar = (df_irr.total_E * param['solar_irradiation']['E'] +
-              df_irr.total_SE * param['solar_irradiation']['SE'] +
-              df_irr.total_S * param['solar_irradiation']['S'] +
-              df_irr.total_SW * param['solar_irradiation']['SW'] +
-              df_irr.total_W * param['solar_irradiation']['W'] +
-              df_irr.total_NW * param['solar_irradiation']['NW'] +
-              df_irr.total_N * param['solar_irradiation']['N'] +
-              df_irr.total_NE * param['solar_irradiation']['NE']).values
-    Qsolar *= param['solar_irradiation']['g_value']
-    Qsolar_sim = Qsolar[0:days_sim*24]
+    # Add Solar irradiation as a power source and get the orientation of the windows from the config file
+    Qsolar = PowerSource("Solar")
+    Qsolar.connected_to = param['solar_irradiation']['distribution']
+
+    Qsolar.values = (df_irr.total_E * param['solar_irradiation']['E'] +
+                     df_irr.total_SE * param['solar_irradiation']['SE'] +
+                     df_irr.total_S * param['solar_irradiation']['S'] +
+                     df_irr.total_SW * param['solar_irradiation']['SW'] +
+                     df_irr.total_W * param['solar_irradiation']['W'] +
+                     df_irr.total_NW * param['solar_irradiation']['NW'] +
+                     df_irr.total_N * param['solar_irradiation']['N'] +
+                     df_irr.total_NE * param['solar_irradiation']['NE']).values
+    Qsolar.values *= param['solar_irradiation']['g_value']
+    Qsolar.values = Qsolar.values[0:days_sim*24]
 
     Qint = internal_heat_gain(param['internal']['Q_day'],
                               param['internal']['delta_Q'],
