@@ -11,7 +11,7 @@ from housemodel.controls.heating_curves import hyst, outdoor_reset
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
 
 def model_radiator_ne(t, x,
-                      tot_sys, control_interval):
+                      tot_sys, Q_vectors, control_interval):
     """model function for scipy.integrate.odeint.
 
     Args:
@@ -25,33 +25,28 @@ def model_radiator_ne(t, x,
     Returns:
         (list): vector elements of dx/dt
     """
-    # States :
-    # Tair = x[0]
 
     # Parameters :
     index = int(t/control_interval)
+    # Take Q vector for certain interval
+    local_q_vector = Q_vectors[:, [index]]
 
-    # Equations :
-    #local_q_vector = np.zeros((3,1))
-    #local_q_vector[0,0] = q_vector[0,index]
-    #local_q_vector[1,0] = q_vector[1,index]
-    #local_q_vector[2,0] = q_vector[2,index]
 
     # Conversion of 1D array to a 2D array
     # https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
     x = np.array(x)[np.newaxis]
 
-    dTdt = (-tot_sys.k_mat @ x.T) + tot_sys.q_vec
+    dTdt = (-tot_sys.k_mat @ x.T) + local_q_vector
     dTdt = np.dot(tot_sys.c_inv_mat, dTdt)
 
     return dTdt.flatten().tolist()
 
 
 def house_radiator_ne(time_sim, tot_sys, Q_vectors,
-                            T_outdoor_sim,
-                            Q_solar_sim,
-                            Qinternal_sim,
-                            SP_sim,  control_interval, controllers):
+                            T_outdoor,
+                            Q_solar,
+                            Qinternal,
+                            SP_T,  cntrl_intrvl, cntrllrs):
     """Compute air and wall temperature inside the house.
 
     Args:
@@ -71,13 +66,16 @@ def house_radiator_ne(time_sim, tot_sys, Q_vectors,
         - Qinst ?	  (array):  instant heat from heat source such as HP or boiler [W].
     """
 
+    # initial values for solve_ivp
+    # make a list of all nodes in total_system
     yn = [n for node in [p.nodes for p in tot_sys.parts] for n in node]
+    # make a list of the (initial) temperatures of all nodes
     y0 = [cn.temp for cn in yn]
 
-    t = time_sim           # Define Simulation time with sampling time
-    Tair = np.zeros(len(t))
-    Twall = np.zeros(len(t))
-    Tradiator = np.zeros(len(t))
+    t = time_sim  # Define Simulation time with sampling time
+    Tair = np.ones(len(t)) * y0[0]
+    Twall = np.ones(len(t)) * y0[1]
+    Tradiator = np.ones(len(t)) * y0[2]
 
     # Heat pump initialization
     nta = Heatpump_NTA()
@@ -90,13 +88,13 @@ def house_radiator_ne(time_sim, tot_sys, Q_vectors,
     nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
                                   nta.cal_Pmax_val, order=1)
 
-    water_temp = np.zeros_like(T_outdoor_sim)
-    cop_hp = np.zeros_like(T_outdoor_sim)
+    water_temp = np.zeros_like(T_outdoor.values)
+    cop_hp = np.zeros_like(T_outdoor.values)
 
     # define hysteresis object for heat pump
     hp_hyst = hyst(dead_band=0.5, state=True)
 
-    inputs = (tot_sys, control_interval)
+    inputs = (tot_sys, Q_vectors, cntrl_intrvl)
 
     # Note: the algorithm can take an initial step
     # larger than the time between two elements of the "t" array
@@ -105,23 +103,26 @@ def house_radiator_ne(time_sim, tot_sys, Q_vectors,
     # Therefore set "first_step" equal or smaller than the spacing of "t".
     # https://github.com/scipy/scipy/issues/9198
 
+    rad_node = tot_sys.find_tag_from_node_label("rad")
+
     for i in range(len(t)-1):
         # Heat pump NTA800
         # p_hp = 0
         # determine new setting for COP and heat pump power
-        water_temp[i] = outdoor_reset(T_outdoor_sim[i], 0.7, 20)
-        cop_hp[i], p_hp = nta.update(T_outdoor_sim[i], water_temp[i])
+        test = T_outdoor.values[i]
+        water_temp[i] = outdoor_reset(T_outdoor.values[i], 0.7, 20)
+        cop_hp[i], p_hp = nta.update(T_outdoor.values[i], water_temp[i])
 
         # incorporate hysteresis to control
-        p_hp = hp_hyst.update(Tair[i], SP_sim[i], p_hp)
+        p_hp = hp_hyst.update(Tair[i], SP_T.values[i], p_hp)
 
         # update q_vector
-        q_vector[2, i] = p_hp*1000
+        Q_vectors[rad_node, i] = p_hp*1000
 
         ts = [t[i], t[i+1]]
         result = solve_ivp(model_radiator_ne, ts, y0,
                         method='RK45', args=inputs,
-                        first_step=control_interval)
+                        first_step=cntrl_intrvl)
 
         Tair[i+1] = result.y[0, -1]
         Twall[i+1] = result.y[1, -1]
@@ -130,5 +131,5 @@ def house_radiator_ne(time_sim, tot_sys, Q_vectors,
         y0 = result.y[:, -1]
 
 
-    return t, Tair, Twall, Tradiator, q_vector[2,:]/1000, water_temp, cop_hp
+    return t, Tair, Twall, Tradiator, Q_vectors[rad_node, :]/1000, water_temp, cop_hp
 
