@@ -115,40 +115,47 @@ def main(show=False, xl=False):
     Qsolar.values *= param['solar_irradiation']['g_value']
     Qsolar.values = Qsolar.values[0:days_sim*24]
 
-    Qint = internal_heat_gain(param['internal']['Q_day'],
-                              param['internal']['delta_Q'],
-                              param['internal']['t1'],
-                              param['internal']['t2'])
-    Qint = Qint.flatten()
-    Qinternal_sim = Qint[0:days_sim*24]
+    Qint = PowerSource("Q_internal")
+    Qint.connected_to = param['internal']['distribution']
+    Qint.values = internal_heat_gain(param['internal']['Q_day'],
+                                     param['internal']['delta_Q'],
+                                     param['internal']['t1'],
+                                     param['internal']['t2'])
+    Qint.values = Qint.values.flatten()
+    Qint.values = Qint.values[0:days_sim*24]
 
-    Toutdoor = df_nen.loc[:, 'temperatuur'].values
-    Toutdoor = Toutdoor.flatten()   # temperature
-    T_outdoor_sim = Toutdoor[0:days_sim*24]
+    Toutdoor = PowerSource("T_outdoor")
+    Toutdoor.values = df_nen.loc[:, 'temperatuur'].values
+    Toutdoor.values = Toutdoor.values.flatten()
+    Toutdoor.values = Toutdoor.values[0:days_sim * 24]
 
-    SP = simple_thermostat(8, 23, 20, 17)
-    SP_sim = SP[0:days_sim * 24].flatten()
+    SP = PowerSource("SetPoint")
+    SP.values = simple_thermostat(8, 23, 20, 17)
+    SP.values = SP.values[0:days_sim * 24].flatten()
 
-    # make predictable part of q_dot vector
-    # q_vector = np.zeros((num_links,days_sim*24))
-    # leak_to_amb = house_param["chains"][0]["links"][0]["Conductance"]
-    # q_vector[0,:] = (T_outdoor_sim * leak_to_amb) + Qinternal_sim + CF * Qsolar_sim
-    # q_vector[1,:] = (1 - CF) * Qsolar_sim
+    # TODO: What happens here?
+    source_list = [Qsolar, Qint]
+    Q_vectors = np.zeros((total.num_nodes, days_sim * 24))
+    for n in range(days_sim * 24):
+        total.parts[0].ambient.update(Toutdoor.values[n])
+        total.add_ambient_to_q()
+        for s in source_list:
+            total.add_source_to_q(s, n)
+        # logging.info(f" q_vector: \n {total.q_vec}")
+        Q_vectors[:, [n]] = total.q_vec
+        total.make_empty_q_vec()
+
+    interp_func = interp1d(time_sim, Q_vectors, fill_value='extrapolate')
+    Q_vectors = interp_func(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
 
     # Interpolation of data
-    # interp_func = interp1d(time_sim, q_vector, fill_value='extrapolate')
-    interp_func_SP = interp1d(time_sim, SP_sim, fill_value='extrapolate')
-    interp_func_Q_internal = interp1d(time_sim, Qinternal_sim, fill_value='extrapolate')
-    interp_func_Toutdoor = interp1d(time_sim, T_outdoor_sim, fill_value='extrapolate')
-    # q_vector = interp_func(np.arange(0, time_sim[-1]+(6*600), control_interval))
-    SP_sim = interp_func_SP(np.arange(0, time_sim[-1]+(6*600), control_interval))
-    T_outdoor_sim = interp_func_Toutdoor(np.arange(0, time_sim[-1]+(6*600), control_interval))
-    Qinternal_sim = interp_func_Q_internal(np.arange(0, time_sim[-1]+(6*600), control_interval))
-    time_sim = np.arange(0, time_sim[-1]+(6*600), control_interval)
+    Qint.interpolate_power(time_sim, control_interval)
+    Toutdoor.interpolate_power(time_sim, control_interval)
+    SP.interpolate_power(time_sim, control_interval)
+    # TODO: check if this is neccesary
+    time_sim = np.arange(0, time_sim[-1] + (6 * 600), control_interval)
 
-    # time_sim = np.linspace(0, time_sim[-1], (8760-1)*6, endpoint=False)
-
-
+    # TODO: Remove this, nbo PID needed for NTA8800 heatpump, works with hysteresis
     # Input PID values in to control
     controllers = []
     for n in range(len(param['controllers'])):
@@ -156,11 +163,11 @@ def main(show=False, xl=False):
         controllers.append(c)
 
     # solve ODE
-    data = house_radiator_ne(time_sim, total,
-                            T_outdoor_sim,
-                            Qsolar_sim,
-                            Qinternal_sim,
-                            SP_sim, control_interval, controllers)
+    data = house_radiator_ne(time_sim, total, Q_vectors,
+                             Toutdoor,
+                             Qsolar,
+                             Qint,
+                             SP, control_interval, controllers)
 
     # if show=True, plot the results
     if show:

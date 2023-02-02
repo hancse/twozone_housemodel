@@ -47,7 +47,7 @@ def model_radiator_ne(t, x,
     return dTdt.flatten().tolist()
 
 
-def house_radiator_ne(time_sim, tot_sys,
+def house_radiator_ne(time_sim, tot_sys, Q_vectors,
                             T_outdoor_sim,
                             Q_solar_sim,
                             Qinternal_sim,
