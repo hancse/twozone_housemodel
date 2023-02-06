@@ -80,11 +80,8 @@ def main(show=False, xl=False):
     # compose k-matrix from parts
     total.edges_from_dict(param["edges"])
     total.fill_k(param["edges"])
-
     total.merge_k_ext()
     total.k_mat += total.k_ext_mat
-    # TODO Ask Paul why this is added
-    total.merge_ambients()
 
     total.make_empty_q_vec()
     logger.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
@@ -185,7 +182,7 @@ def main(show=False, xl=False):
         plt.title(Path(__file__).stem)
         plt.show()
         """
-        fig, ax = plt.subplots(2, 2, sharex=True)
+        fig, ax = plt.subplots(2, 2, sharex='all')
         ax[0, 0].plot(data[0],data[1], label='Tair')
         ax[0, 0].plot(data[0],data[2], label='Twall')
         ax[0, 0].plot(data[0], data[3], label='Tradiator')
@@ -218,34 +215,32 @@ def main(show=False, xl=False):
         plt.show()
 
     if xl:
+        xlname = 'tst_NTA8800.xlsx'
+        logger.info(f"writing Excel file {xlname}...")
         # df_out = pd.DataFrame(data[0], columns=['Timestep'])
         df_out = pd.DataFrame({'Timestep': data[0]})
-        df_out['Outdoor temperature'] = T_outdoor_sim
-        for n in range(num_links):
-            nodename = house_param['chains'][0]['links'][n]['Name']
-            df_out["T_{}".format(n)] = data[n+1].tolist()
-            # df_out["Solar_{}".format(n)] = Qsolar_sim[n, :]
-            if nodename == 'Internals':
-                df_out["Internal_{}".format(n)] = Qinternal_sim
-
-        df_out['Tradiator'] = data[3].tolist()
+        df_out['Outdoor temperature'] = Toutdoor.values
+        # df_out['NEN5060_global'] = glob.values
+        # df_out['cloud_cover'] = cloud.values
         df_out["Heating"] = data[4].tolist()
+        df_out['Setpoint'] = SP.values
+
+        for n in total.tag_list:
+            lbl = total.find_node_label_from_tag(n)
+            df_out["T_{}".format(lbl)] = data[n + 1].tolist()
+            # df_out["Solar_{}".format(n)] = Qsolar_sim[n, :]
+            if lbl == 'air':
+                df_out["Internal_{}".format(lbl)] = Qint.values
 
         wb = Workbook()
         ws = wb.active
-        ws.append(['DESCRIPTION',
-                   'Resultaten HAN Dynamic Model Heat Built Environment'])
-        ws.append(['Chain number', 0])
-        ws.append(['Designation', None, '2R-2C-1-zone',
-                   None, None, None, '2R-2C-1-zone'])
-        ws.append(['Node number', None, 0, None, None, None, 1])
-        ws.append(['Designation', None,
-                   house_param['chains'][0]['links'][0]['Name'], None, None, None,
-                   house_param['chains'][0]['links'][1]['Name']])
+
         for r in dataframe_to_rows(df_out, index=False):
             ws.append(r)
         # df_out.to_excel('tst.xlsx', index=False, startrow=10)
-        wb.save('tst.xlsx')
+        wb.save(xlname)
+        logger.info(f"Excel file {xlname} written")
+
 
 if __name__ == "__main__":
     main(show=True, xl=True)  # temporary solution, recommended syntax

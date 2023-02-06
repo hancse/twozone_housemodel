@@ -6,6 +6,7 @@ from scipy.integrate import solve_ivp       # ODE solver
 import numpy as np                       # linear algebra
 # from housemodel.tools.PIDsim import PID
 from housemodel.controls.ivPID.PID import PID
+from tqdm import tqdm, trange
 
 import logging
 
@@ -111,7 +112,7 @@ def house_radiator_ne(time_sim, tot_sys, Q_vectors,
 
     rad_node = tot_sys.find_tag_from_node_label("rad")
 
-    for i in range(len(t)-1):
+    for i in tqdm(range(len(t)-1)):
         # here comes the "arduino style" controller
         pid.SetPoint = SP_T.values[i]
         pid.update(Tair[i], t[i])
