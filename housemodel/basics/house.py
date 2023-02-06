@@ -28,6 +28,7 @@ class House:
 
         self.c_inv_mat = None  # np.zeros((self.num_nodes, self.num_nodes))
         self.k_mat = None      # np.zeros_like(self.c_inv_mat)
+        self.k_ext_mat = None  # np.zeros_like(self.c_inv_mat)
         self.q_vec = None      # np.zeros(self.num_nodes, 1)
 
         self.q_solar = None
