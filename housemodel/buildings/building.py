@@ -1,6 +1,6 @@
 import numpy as np
 
-from housemodel.tools.ckf_tools import make_c_inv_matrix
+from housemodel.basics.ckf_tools import make_c_inv_matrix
 from housemodel.tools.new_configurator import load_config
 from housemodel.basics.components import (CapacityNode, FixedNode)
 import logging
