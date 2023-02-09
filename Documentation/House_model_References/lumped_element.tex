@@ -1501,7 +1501,7 @@ In the listing below, from the module \texttt{components.py}, the definition of 
 \begin{minipage}{\linewidth}
 \lstinputlisting[label=lst:capnode, linerange={10-15}, 
 caption={Capacity Node}]
-{../../housemodel/buildings/components.py}
+{../../housemodel/basics/components.py}
 \end{minipage}
 
 \subsubsection{Fixed temperature Node (external node)}
@@ -1521,7 +1521,7 @@ In the listing below, from the module \texttt{components.py}, the definition of 
 \begin{minipage}{\linewidth}
 \lstinputlisting[label=lst:capnode, linerange={18-26}, 
 caption={Fixed Node (external node)}] 
-{../../housemodel/buildings/components.py}
+{../../housemodel/basics/components.py}
 \end{minipage}
 
 The attribute \texttt{connected\_to} is a list with elements \texttt{[tag, conductivity]}. This attribute contains all information for building the \textbf{k}-matrix. In most cases the attribute \texttt{connected\_to} does not change during a simulation. Only the attribute \texttt{temp} is updated at regular intervals (see method \texttt{update}). The contribution to the $\mathbf{\dot{q}}$-vector then has to be updated as well.
@@ -1538,7 +1538,7 @@ The attribute \texttt{connected\_to} is a list with elements \texttt{[tag, condu
 
 \lstinputlisting[label=lst:capnode, linerange={29-33}, 
 caption={Conductance Edges}] 
-{../../housemodel/buildings/components.py}
+{../../housemodel/basics/components.py}
 
 \subsubsection{Fluid Flow}
 \emph{NOTE}: the definition of the fluid flows in this section has its limitations. Only basic closed loops without splits in the 'pipes' can be modeled. This is fine as a starting point. However, when more complex scenarios with complex fluid flows are required a more generic formalism is needed for the modeling of the fluid flows. In this case, a system with flow edges and flow nodes may be a possible solution. The open challenges here are: 1. how to define the flow network (next to / in combination with the heat conductance network),  2. how to compute the flow rates in the more complex system. 
@@ -1635,6 +1635,25 @@ caption={Flow}]
 	\item 
 \end{itemize}
 
+\subsection{Heat Pump}
+
+A heat pump can be modeled in several ways. A straightforward approach is to reduce the heat pump to two fixed nodes, external to the building system. These nodes represent the evaporator and condensor \emph{exit} temperatures $T_{evap}$ and $T_{cond}$. In case of a air-water heatpump, $T_{evap}$ can be approched with the instantaneous outdoor (ambient) temperature from the weather conditions. For a heat pump with a liquid heat source this will be the source temperature, in any cases a ground source. $T_{cond}$ can be derived from a heating curve ($T_{cond}$ vs. $T_{outdoor}$) or from a heat pump functional model.
+
+\textbf{properties}
+\begin{itemize}
+	\item $T_{evap}$.
+	\item $T_{cond}$. 
+	\item COP
+	\item Thermal power
+\end{itemize}
+
+The heat pump will deliver its thermal power via an internal heat exchanger from the refrigerant to a liquid heat carrier (water) in a buffer vessel. There are a few options for the connection of the buffer vessel:
+
+\begin{itemize}
+	\item 2-pipe connection
+	\item 4-pipe connection
+	\item 3-pipe connection
+\end{itemize}
 
 \subsection{Package "housemodel"}
 

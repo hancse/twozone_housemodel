@@ -185,12 +185,12 @@ def main(show=False, xl=False):
 
     glob = PowerSource("Global")
     glob.values = df_nen['globale_zonnestraling'].values
-    glob.values = glob.values.flatten()
+    glob.values = glob.values[0:days_sim * 24].flatten()
     glob.interpolate_power(time_sim, control_interval)
 
     cloud = PowerSource('cloud')
     cloud.values = df_nen['bewolkingsgraad'].values
-    cloud.values = cloud.values.flatten()
+    cloud.values = cloud.values[0:days_sim * 24].flatten()
     cloud.interpolate_power(time_sim, control_interval)
 
     # interpolate time_sim itself (after all arrays are interpolated)
