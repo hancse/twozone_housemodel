@@ -75,6 +75,15 @@ In order to compute the efficiency the temperature of the PV-cells is required. 
 \end{equation}
 where $T_a$ is the ambient temperature, $v_w$ is the wind speed and $I_{g,s}$ is the global irradiance level. 
 
+\subsection{thermal collector}
+Schnieders \cite{schnieders1997comparison}  gives a good overview of a set of dynamic collector models, that were available in 1997. Most of these approaches are based on a 3n-node-model, which was proposed by Kamminga in 1985 \cite{kamminga1985experiences}(have not seen the original paper only the summary in Schnieders). This 3n-node-model uses breaks the collector up in n parts of 3 thermal capacities: the glass cover, the absorber plate and the fluid. A basic heat exchange model, similar to the house model, describes the heat exchange in each of the n parts. The heat exchange between the n parts is only due to the fluid flow through the collector tube. This yield a set of linear partial differential equations. This 3n-node-model is relatively computational intensive. To overcome this issue various approximation approaches have been used over time, which are also mentioned by Schnieders. 
+%The 2n-node-model discards the glass cover. Although smaller, this model is still computationally intensive.  
+Although it might be possible to capture this model in our developed modeling formalism of capacities and flows, one can question whether this model fits to the time scales we are considering. Schnieders has made a comparison of the models. For this comparison, measurements were done over some time period, with a sampling interval of 10 seconds. 5 models have been fitted on the data, and the simulation results are shown for a period of 30 minutes. One can observe that the more detailed models match well with the measurements, also on a sub-minute time scale. However this is not the level of detail we will need, since we do not have the input, solar irradiance, on the time-scale. Therefore, a more suited model would possibly be the 1-point model, which only considers the mean temperature, or the stationary model.
+
+(NOTE FOR SELF ended here need to look into the details of the one-point model and stationary model)
+
+
+
 
 
 \subsection{PVT-panel}
@@ -102,6 +111,7 @@ The equation \ref{eq:thermal_ISO} is the most basic version of a series. This mo
 The second model is a one dimensional energy balance model. The description in \cite{SHC2020PVT} is not so clear. It seems that this model provides a steady state solution for the temperature distribution in the direction of the flow of the collector fluid. This yields a function for the outflow temperature dependent on the inflow temperature. According to the description this is a simple linear relationship. However, the exact parameters are obscure. In case we want to use this model the math needs to be worked out in detail. Downside of this model is the lack of time dependence. In a steady state situation, with little fluctuation in the inflow temperature, this model might suffice. 
 
  
+\subsubsection{energy balance}
 
 
 
