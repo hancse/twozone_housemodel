@@ -65,9 +65,7 @@ class Building:
         choose "outdoor" node as ambient for Building class
 
         Args:
-            lod: list-of dicts read from "boundaries section in *.yaml configuration file
-
-        Returns: None
+            lod: list-of dicts read from "boundaries" section in *.yaml configuration file
 
         """
         for n in range(len(lod)):
