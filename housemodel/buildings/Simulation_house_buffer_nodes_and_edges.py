@@ -104,7 +104,7 @@ def export_xl(sim):
 
 def main(show=False, xl=False):
     # read configuration file into dictionary
-    param = load_config(str(CONFIGDIR / "xl_for_2R2Chouse_buffer.yml"))
+    param = load_config(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
     # convert duration in hours to days and round up with ceil function
     days_sim = math.ceil(param['timing']['Duration'] / 24)
     print(days_sim)

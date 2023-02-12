@@ -204,6 +204,7 @@ def main(show=False, xl=False):
     Ti_o = 20  # [°C] Design indoor (set) temperature
     n = 1.3  # [-]  Emprical radiator constant
 
+
     def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
                          control_interval):
         """model function for scipy.integrate.odeint.
@@ -311,70 +312,70 @@ def main(show=False, xl=False):
 
             - Qinst ?	  (array):  instant heat from heat source such as HP or boiler [W].
         """
-        # initial values for solve_ivp
-        # make a list of all nodes in total_system
-        yn = [n for node in [p.nodes for p in total.parts] for n in node]
-        # make a list of the (initial) temperatures of all nodes
-        y0 = [cn.temp for cn in yn]
-        # in one statement
-        # y0 = [cn.temp for cn in [n for node in [p.nodes for p in tot_sys.parts] for n in node]]
+    # initial values for solve_ivp
+    # make a list of all nodes in total_system
+    yn = [n for node in [p.nodes for p in total.parts] for n in node]
+    # make a list of the (initial) temperatures of all nodes
+    y0 = [cn.temp for cn in yn]
+    # in one statement
+    # y0 = [cn.temp for cn in [n for node in [p.nodes for p in tot_sys.parts] for n in node]]
 
-        t = time_sim  # Define Simulation time with sampling time
-        Tair = np.ones(len(t)) * y0[0]
-        Twall = np.ones(len(t)) * y0[1]
-        Tradiator = np.ones(len(t)) * y0[2]
+    t = time_sim  # Define Simulation time with sampling time
+    Tair = np.ones(len(t)) * y0[0]
+    Twall = np.ones(len(t)) * y0[1]
+    Tradiator = np.ones(len(t)) * y0[2]
 
-        TBuffervessel0 = 80
-        y0buffervessel = [TBuffervessel0, TBuffervessel0, TBuffervessel0, TBuffervessel0, TBuffervessel0,
-                          TBuffervessel0, TBuffervessel0, TBuffervessel0]
+    TBuffervessel0 = 80
+    y0buffervessel = [TBuffervessel0, TBuffervessel0, TBuffervessel0, TBuffervessel0, TBuffervessel0,
+                      TBuffervessel0, TBuffervessel0, TBuffervessel0]
 
-        Treturn = np.ones(len(t)) * Twall0
-        Power = np.ones(len(t)) * Twall0
-        TBuffervessel1 = np.ones(len(t)) * TBuffervessel0
-        TBuffervessel2 = np.ones(len(t)) * TBuffervessel0
-        TBuffervessel3 = np.ones(len(t)) * TBuffervessel0
-        TBuffervessel4 = np.ones(len(t)) * TBuffervessel0
-        TBuffervessel5 = np.ones(len(t)) * TBuffervessel0
-        TBuffervessel6 = np.ones(len(t)) * TBuffervessel0
-        TBuffervessel7 = np.ones(len(t)) * TBuffervessel0
-        TBuffervessel8 = np.ones(len(t)) * TBuffervessel0
+    Treturn = np.ones(len(t)) * Twall0
+    Power = np.ones(len(t)) * Twall0
+    TBuffervessel1 = np.ones(len(t)) * TBuffervessel0
+    TBuffervessel2 = np.ones(len(t)) * TBuffervessel0
+    TBuffervessel3 = np.ones(len(t)) * TBuffervessel0
+    TBuffervessel4 = np.ones(len(t)) * TBuffervessel0
+    TBuffervessel5 = np.ones(len(t)) * TBuffervessel0
+    TBuffervessel6 = np.ones(len(t)) * TBuffervessel0
+    TBuffervessel7 = np.ones(len(t)) * TBuffervessel0
+    TBuffervessel8 = np.ones(len(t)) * TBuffervessel0
 
-        # Controller initialization
-        # heatingPID = PID(Kp=5000, Ki=0, Kd=0, beta=1, MVrange=(0, 12000), DirectAction=False)
-        # heating = 0
-        # kp = control_parameters[0]
-        # ki = control_parameters[1]
-        # kd = control_parameters[2]
+    # Controller initialization
+    # heatingPID = PID(Kp=5000, Ki=0, Kd=0, beta=1, MVrange=(0, 12000), DirectAction=False)
+    # heating = 0
+    # kp = control_parameters[0]
+    # ki = control_parameters[1]
+    # kd = control_parameters[2]
 
-        pid = PID(controllers[0]['kp'],
+    pid = PID(controllers[0]['kp'],
                   controllers[0]['ki'],
                   controllers[0]['kd'],
                   t[0])
 
-        pid.SetPoint = 17.0
-        pid.setSampleTime(0)
-        pid.setBounds(0, controllers[0]["maximum"])
-        pid.setWindup(controllers[0]["maximum"] / control_interval)
+    pid.SetPoint = 17.0
+    pid.setSampleTime(0)
+    pid.setBounds(0, controllers[0]["maximum"])
+    pid.setWindup(controllers[0]["maximum"] / control_interval)
 
-        # Heat pump initialization
-        nta = Heatpump_NTA()
-        nta.Pmax = 8
-        nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
+    # Heat pump initialization
+    nta = Heatpump_NTA()
+    nta.Pmax = 8
+    nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
 
-        nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
+    nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
                                       nta.cal_COP_val, order=1)
 
-        nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
+    nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
                                       nta.cal_Pmax_val, order=1)
 
-        water_temp = np.zeros_like(T_outdoor_sim)
-        cop_hp = np.zeros_like(T_outdoor_sim)
+    water_temp = np.zeros_like(T_outdoor_sim)
+    cop_hp = np.zeros_like(T_outdoor_sim)
 
-        # define hysteresis object for heat pump
-        hp_hyst = hyst(dead_band=0.5, state=True)
+    # define hysteresis object for heat pump
+    hp_hyst = hyst(dead_band=0.5, state=True)
 
-        # inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
-        inputs = (total, Q_vectors, control_interval)
+    # inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
+    inputs = (total, Q_vectors, control_interval)
 
         # Note: the algorithm can take an initial step
         # larger than the time between two elements of the "t" array
@@ -421,7 +422,7 @@ def main(show=False, xl=False):
             result = solve_ivp(model_radiator_m, ts, y0,
                                method='RK45', args=inputs,
                                first_step=control_interval)
-            
+
             toplevel = TBuffervessel1[i]
             mdots = np.clip((80 - toplevel) * 0.001, 0, 0.05)
             mdotd = np.clip(Qinst / ((TBuffervessel1[i] - Tr_GMTD) * 4180), 0, 0.05)
