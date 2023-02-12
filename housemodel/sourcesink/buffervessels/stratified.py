@@ -175,6 +175,121 @@ class StratifiedBuffer:
     """
 
 
+class StratifiedBufferNew:
+    """parent class for cylindrical stratified buffer vessel
+
+    """
+
+    def __init__(self, name="", volume=0.1, height=1.0, n_layers=5, u=0.12):
+        self.name = name
+        self.num_nodes = n_layers
+        self.nodes = []
+        self.hot_node = 0            # anchor point of hot water supply to house model
+        self.cold_node = n_layers-1  # anchor point of cold water return from house model
+        self.volume = volume
+        self.height = height
+        self.Uwall = u               # conductivity vessel wall to ambient in [W/K m^2]
+
+        self.boundaries = []
+        self.ambient = None
+
+        self.tag_list = []
+        self.cap_list = []
+
+        self.c_inv_mat = None
+        self.k_ext_mat = None
+
+        self.rho = 1000             # [kg/m^3]
+        self.cp = 4190              # [J/(K kg)]
+        self.conductivity = 0.644   # [W/m K]
+
+        self.layer_height = None
+        self.radius = None
+        self.A_wall_layer = None
+        self.A_base = None   # contact area between layers (= area of vessel bottom and top face)
+        self.cap_layer = None
+
+        self.temperatures = None
+        self.calculate_buffer_properties()
+
+    def calculate_buffer_properties(self):
+        self.layer_height = self.height / self.num_nodes
+        self.radius = np.sqrt(self.volume / (self.height * np.pi))
+        self.A_wall_layer = 2 * np.pi * self.radius * self.layer_height
+        self.A_base = np.pi * np.square(self.radius)
+        self.cap_layer = (self.volume / self.num_nodes) * self.rho * self.cp
+
+    def set_volume(self, vol):
+        self.volume = vol
+        self.calculate_buffer_properties()
+
+    def set_height(self, h):
+        self.height = h
+        self.calculate_buffer_properties()
+
+    def make_nodes(self):
+        """initializes "nodes" attribute with data from yaml file
+           makes a list from tags belonging to the StratifiedBuffer object
+
+        """
+        # self.num_nodes = len(lod)
+        for n in range(self.num_nodes):
+            node = CapacityNode(label=str(n),
+                                tag=n,
+                                cap=self.cap_layer,
+                                temp=20.0)
+            # append by reference, therefore new node object in each iteration
+            self.nodes.append(node)
+            logging.info(f" node '{node.label}' with tag {node.tag} appended to {self.name}")
+        self.tag_list = [n.tag for n in self.nodes]
+        logging.info(f" tag_list {self.tag_list}")
+
+    def fill_c_inv(self):
+        """generate cap_list and fill c_inv_matrix.
+
+        """
+        self.cap_list = [n.cap for n in self.nodes]
+        if len(self.cap_list) > 0:
+            self.c_inv_mat = make_c_inv_matrix(self.cap_list)
+            logging.info(f" c_inv_matrix: \n {self.c_inv_mat}")
+        else:
+            logging.error(f" Error: cap_list empty")
+
+    def boundaries_from_dict(self, lod):
+        """generate Fixed Node objects from configuration file.
+
+        choose "indoor" node as ambient for StratifiedBuffer class
+
+        Args:
+            lod: list-of dicts read from "boundaries" section in *.yaml configuration file
+
+        """
+        for n in range(len(lod)):
+            node = FixedNode(label=lod[n]["label"],
+                             temp=lod[n]["T_ini"],
+                             connected_to=lod[n]["connected_to"])
+            # append by reference, therefore new node object in each iteration
+            self.boundaries.append(node)
+            logging.info(f" boundary '{node.label}' appended to {self.name}")
+
+        self.ambient = [fn for fn in self.boundaries if fn.label == "indoor"][0]
+        logging.info(f" ambient is '{self.ambient.label}' for {self.name}")
+
+    def make_k_ext_and_add_ambient(self):
+        """make external "k_ext" matrix and selectively add conductivity to boundary condition "ambient"
+        to diagonal elements
+
+        """
+        if self.num_nodes > 0:                                            # c-1 matrix and rank has to be defined
+            self.k_ext_mat = np.zeros((self.num_nodes, self.num_nodes))   # initialize with zeros
+            for c in self.ambient.connected_to:
+                idx = self.tag_list.index(c[0])
+                cond = c[1]
+                self.k_ext_mat[idx, idx] += cond
+                logging.info(f" ambient connected to node '{self.nodes[idx].label}'")
+            logging.info(f" k_ext matrix: \n {self.k_ext_mat}")
+
+
 if __name__ == "__main__":
     from pathlib import Path
     CONFIGDIR = Path(__file__).parent.parent.absolute()
@@ -185,5 +300,3 @@ if __name__ == "__main__":
     c1 = make_c_inv_matrix(c_list)
     print(c1, "\n")
     k_list = [[0, 1, 1.0]]
-
-
