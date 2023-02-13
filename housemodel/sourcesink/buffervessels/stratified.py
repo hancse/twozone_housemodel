@@ -186,6 +186,8 @@ class StratifiedBufferNew:
         self.nodes = []
         self.hot_node = 0            # anchor point of hot water supply to house model
         self.cold_node = n_layers-1  # anchor point of cold water return from house model
+        self.edges = []
+
         self.volume = volume
         self.height = height
         self.Uwall = u               # conductivity vessel wall to ambient in [W/K m^2]
@@ -227,7 +229,7 @@ class StratifiedBufferNew:
         self.height = h
         self.calculate_buffer_properties()
 
-    def make_nodes(self):
+    def generate_nodes(self):
         """initializes "nodes" attribute with data from yaml file
            makes a list from tags belonging to the StratifiedBuffer object
 
@@ -289,14 +291,43 @@ class StratifiedBufferNew:
                 logging.info(f" ambient connected to node '{self.nodes[idx].label}'")
             logging.info(f" k_ext matrix: \n {self.k_ext_mat}")
 
+    def generate_edges(self):
+        self.tag_list = list(range(10))
+        c = self.conductivity * self.A_base / self.layer_height
+        self.edges = [[a, b, c] for a, b in zip(self.tag_list, self.tag_list[1:])]
+
+    def generate_ambient(self):
+        c_mid = self.Uwall * self.A_wall_layer
+        c_end = self.Uwall * (self.A_wall_layer + self.A_base)
+        self.ambient = FixedNode(label='indoor',
+                                 temp=20.0,
+                                 connected_to = [[a, c_mid] for a in self.tag_list])
+        for c in self.ambient.connected_to:
+            if c[0] == self.tag_list[0] or c[0] == self.tag_list[-1]:
+                c[1] = c_end
+        # self.ambient.connected_to = [[i, j if (self.tag_list[0] < i < self.tag_list[-1]) else c_end] for i, j in b2.ambient.connected_to]
+
 
 if __name__ == "__main__":
+    b2 = StratifiedBufferNew(name="MyBuffer", n_layers=10)
+    b2.generate_nodes()
+    b2.generate_edges()
+    b2.generate_ambient()
+
+    print()
+
+    """
+
     from pathlib import Path
-    CONFIGDIR = Path(__file__).parent.parent.absolute()
-    house_param = load_config(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
+    CONFIGDIR = Path(__file__).parent.parent.parent.parent.absolute()
+    param = load_config(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
+
+    b2.boundaries_from_dict(param['boundaries'])
+    b2.make_k_ext_and_add_ambient()
 
     b = StratifiedBuffer("MyBuffer")
     c_list = [1.0, 2.0]
     c1 = make_c_inv_matrix(c_list)
     print(c1, "\n")
     k_list = [[0, 1, 1.0]]
+    """
