@@ -180,23 +180,25 @@ class StratifiedBufferNew:
 
     """
 
-    def __init__(self, name="", volume=0.1, height=1.0, n_layers=5, u=0.12):
+    def __init__(self, name, begin_node=0, volume=0.1, height=1.0, n_layers=5, u=0.12, T_ini=20):
         self.name = name
         self.num_nodes = n_layers
         self.nodes = []
-        self.hot_node = 0            # anchor point of hot water supply to house model
-        self.cold_node = n_layers-1  # anchor point of cold water return from house model
+        self.begin_node = begin_node                  # anchor point of hot water supply to house model
+        self.end_node = self.begin_node + n_layers-1  # anchor point of cold water return from house model
         self.edges = []
 
         self.volume = volume
         self.height = height
-        self.Uwall = u               # conductivity vessel wall to ambient in [W/K m^2]
+        self.Uwall = u         # conductivity vessel wall to ambient in [W/K m^2]
+        self.T_ini = T_ini
 
         self.boundaries = []
         self.ambient = None
 
         self.tag_list = []
         self.cap_list = []
+        self.edge_list = []
 
         self.c_inv_mat = None
         self.k_ext_mat = None
@@ -234,12 +236,11 @@ class StratifiedBufferNew:
            makes a list from tags belonging to the StratifiedBuffer object
 
         """
-        # self.num_nodes = len(lod)
         for n in range(self.num_nodes):
-            node = CapacityNode(label=str(n),
-                                tag=n,
+            node = CapacityNode(label=f"{self.name}{n}",
+                                tag=self.begin_node + n,
                                 cap=self.cap_layer,
-                                temp=20.0)
+                                temp=self.T_ini)
             # append by reference, therefore new node object in each iteration
             self.nodes.append(node)
             logging.info(f" node '{node.label}' with tag {node.tag} appended to {self.name}")
@@ -292,9 +293,8 @@ class StratifiedBufferNew:
             logging.info(f" k_ext matrix: \n {self.k_ext_mat}")
 
     def generate_edges(self):
-        self.tag_list = list(range(10))
         c = self.conductivity * self.A_base / self.layer_height
-        self.edges = [[a, b, c] for a, b in zip(self.tag_list, self.tag_list[1:])]
+        self.edge_list = [[a, b, c] for a, b in zip(self.tag_list, self.tag_list[1:])]
 
     def generate_ambient(self):
         c_mid = self.Uwall * self.A_wall_layer
@@ -311,8 +311,10 @@ class StratifiedBufferNew:
 if __name__ == "__main__":
     b2 = StratifiedBufferNew(name="MyBuffer", n_layers=10)
     b2.generate_nodes()
+    b2.fill_c_inv()
     b2.generate_edges()
     b2.generate_ambient()
+    b2.make_k_ext_and_add_ambient()
 
     print()
 

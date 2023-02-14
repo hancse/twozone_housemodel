@@ -55,7 +55,8 @@ class TotalSystem:
 
         self.tag_list = []
         # self.cap_list = []
-        # self.cond_list = []
+        # self.cond_list =
+        self.edge_list = []
 
         logging.info(f" TotalSystem object {self.name} created")
 
