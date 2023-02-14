@@ -37,22 +37,6 @@ def RC_calculator_2R2C(A_facade, Rc_facade, Aglass, Uglass, n, V_dwelling, A_int
         th_internal_mass = 0.2  # Construction thickness[m]
         rho_internal_mass = 2500  # Density construction in [kg / m3]
 
-
-    """Facade construction """
-
-    if N_facade == 1:  # Light weight construction
-        c_facade = 840  # Specific heat capacity construction[J / kgK]
-        rho_facade = 500  # Density construction in [kg / m3]
-        th_facade = 0.1  # Construction thickness[m]
-    elif N_facade == 2:  # Middle weight construction
-        c_facade = 840  # Specific heat capacity construction[J / kgK]
-        rho_facade = 1000  # Density construction in [kg / m3]
-        th_facade = 0.1  # Construction thickness[m]
-    else: # Heavy weight construction
-        c_facade = 840  # Specific heat capacity construction[J / kgK]
-        rho_facade = 2500  # Density construction in [kg / m3]
-        th_facade = 0.2  # Construction thickness[m]
-
     V_internal_mass=A_internal_mass*th_internal_mass   # Volume floor and internal walls construction [m3]
     qV=(n*V_dwelling)/3600            # Ventilation, volume air flow [m3/s]
     qm=qV*rho_air                     # Ventilation, mass air flow [kg/s]
