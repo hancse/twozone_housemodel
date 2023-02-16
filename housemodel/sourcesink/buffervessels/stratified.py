@@ -179,7 +179,6 @@ class StratifiedBufferNew:
     """parent class for cylindrical stratified buffer vessel
 
     """
-
     def __init__(self, name, begin_node=0, volume=0.1, height=1.0, n_layers=5, u=0.12, T_ini=20):
         self.name = name
         self.num_nodes = n_layers

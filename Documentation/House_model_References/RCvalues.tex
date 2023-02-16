@@ -1,4 +1,6 @@
-\section{White box lumped model: RC network}
+\section{White box lumped model for a building: RC networks}
+
+
 \subsection{White box lumped model}
 
 The objective of the house model for this project is to serve as test environment for a heat pump model, which means that the house model is intended as a tool to help taking building systems design decisions. The house heating demand calculation model implemented for this project is a white box \emph{lumped} model. Specifically, it is a RC network model consisting of resistances (R) and capacities (C). The RC network model is based on the analogy with electrical circuits. The simulation of thermodynamic systems characterizing building elements as resistances or capacities allows to simplify the model while maintaining a high simulation results accuracy \textbf{(Bagheri et al.\cite{en11040890}, Bacher et al\cite{Bacher}.)}.  
@@ -129,14 +131,28 @@ The 2R-2C house model structure is implemented as described below. The schematic
 	\caption[Short title]{Schematic of envelope model}
 	\label{fig:envelope2R2C}
 	\end{figure} 
-	
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=1.0\columnwidth]{Pictures/2R2C_Model.png}
-	\caption[Short title]{2R-2C house model}
-	\label{fig:elec2R2C}
-	\end{figure}
+\begin{figure}[h!]
+	\begin{center}
+		\begin{circuitikz}
+			\ctikzset{bipoles/thickness=3}
+			\draw (0,0)
+			to[V,v=$T_{outdoor}$] (0,4) % The voltage source
+			to[R,R=$R_{air, out}$, -*] (4,4)
+			node[color=red, circ, label={[red]above:$T_{air}$}]{}
+			to[C=$C_{air}$] (4,0) % The heat capacity of the air
+			to[short] (0,0);
+			\draw(4,4)
+			to[R,R=$R_{air, wall}$, -*] (8,4)
+			node[color=red, circ, label={[red]above:$T_{wall}$}]{}
+			to[C=$C_{wall}$] (8,0)
+			to[short] (4,0)
+			++ (-4,0);
+		\end{circuitikz}
+	    \caption{2R-2C house model.}
+	\end{center}
+\end{figure}
+
 	
 The model consists of two heat capacities C\textsubscript{air, indoor} and C\textsubscript{wall} and two resistances R\textsubscript{wall} and R\textsubscript{air, outdoor}. The incident solar energy is divided between C\textsubscript{wall} and C\textsubscript{air} through the convection factor CF. It is assumed that both internal heat (lighting, occupancy and electric devices) and supplied heat (installation) initially heat up the indoor air. In Fig. \ref{fig:envelope2R2C}, they are fully released at the T\textsubscript{air} node. 
 

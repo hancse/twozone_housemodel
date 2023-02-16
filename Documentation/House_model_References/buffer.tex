@@ -1,0 +1,475 @@
+\section{Differential equations for stratified buffervessel MvdB}
+
+Python code, for a buffer vessel with 8 layers:
+\begin{tiny}
+	\begin{equation}
+		\begin{aligned}
+			dT1 &= ((F_s * (Tsupply - x[0]))          + (F_e * (x[0] - x[1]) * deltaMinus) - (U * As * (x[0] - Tamb)) + ((Aq * lamb) / z) * (x[0] - x[1])) \\
+			dT2 &= ((F_e* (x[0] - x[1]) * deltaPlus)  + (F_e * (x[1] - x[2]) * deltaMinus) - (U * As * (x[1] - Tamb)) + ((Aq * lamb) / z) * (x[0] + x[2] - (2 * x[1]))) \\
+			dT3 &= ((F_e * (x[1] - x[2]) * deltaPlus) + (F_e * (x[2] - x[3]) * deltaMinus) - (U * As * (x[2] - Tamb)) + ((Aq * lamb) / z) * (x[1] + x[3] - (2 * x[2]))) \\
+			dT4 &= ((F_e * (x[2] - x[3]) * deltaPlus) + (F_e * (x[3] - x[4]) * deltaMinus) - (U * As * (x[3] - Tamb)) + ((Aq * lamb) / z) * (x[2] + x[4] - (2 * x[3]))) \\
+			dT5 &= ((F_e * (x[3] - x[4]) * deltaPlus) + (F_e * (x[4] - x[5]) * deltaMinus) - (U * As * (x[4] - Tamb)) + ((Aq * lamb) / z) * (x[3] + x[5] - (2 * x[4]))) \\
+			dT6 &= ((F_e * (x[4] - x[5]) * deltaPlus) + (F_e * (x[5] - x[6]) * deltaMinus) - (U * As * (x[5] - Tamb)) + ((Aq * lamb) / z) * (x[4] + x[6] - (2 * x[5]))) \\
+			dT7 &= ((F_e * (x[5] - x[6]) * deltaPlus) + (F_e * (x[6] - x[7]) * deltaMinus) - (U * As * (x[6] - Tamb)) + ((Aq * lamb) / z) * (x[5] + x[7] - (2 * x[6]))) \\
+			dT8 &= ((F_d * (Treturn - x[7]))          + (F_e * (x[6] - x[7]) * deltaPlus)  - (U * As * (x[7] - Tamb)) + ((Aq * lamb) / z) * (x[6] - x[7])) 
+		\end{aligned}
+	\end{equation}
+\end{tiny}
+
+Abbreviations and legend:
+\begin{scriptsize}
+	\begin{equation}
+		\begin{aligned}
+			C_x &= m_x \cdot c_{p, w} \qquad \text{for} \quad x =  0 \, \text{...} \, \text{\# of layers}\\
+			F_{supply} = F_s &= \dot{m}_{supply} \cdot c_{p, w} \\
+			F_{demand} = F_d &= \dot{m}_{demand} \cdot c_{p, w} \\
+			\dot{m}_e &= \dot{m}_{supply} - \dot{m}_{demand} \\
+			F_e &= \dot{m}_{e} \cdot c_{p, w} \\
+			\frac{1}{R_{amb}} &= U \cdot A_s \\
+			\frac{1}{R} = \frac{1}{R_{int}} &= \frac{Aq \cdot \lambda}{z}
+		\end{aligned}
+	\end{equation}
+	
+	The Python code has a "mismatch" between the range of $dT_1$ (1..8) and the range of $x$ (0 ..7). This is solved by renaming the nodes to $T_{top} \quad T_1 \cdots T_6 \quad T_{bot}$. The set of differential equations the becomes:
+	\begin{equation}
+		\begin{aligned}
+			C_{top} \cdot \frac{dT_{top}}{dt} &= F_s (T_{sup} - T_{top}) &&+ F_e (T_{top} - T_1) \Delta_{\_} &- \frac{1}{R_{amb}} \cdot (T_{top} - T_{amb}) &+ {\color{red}\frac{1}{R} (T_{top} - T_1)} \\
+			C_1 \cdot \frac{dT_1}{dt} &= &F_e (T_{top} - T_1) \Delta_{+} &+ F_e (T_1 - T_2) \Delta_{\_} &- \frac{1}{R_{amb}} \cdot (T_1 - T_{amb}) &+ \frac{1}{R} (T_0 + T_2 - 2 T_1) \\
+			C_2 \cdot \frac{dT_2}{dt} &= &F_e (T_1 - T_2) \Delta_{+} &+ F_e (T_2 - T_3) \Delta_{\_} &- \frac{1}{R_{amb}} \cdot (T_2 - T_{amb}) &+ \frac{1}{R} (T_1 + T_3 - 2 T_2) \\
+			C_3 \cdot \frac{dT_3}{dt} &= &F_e (T_2 - T_3) \Delta_{+} &+ F_e (T_3 - T_4) \Delta_{\_} &- \frac{1}{R_{amb}} \cdot (T_3 - T_{amb}) &+ \frac{1}{R} (T_2 + T_4 - 2 T_3) \\
+			C_4 \cdot \frac{dT_4}{dt} &= &F_e (T_3 - T_4) \Delta_{+} &+ F_e (T_4 - T_5) \Delta_{\_} &- \frac{1}{R_{amb}} \cdot (T_4 - T_{amb}) &+ \frac{1}{R} (T_3 + T_5 - 2 T_4) \\
+			C_5 \cdot \frac{dT_5}{dt} &= &F_e (T_4 - T_5) \Delta_{+} &+ F_e (T_5 - T_6) \Delta_{\_} &- \frac{1}{R_{amb}} \cdot (T_5 - T_{amb}) &+ \frac{1}{R} (T_4 + T_6 - 2 T_5) \\
+			C_6 \cdot \frac{dT_6}{dt} &= &F_e (T_5 - T_6) \Delta_{+} &+ F_e (T_6 - T_7) \Delta_{\_} &- \frac{1}{R_{amb}} \cdot (T_6 - T_{amb}) &+ \frac{1}{R} (T_5 + T_7 - 2 T_6) \\
+			C_{bot} \cdot \frac{dT_{bot}}{dt} &= F_d (T_{ret} - T_{bot}) &+ F_e (T_6 - T_{bot}) \Delta_{+} &&- \frac{1}{R_{amb}} (T_{bot} - T_{amb}) &+ \frac{1}{R} (T_6 - T_{bot}) \\
+		\end{aligned}
+	\end{equation}
+	
+	Note the term in red in the first equation. There is a sign error...
+	
+	Converting the set of equations to the form
+	
+	\begin{subequations}
+		\label{eq:matnot}
+		\begin{align}
+			\mathbf{C} \cdot \boldsymbol{\dot{\theta}} + \mathbf{K} \cdot \boldsymbol{\theta} + \mathbf{F} \cdot \boldsymbol{\theta}= \mathbf{\dot{q}}
+		\end{align}
+	\end{subequations}
+	
+	The following set results:
+	\begin{equation}
+		\begin{aligned}
+			C_{top} \cdot \frac{dT_{top}}{dt} &+F_s (T_{top} - T_{sup}) &&+ F_e (T_1 - T_{top}) \Delta_{\_} &+ \frac{1}{R_{amb}} T_{top} &+ {\color{darkgreen}\frac{1}{R} (-T_1 + T_{top})}  &= \frac{1}{R_{amb}} T_{amb} \\
+			C_1 \cdot \frac{dT_1}{dt} &= &F_e (T_{top} - T_1) \Delta_{+} &+ F_e (T_1 - T_2) \Delta_{\_} &- \frac{1}{R_{amb}} T_1 &+ \frac{1}{R} (-T_0 -T_2 + 2 T_1) &= \frac{1}{R_{amb}} T_{amb}\\
+			C_2 \cdot \frac{dT_2}{dt} &= &F_e (T_1 - T_2) \Delta_{+} &+ F_e (T_2 - T_3) \Delta_{\_} &+ \frac{1}{R_{amb}} T_2 &+ \frac{1}{R} (-T_1 -T_3 + 2 T_2) &= \frac{1}{R_{amb}} T_{amb}\\
+			C_3 \cdot \frac{dT_3}{dt} &= &F_e (T_2 - T_3) \Delta_{+} &+ F_e (T_3 - T_4) \Delta_{\_} &+ \frac{1}{R_{amb}} T_3 &+ \frac{1}{R} (-T_2 - T_4 + 2 T_3) &= \frac{1}{R_{amb}} T_{amb}\\
+			C_4 \cdot \frac{dT_4}{dt} &= &F_e (T_3 - T_4) \Delta_{+} &+ F_e (T_4 - T_5) \Delta_{\_} &+ \frac{1}{R_{amb}} T_4 &+ \frac{1}{R} (-T_3 - T_5 + 2 T_4) &= \frac{1}{R_{amb}} T_{amb}\\
+			C_5 \cdot \frac{dT_5}{dt} &= &F_e (T_4 - T_5) \Delta_{+} &+ F_e (T_5 - T_6) \Delta_{\_} &+ \frac{1}{R_{amb}} T_5 &+ \frac{1}{R} (-T_4 - T_6 + 2 T_5) &= \frac{1}{R_{amb}} T_{amb}\\
+			C_6 \cdot \frac{dT_6}{dt} &= &F_e (T_5 - T_6) \Delta_{+} &+ F_e (T_6 - T_7) \Delta_{\_} &+ \frac{1}{R_{amb}} T_6 &+ \frac{1}{R} (-T_5 - T_7 + 2 T_6) &= \frac{1}{R_{amb}} T_{amb}\\
+			C_{bot} \cdot \frac{dT_{bot}}{dt} &+ F_d (T_{bot} - T_{ret}) &+ F_e (T_6 - T_{bot}) \Delta_{+} &&+ \frac{1}{R_{amb}} T_{bot} &+ \frac{1}{R} (-T_6 + T_{bot}) &= \frac{1}{R_{amb}} T_{amb}\\
+		\end{aligned}
+	\end{equation}
+	
+	Note the correction of the error in the term coloured green. Apparently, the conductive heat loss from the buffervessel to the surroundings is assumed to be equal for \emph{all} layers of the vessel. This translates to a buffer vessel where the top and bottom ends have much better insulation than the side wall.
+	
+	Writing down the matrix representation of the set we get:
+	\begin{equation}
+		\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+		\begin{bmatrix}
+			C_{top} & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 &  C_{1} & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 &  0 & C_{2} & 0 & 0 & 0 & 0 & 0 \\
+			0 &  0 & 0 & C_{3} & 0 & 0 & 0 & 0 \\
+			0 &  0 & 0 & 0 & C_{4} & 0 & 0 & 0 \\
+			0 &  0 & 0 & 0 & 0 & C_{5} & 0 & 0 \\
+			0 &  0 & 0 & 0 & 0 & 0 & C_{6} & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & 0 & C_{bot}
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			\frac{dT_{top}}{dt} \\
+			\frac{dT_{1}}{dt} \\
+			\frac{dT_{2}}{dt} \\
+			\frac{dT_{3}}{dt} \\
+			\frac{dT_{4}}{dt} \\
+			\frac{dT_{5}}{dt} \\
+			\frac{dT_{6}}{dt} \\
+			\frac{dT_{bot}}{dt} \\
+		\end{bmatrix}
+	\end{equation}
+	
+	\begin{comment}
+		General matrix $\mathbf{K_{int}}$:
+		\begin{equation}
+			\mathbf{K_{int}} \cdot \boldsymbol{\theta} =
+			\begin{bmatrix}
+				\frac{1}{R_{1,top}} & \frac{-1}{R_{1,top}} & 0 & 0 & 0 & 0 & 0 & 0 \\
+				\frac{-1}{R_{1,top}} &  \frac{1}{R_{1, top}} + \frac{1}{R_{2,1}} & \frac{-1}{R_{2,1}} & 0 & 0 & 0 & 0 & 0 \\
+				0 & \frac{-1}{R_{2,1}} &  \frac{1}{R_{2, 1}} + \frac{1}{R_{3,2}} & \frac{-1}{R_{3,2}} & 0 & 0 & 0 & 0 \\
+				0 & 0  & \frac{-1}{R_{3,2}} &  \frac{1}{R_{3, 2}} + \frac{1}{R_{4,3}} & \frac{-1}{R_{4,3}} & 0 & 0 & 0 \\
+				0 & 0 & 0 & \frac{-1}{R_{4,3}} &  \frac{1}{R_{4, 3}} + \frac{1}{R_{5,4}} & \frac{-1}{R_{5,4}} & 0 & 0 \\
+				0 & 0 & 0 & 0 & \frac{-1}{R_{5,4}} &  \frac{1}{R_{5, 4}} + \frac{1}{R_{6,5}} & \frac{-1}{R_{6,5}} & 0 \\
+				0 & 0 & 0 & 0 & 0 & \frac{-1}{R_{6,5}} &  \frac{1}{R_{6, 5}} + \frac{1}{R_{bot,6}} & \frac{-1}{R_{bot,6}} \\
+				0 & 0 & 0 & 0 & 0 & 0 & \frac{-1}{R_{bot,6}} & \frac{1}{R_{bot,6}}
+			\end{bmatrix}
+			\cdot
+			\begin{bmatrix}
+				T_{top} \\
+				T_{1} \\
+				T_{2} \\
+				T_{3} \\
+				T_{4} \\
+				T_{5} \\
+				T_{6} \\
+				T_{bot}
+			\end{bmatrix}
+		\end{equation}
+	\end{comment}
+	
+	Assuming all thermal conductance values between layers are equal as in the Python code:
+	\begin{equation}
+		\mathbf{K_{int}} \cdot \boldsymbol{\theta} = \frac{1}{R_{int}} \cdot
+		\begin{bmatrix}
+			1 & -1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+			-1 & 2 & -1 & 0 & 0 & 0 & 0 & 0 \\
+			0 & -1 & 2 & -1 & 0 & 0 & 0 & 0\\
+			0 & 0  & -1 & 2 & -1 & 0 & 0 & 0 \\
+			0 & 0 & 0 & -1 &  2 & -1 & 0 & 0 \\
+			0 & 0 & 0 & 0 & -1 &  2 & -1 & 0 \\
+			0 & 0 & 0 & 0 & 0 & -1 &  2 & -1 \\
+			0 & 0 & 0 & 0 & 0 & 0 & -1 & 1
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			T_{top} \\
+			T_{1} \\
+			T_{2} \\
+			T_{3} \\
+			T_{4} \\
+			T_{5} \\
+			T_{6} \\
+			T_{bot}
+		\end{bmatrix}
+	\end{equation}
+	
+	\begin{comment}
+		General matrix for $\mathbf{K_{ext}}$:
+		\begin{equation}
+			\mathbf{K_{ext}} \cdot \boldsymbol{\theta} =
+			\begin{bmatrix}
+				\frac{1}{R_{top, amb}} & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+				0 &  \frac{1}{R_{1, amb}} & 0 & 0 & 0 & 0 & 0 & 0 \\
+				0 & 0 &  \frac{1}{R_{2, amb}} & 0 & 0 & 0 & 0 & 0 \\
+				0 & 0  & 0 &  \frac{1}{R_{3, amb}} & 0 & 0 & 0 & 0 \\
+				0 & 0 & 0 & 0 &  \frac{1}{R_{4, amb}} & 0 & 0 & 0 \\
+				0 & 0 & 0 & 0 & 0 &  \frac{1}{R_{5, amb}} & 0 & 0 \\
+				0 & 0 & 0 & 0 & 0 & 0 &  \frac{1}{R_{6, amb}} & 0 \\
+				0 & 0 & 0 & 0 & 0 & 0 & 0 & \frac{1}{R_{bot,amb}}
+			\end{bmatrix}
+			\cdot
+			\begin{bmatrix}
+				T_{top} \\
+				T_{1} \\
+				T_{2} \\
+				T_{3} \\
+				T_{4} \\
+				T_{5} \\
+				T_{6} \\
+				T_{bot}
+			\end{bmatrix}
+		\end{equation}
+	\end{comment}
+	
+	Assuming conductive heat loss from the buffervessel to the surroundings is equal for \emph{all} layers of the vessel, $\mathbf{K_{ext}}$ becomes:
+	\begin{equation}
+		\mathbf{K_{ext}} \cdot \boldsymbol{\theta} = \frac{1}{R_{amb}} \cdot
+		\begin{bmatrix}
+			1 & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 &  1 & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 &  1 & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0  & 0 &  1 & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 &  1 & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 &  1 & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 &  1 & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & 0 & 1
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			T_{top} \\
+			T_{1} \\
+			T_{2} \\
+			T_{3} \\
+			T_{4} \\
+			T_{5} \\
+			T_{6} \\
+			T_{bot}
+		\end{bmatrix}
+	\end{equation}
+	
+	The $\dot{q}$-vector becomes:
+	
+	\begin{equation}
+		\mathbf{\dot{q}} = 
+		\begin{bmatrix}
+			\frac{1}{R_{amb}} \cdot T_{amb} \\
+			\frac{1}{R_{amb}} \cdot T_{amb} \\
+			\frac{1}{R_{amb}} \cdot T_{amb} \\
+			\frac{1}{R_{amb}} \cdot T_{amb} \\
+			\frac{1}{R_{amb}} \cdot T_{amb} \\
+			\frac{1}{R_{amb}} \cdot T_{amb} \\
+			\frac{1}{R_{amb}} \cdot T_{amb} \\
+			\frac{1}{R_{amb}} \cdot T_{amb}  
+		\end{bmatrix}
+	\end{equation}
+	
+	
+	\subsubsection{Convective heat transfer in the buffer vessel}
+	
+	The convective part of the heat transfer equations is:
+	\begin{equation}
+		\begin{aligned}
+			C_{top} \cdot \frac{dT_{top}}{dt} &+F_s T_{top} &&+ F_e (T_1 - T_{top}) \Delta_{\_} &&= F_s T_{sup}\\
+			C_1 \cdot \frac{dT_1}{dt} &+ &F_e (T_1 - T_{top}) \Delta_{+} &+ F_e (T_1 - T_2) \Delta_{\_} &= 0 \\
+			C_2 \cdot \frac{dT_2}{dt} &+ &F_e (T_2 - T_1) \Delta_{+} &+ F_e (T_2 - T_3) \Delta_{\_} &= 0 \\
+			C_3 \cdot \frac{dT_3}{dt} &+ &F_e (T_3 - T_2) \Delta_{+} &+ F_e (T_3 - T_4) \Delta_{\_} &= 0 \\
+			C_4 \cdot \frac{dT_4}{dt} &+ &F_e (T_4 - T_3) \Delta_{+} &+ F_e (T_4 - T_5) \Delta_{\_} &= 0 \\
+			C_5 \cdot \frac{dT_5}{dt} &+ &F_e (T_5 - T_4) \Delta_{+} &+ F_e (T_5 - T_6) \Delta_{\_} &= 0 \\
+			C_6 \cdot \frac{dT_6}{dt} &+ &F_e (T_6 - T_5) \Delta_{+} &+ F_e (T_6 - T_7) \Delta_{\_} &= 0 \\
+			C_{bot} \cdot \frac{dT_{bot}}{dt} &+ F_d T_{bot} &+ F_e (T_{bot} - T_6) \Delta_{+} &&= F_d T_{ret}\\
+		\end{aligned}
+	\end{equation}
+	
+	If $\dot{m}_e = \dot{m}_{supply} - \dot{m}_{demand} > 0$, $\Delta_{+} = 1$ and $ \Delta_{\_} = 0 $.
+	\begin{equation}
+		\begin{aligned}
+			C_{top} \cdot \frac{dT_{top}}{dt} &+ F_s T_{top} &= F_s T_{sup}\\
+			C_1 \cdot \frac{dT_1}{dt} & + &F_e \cdot (T_1 - T_{top}) \cdot \Delta_{+} = 0 \\
+			C_2 \cdot \frac{dT_2}{dt} &+ &F_e \cdot (T_2 - T_1) \cdot \Delta_{+} = 0 \\
+			C_3 \cdot \frac{dT_3}{dt} &+ &F_e \cdot (T_3 - T_2) \cdot \Delta_{+} = 0 \\
+			C_4 \cdot \frac{dT_4}{dt} &+ &F_e \cdot (T_4 - T_3) \cdot \Delta_{+} = 0\\
+			C_5 \cdot \frac{dT_5}{dt} &+ &F_e \cdot (T_5 - T_4) \cdot \Delta_{+} = 0\\
+			C_6 \cdot \frac{dT_6}{dt} &+ &F_e \cdot (T_6 - T_5) \cdot \Delta_{+} = 0\\
+			C_{bot} \cdot \frac{dT_{bot}}{dt} &+ F_d T_{bot} + & F_e (T_{bot} - T_6) \Delta_{+}  = F_d T_{ret}\\
+		\end{aligned}
+	\end{equation}
+	
+	\begin{equation}
+		\mathbf{F} =  
+		\begin{bmatrix}
+			F_e & 0 & 0 & 0 & 0 & 0 & 0 & -F_e \\
+			-F_e &F_e & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & -F_e & F_e & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 & -F_e & F_e & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & -F_e & F_e & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & -F_e & F_e & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & -F_e & F_e & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & -F_e & F_e
+		\end{bmatrix}
+		\label{eq:flowmatrix}
+	\end{equation}
+	
+	If $\dot{m}_e = \dot{m}_{supply} - \dot{m}_{demand} < 0$, $\Delta_{+} = 0$ and $ \Delta_{\_} = 1 $.
+	\begin{equation}
+		\begin{aligned}
+			C_{top} \cdot \frac{dT_{top}}{dt} &+F_s T_{top} &+ F_e (T_1 - T_{top}) \Delta_{\_} &= F_s T_{sup}\\
+			C_1 \cdot \frac{dT_1}{dt} &&+ F_e (T_2 - T_1) \Delta_{\_} &= 0 \\
+			C_2 \cdot \frac{dT_2}{dt} &&+ F_e (T_3 - T_2) \Delta_{\_} &= 0 \\
+			C_3 \cdot \frac{dT_3}{dt} &&+ F_e (T_4 - T_3) \Delta_{\_} &= 0 \\
+			C_4 \cdot \frac{dT_4}{dt} &&+ F_e (T_5 - T_4) \Delta_{\_} &= 0 \\
+			C_5 \cdot \frac{dT_5}{dt} &&+ F_e (T_6 - T_5) \Delta_{\_} &= 0 \\
+			C_6 \cdot \frac{dT_6}{dt} &&+ F_e (T_7 - T_6) \Delta_{\_} &= 0 \\
+			C_{bot} \cdot \frac{dT_{bot}}{dt} &+ F_d T_{bot} &&= F_d T_{ret}\\
+		\end{aligned}
+	\end{equation}
+	
+	\begin{equation}
+		\mathbf{F} =  
+		\begin{bmatrix}
+			-F_e & F_e & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & -F_e & F_e & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 & -F_e & F_e & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & -F_e & F_e & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & -F_e & F_e & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & -F_e & F_e & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & -F_e & F_e \\
+			F_e & 0 & 0 & 0 & 0 & 0 & 0 & -F_e
+		\end{bmatrix}
+		\label{eq:flowmatrix}
+	\end{equation}
+	
+	Note that since $\dot{m}_e = \dot{m}_{supply} - \dot{m}_{demand} < 0$, the diagonal elements of th $\mathbf{F}$-matrix are positive, like in the case $\dot{m}_e > 0$
+	
+	Derivation $\mathbf{F}$-matrices:
+	
+	Directed supply flow: $F_{supply}$ : [top 1 2 3 4 5 6 bottom top]
+	
+	Directed demand flow: $F_{demand}$ : [bottom 6 5 4 3 2 1 top bottom]
+	
+	\begin{equation}
+		\mathbf{DF_{supply}} \cdot \boldsymbol{\theta} =
+		\begin{bmatrix}
+			0 & 1 & 0 & 0 & 0 & 0 & 0 & -1 \\
+			-1 & 0 & 1 & 0 & 0 & 0 & 0 & 0 \\
+			0 & -1 & 0 & 1 & 0 & 0 & 0 & 0 \\
+			0 & 0 & -1 & 0 & 1 & 0 & 0 & 0 \\
+			0 & 0 & 0 & -1 & 0 & 1 & 0 & 0 \\
+			0 & 0 & 0 & 0 & -1 & 0 & 1 & 0 \\
+			0 & 0 & 0 & 0 & 0 & -1 & 0 & 1 \\
+			1 & 0 & 0 & 0 & 0 & 0 & -1 & 0
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			T_{top} \\
+			T_{1} \\
+			T_{2} \\
+			T_{3} \\
+			T_{4} \\
+			T_{5} \\
+			T_{6} \\
+			T_{bot}
+		\end{bmatrix}
+	\end{equation}
+	
+	\begin{equation}
+		\mathbf{DF_{demand}} \cdot \boldsymbol{\theta} =
+		\begin{bmatrix}
+			0 & -1 & 0 & 0 & 0 & 0 & 0 & 1 \\
+			1 & 0 & -1 & 0 & 0 & 0 & 0 & 0 \\
+			0 & 1 & 0 & -1 & 0 & 0 & 0 & 0 \\
+			0 & 0 & 1 & 0 & -1 & 0 & 0 & 0 \\
+			0 & 0 & 0 & 1 & 0 & -1 & 0 & 0 \\
+			0 & 0 & 0 & 0 & 1 & 0 & -1 & 0 \\
+			0 & 0 & 0 & 0 & 0 & 1 & 0 & -1 \\
+			-1 & 0 & 0 & 0 & 0 & 0 & 1 & 0
+		\end{bmatrix}
+		\cdot
+		\begin{bmatrix}
+			T_{top} \\
+			T_{1} \\
+			T_{2} \\
+			T_{3} \\
+			T_{4} \\
+			T_{5} \\
+			T_{6} \\
+			T_{bot}
+		\end{bmatrix}
+	\end{equation}
+	
+	\begin{equation}
+		\mathbf{SF} = f_s \cdot \mathbf{DF_{supply}} + f_d \cdot \mathbf{DF_{demand}} = 
+		\begin{bmatrix}
+			0 & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} \\
+			\dot{f_d}-\dot{f_s} & 0 & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 & 0 \\
+			0 & \dot{f_d}-\dot{f_s} & 0 & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 \\
+			0 & 0 & \dot{f_d}-\dot{f_s} & 0 & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 \\
+			0 & 0 & 0 & \dot{f_d}-\dot{f_s} & 0 & \dot{f_s}-\dot{f_d} & 0 & 0 \\
+			0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} & 0 & \dot{f_s}-\dot{f_d} & 0 \\
+			0 & 0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} & 0 & \dot{f_s}-\dot{f_d} \\
+			\dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} & 0
+		\end{bmatrix}
+		\label{eq:addbufferflows}
+	\end{equation}
+	
+	Since we want an $\mathbf{F}$-matrix on the left-hand side of the differential equations, the correct elements are obtained by taking the $\text{min}(\mathbf{SF},0)$, here we mean for each element in $\mathbf{SF}$ we take the minimum of the respective element and 0. 
+	Thus, in the case $f_s>f_d$ the elements $\dot{f_s}-\dot{f_d} > 0 $ are replaced by 0 and the elements $\dot{f_d}-\dot{f_s} < 0 $ remain. The matrix $\text{min}(\mathbf{SF},0)$ will become:
+	\begin{equation}
+		\text{min}(\mathbf{SF},0) = 
+		\begin{bmatrix}
+			0 & 0 & 0 & 0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} \\
+			\dot{f_d}-\dot{f_s} & 0 & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & \dot{f_d}-\dot{f_s} & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 & \dot{f_d}-\dot{f_s} & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & \dot{f_d}-\dot{f_s} & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} & 0
+		\end{bmatrix}
+		\label{eq:minSFzero_8}
+	\end{equation}
+	
+	Now, the diagonal elements can be computed. The diagonal elements are equal to minus the sum of the off-diagonal elements in their respective row. For the matrix given in equation \ref{eq:minSFzero_8} this results in the flow matrix $\mathbf{F}$:
+	\begin{equation}
+		\mathbf{F} =  
+		\begin{bmatrix}
+			-(\dot{f_d}-\dot{f_s}) & 0 & 0 & 0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} \\
+			\dot{f_d}-\dot{f_s} & -(\dot{f_d}-\dot{f_s}) & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & \dot{f_d}-\dot{f_s} & -(\dot{f_d}-\dot{f_s}) & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 & \dot{f_d}-\dot{f_s} & -(\dot{f_d}-\dot{f_s}) & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & \dot{f_d}-\dot{f_s} & -(\dot{f_d}-\dot{f_s}) & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} & -(\dot{f_d}-\dot{f_s}) & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} & -(\dot{f_d}-\dot{f_s}) & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & \dot{f_d}-\dot{f_s} & -(\dot{f_d}-\dot{f_s})
+		\end{bmatrix}
+		\label{eq:flowmatrix}
+	\end{equation}
+	
+	If the supply and demand flows in the buffervessel are carried by the same liquid medium (water), a differential mass flow $\dot{m}_e = \dot{m}_{supply} - \dot{m}_{demand}$ can be defined, and 
+	$ F_e = \dot{m}_{e} \cdot c_{p, w} = \dot{f_s}-\dot{f_d}$. The matrix $\mathbf{F}$ becomes:
+	
+	\begin{equation}
+		\mathbf{F} =  
+		\begin{bmatrix}
+			F_e & 0 & 0 & 0 & 0 & 0 & 0 & -F_e \\
+			-F_e &F_e & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & -F_e & F_e & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 & -F_e & F_e & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & -F_e & F_e & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & -F_e & F_e & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & -F_e & F_e & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & -F_e & F_e
+		\end{bmatrix}
+		\label{eq:flowmatrix}
+	\end{equation}
+	
+	In the case $f_s < f_d$ the elements $\dot{f_d}-\dot{f_s} > 0 $ are replaced by 0 and the elements $\dot{f_s}-\dot{f_d} < 0 $ remain. The matrix $\text{min}(\mathbf{SF},0)$ will become:
+	\begin{equation}
+		\text{min}(\mathbf{SF},0) = 
+		\begin{bmatrix}
+			0 & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & \dot{f_s}-\dot{f_d} & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & \dot{f_s}-\dot{f_d} & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & 0 & \dot{f_s}-\dot{f_d} \\
+			\dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 & 0 & 0 & 0
+		\end{bmatrix}
+		\label{eq:minSFzero_8}
+	\end{equation}
+	
+	Now, the diagonal elements can be computed. The diagonal elements are equal to minus the sum of the off-diagonal elements in their respective row. For the matrix given in equation \ref{eq:minSFzero_8} this results in the flow matrix $\mathbf{F}$:
+	\begin{equation}
+		\mathbf{F} =  
+		\begin{bmatrix}
+			-(\dot{f_s}-\dot{f_d}) & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & -(\dot{f_s}-\dot{f_d}) & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 & -(\dot{f_s}-\dot{f_d}) & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & -(\dot{f_s}-\dot{f_d}) & \dot{f_s}-\dot{f_d} & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & -(\dot{f_s}-\dot{f_d}) & \dot{f_s}-\dot{f_d} & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & -(\dot{f_s}-\dot{f_d}) & \dot{f_s}-\dot{f_d} & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & -(\dot{f_s}-\dot{f_d}) & \dot{f_s}-\dot{f_d} \\
+			\dot{f_s}-\dot{f_d} & 0 & 0 & 0 & 0 & 0 & 0 & -(\dot{f_s}-\dot{f_d})
+		\end{bmatrix}
+		\label{eq:flowmatrix}
+	\end{equation}
+	
+	If the supply and demand flows in the buffervessel are carried by the same liquid medium (water), a differential mass flow $\dot{m}_e = \dot{m}_{supply} - \dot{m}_{demand}$ can be defined, and 
+	$ F_e = \dot{m}_{e} \cdot c_{p, w} = \dot{f_s}-\dot{f_d}$. The matrix $\mathbf{F}$ becomes:
+	
+	\begin{equation}
+		\mathbf{F} =  
+		\begin{bmatrix}
+			-F_e & F_e & 0 & 0 & 0 & 0 & 0 & 0 \\
+			0 & -F_e & F_e & 0 & 0 & 0 & 0 & 0 \\
+			0 & 0 & -F_e & F_e & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & -F_e & F_e & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & -F_e & F_e & 0 & 0 \\
+			0 & 0 & 0 & 0 & 0 & -F_e & F_e & 0 \\
+			0 & 0 & 0 & 0 & 0 & 0 & -F_e & F_e \\
+			F_e & 0 & 0 & 0 & 0 & 0 & 0 & -F_e
+		\end{bmatrix}
+		\label{eq:flowmatrix}
+	\end{equation}
+	
+\end{scriptsize}
+
+\newpage
