@@ -1,27 +1,26 @@
 \section{White box lumped model for a building: RC networks}
 
+The objective of the house model for this project is to serve as test environment for a heating model, which means that the house model is intended as a tool to enable taking building installation design decisions. The house heating demand calculation model implemented for this project is a white box \emph{lumped} model. Specifically, it is a RC network model consisting of thermal resistances (R) and capacities (C). The RC network model is based on the analogy with electrical circuits. The simulation of thermodynamic systems characterizing building elements as resistances or capacities allows to simplify the model while maintaining a high simulation results accuracy \textbf{(Bagheri et al.\cite{en11040890}, Bacher et al\cite{Bacher}.)}.  
 
-\subsection{White box lumped model}
+\subsection{White box lumped models}
 
-The objective of the house model for this project is to serve as test environment for a heat pump model, which means that the house model is intended as a tool to help taking building systems design decisions. The house heating demand calculation model implemented for this project is a white box \emph{lumped} model. Specifically, it is a RC network model consisting of resistances (R) and capacities (C). The RC network model is based on the analogy with electrical circuits. The simulation of thermodynamic systems characterizing building elements as resistances or capacities allows to simplify the model while maintaining a high simulation results accuracy \textbf{(Bagheri et al.\cite{en11040890}, Bacher et al\cite{Bacher}.)}.  
-
-There are several types of RC models, the most common being 3R4C models and 3R2C models which are applied on the outer and internal wall. For the simulation of simple house buildings 3R2C models perform as accurate as more complex 3R4C models \textbf{(Fraisse et al.\cite{Fraisse})}. Considering that one of the objectives for this project is to obtain a fast but accurate simulation of a simple dwelling the 3R2C network model appeared a good starting point. In the 3R2C model two indoor temperature nodes are present in the dwelling. \textbf{with capacities (usually an air and a wall temperature) and a well-known outdoor temperature }. \textbf{Between these 3 temperature nodes 3 heat transfer resistances are present. However, the direct heat transfer between the inner walls and the outdoor air is low. Moreover, uncertainties are present about heat transfer coefficients between walls and indoor air, different indoor temperatures in the house rooms and the ground temperature which deviates from the outdoor temperature. In addition, occupancy behaviour varies strongly. }For that reason, we have made a further simplification to a 2R2C model. In section 4 it is shown that this dwelling model delivers a reliable annual energy consumption.
+There are several types of RC models, the most common being 3R4C models and 3R2C models which are applied on the outer and internal building walls. For the simulation of simple house buildings 3R2C models perform as accurate as more complex 3R4C models \textbf{(Fraisse et al.\cite{Fraisse})}. Considering that one of the objectives for this project is to obtain a fast but accurate simulation of a simple dwelling the 3R2C network model appeared a good starting point. In the 3R2C model two indoor temperature nodes are present in the dwelling. with capacities (usually an air and a wall temperature) and a well-known outdoor temperature. Between these 3 temperature nodes 3 heat transfer resistances are present. However, the direct heat transfer between the inner walls and the outdoor air is low. Moreover, uncertainties are present about heat transfer coefficients between walls and indoor air, different indoor temperatures in the house rooms and the ground temperature which deviates from the outdoor temperature. In addition, occupancy behaviour varies strongly. For that reason, we have made a further simplification to a 2R2C model. In section 4 it is shown that this dwelling model delivers a reliable annual energy consumption.
 
 
 \subsection{House Model R and C Values}
 
 This section presents the basic information for calculating a house model based on an RC network. This category of house models, analogous to electrical impedance networks, may have different numbers of R and C components and may have various component topologies. For the specific model properties, references will be given.
 
-In heat transfer theory the basic thermal circuit contains thermal resistances. Heat transfer occurs via conduction, convection and radiation. In analogy with Ohm's Law for electricity, expressions can be derived for the heat transfer rate (analogous to electrical current) and the thermal resistances (analogous to ohmic resistances) in these three modes of heat transfer. The temperature difference plays a role analogous to the electrical voltage difference. These expressions are shown in Fig.\ref{table_1}.
+In heat transfer theory the basic thermal circuit contains thermal resistances. Heat transfer occurs via conduction, convection and radiation. In analogy with Ohm's Law for electricity, expressions can be derived for the heat transfer rate (analogous to electrical current) and the thermal resistances (analogous to ohmic resistances) in these three modes of heat transfer. The temperature difference plays a role analogous to the electrical voltage difference. These expressions are shown in Fig.\ref{fig:lumped_table}.
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.8\columnwidth]{Pictures/heat transfer mode.JPG}
-	\caption[Short title]{Heat transfer modes\cite{GIGO}}
-	\label{table_1}
+	\includegraphics[width=0.6\columnwidth]{Pictures/heat transfer mode.JPG}
+	\caption[Short title]{Heat transfer modes \cite{GIGO}.}
+	\label{fig:lumped_table}
 \end{figure}
 \newpage
 
-In \cite{HTTHERMO} and \cite{FUND} the expressions in Fig.\ref{table_1} are derived.
+In \cite{HTTHERMO} and \cite{FUND} the expressions in Fig.\ref{fig:lumped_table} are derived.
 For conduction, the expression for absolute thermal resistance is:  
 
 \begin{equation}
@@ -30,18 +29,17 @@ For conduction, the expression for absolute thermal resistance is:
 
 \begin{itemize}
     \item $L$ is the distance over which heat transfer takes place, or the thickness of the material $[m]$.
-    \item $k$ (also denoted with $\lambda$) is the thermal conductivity of the material. [$\frac{W}{mK}$]. 
+    \item $k$ (also denoted with $\lambda$) is the thermal conductivity of the material. [$\dfrac{W}{mK}$]. 
     \item $A$ is the conductive surface area  $[m^2]$.
-    \item Thermal resistivity is the reciprocal of thermal conductivity and can be expressed as $r =\frac{1}{k}$  in $[\frac{mK}{W}]$
+    \item Thermal resistivity is the reciprocal of thermal conductivity and can be expressed as $r =\dfrac{1}{k}$  in $[\dfrac{mK}{W}]$
 
 \end{itemize}
 
-
-For convection and radiation the expression for thermal resistance is: $R = \frac{1}{h \cdot A}$ [$\frac{K}{W}$].
+For convection and radiation the expression for thermal resistance is: $R = \dfrac{1}{h \cdot A}$ [$\dfrac{K}{W}$].
 
 \begin{itemize}
     \item $A$ is the surface area where the heat transfer takes place $[m^2]$.
-    \item $h$ is the heat transfer coefficient  [$\frac{W}{m^2K}$]
+    \item $h$ is the heat transfer coefficient  [$\dfrac{W}{m^2K}$]
 \end{itemize}
 
 
@@ -70,13 +68,13 @@ Some typical heat transfer $R$-values are: \cite{OVERALL}:
 \begin{itemize}
 	\item $R_d$-waarde is used for the $R$-value of a homogeneous building material. $ R = \frac{L}{\lambda} $
 	\item $R_c$-waarde (compound, construction) is used for the $R$-value of a surface consisting of several building materials. $R_c$-waarden are calculated as the surface-area weighted sum of $R_d$-waarden of the building materials. 
-	For the simplest roof surface, $R_c$ is a linear combination of the $R$-values of the wooden joists and girders (spanten en gordingen) and the areas in between with a certain insulation material sandwich.
+	For the simplest roof surface, $R_c$ is a linear combination of the $R$-values of the wooden joists and girders (spanten en gordingen) and the areas in between, filled with a certain insulation material sandwich.
 	The $R$-value of the insulation sandwich, in its turn, is the sum of the $R$-values of the materials in the sandwich. From inside out, this sandwich may consist of \textit{e.g.} a 9.5 mm plaster board, a PIR/PUR insulation panel, an air gap and a wooden roof deck. All types of $R$-value have the dimension $ [\frac{m^2 \cdot K}{W}] $.
 \end{itemize}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.8\columnwidth]{Pictures/Overview of heat resistances.JPG}
+	\includegraphics[width=0.6\columnwidth]{Pictures/Overview of heat resistances.JPG}
 	\caption[Short title]{An overview of $R$-values for heat transfer \cite{SURFREST}.}
 	\label{fig:overview}
 \end{figure}
@@ -96,7 +94,7 @@ New standard values will be used from 1-1-2021, since the building standard NEN 
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=1.0\columnwidth]{Pictures/Rc_values_2021.JPG}
+	\includegraphics[width=0.8\columnwidth]{Pictures/Rc_values_2021.JPG}
 	\caption[Short title]{R\textsubscript{c} Values \cite{RVALUE}}
 	\label{fig:newRc}
 \end{figure}
@@ -110,11 +108,10 @@ The values used for different types of houses such as: row houses, detached hous
 	\caption[Short title]{R\textsubscript{c}-values for a row house type built between 1975-1991 \cite{VOORBEELD}}
 	\label{row_house}
 \end{figure} 
-\newpage
 
-\subsection{Dwelling (envelope) model analogous to a 2R-2C network}
+\subsection{Thermal building (envelope) model analogous to a 2R-2C electrical network}
 
-The heat flow will be modelled by analogy to an electrical circuit where heat transfer rate is analogous to by current, temperature difference is analogous to potential difference, heat sources are represented by constant current sources, absolute thermal resistances are represented by resistors and \textbf{thermal capacitance} heat capacity ? by capacitors \cite{AbsTR}. Figure \ref{fig:Analogies} summarizes the similar term use in different fields.
+The heat transfer in a building will be modelled in analogy to an electrical circuit where \emph{heat transfer rate} is analogous to by current, \emph{temperature} difference is analogous to potential difference, heat sources are represented by constant current sources, absolute thermal resistances are represented by resistors and thermal capacity ()heat capacity) by capacitors \cite{AbsTR}. Figure \ref{fig:Analogies} summarizes the similar term use in different fields.
 
 \begin{figure}[H]
 	\centering
@@ -150,6 +147,7 @@ The 2R-2C house model structure is implemented as described below. The schematic
 			++ (-4,0);
 		\end{circuitikz}
 	    \caption{2R-2C house model.}
+	    \label{fig:elec2R2C}
 	\end{center}
 \end{figure}
 
@@ -174,18 +172,17 @@ C_{wall}\frac{dT_{wall}}{dt}=\frac{T_{air}-T_{wall}}{R_{air_{\_}wall}} + (1-CF)\
       \item $\dot{Q}_{inst}$: delivered heat from heating system (radiator) [W].
       \item $\dot{Q}_{inernal}$: internal heat [W].
       \item $\dot{Q}_{solar}$: heat from solar irradiation [W].
-      \item $T_{air}$: indoor air temperature $^o$C.
-      \item $T_{outdoor}$: outdoor temperature $^o$C.
-      \item $T_{wall}$: wall temperature $^o$C.
+      \item $T_{air}$: indoor air temperature $\degC$.
+      \item $T_{outdoor}$: outdoor temperature $\degC$.
+      \item $T_{wall}$: wall temperature $\degC$.
       \item $R_{air_{\_}wall}$: walls surface resistance [$\frac{K}{W}$].
       \item $R_{air_{\_}outdoor}$: outdoor surface resistance [$\frac{K}{W}$].
-      \item $C_{air}$: air thermal capacitance (heat capacity) [$\frac{J}{K}$]\cite{Thermalmass}.
-      \item $C_{wall}$: wall thermal capacitance (heat capacity) [$\frac{J}{K}$]\cite{Thermalmass}.
+      \item $C_{air}$: air thermal capacity (heat capacity) [$\frac{J}{K}$]\cite{Thermalmass}.
+      \item $C_{wall}$: wall thermal capacity (heat capacity) [$\frac{J}{K}$]\cite{Thermalmass}.
     \end{itemize}
 
-\newpage   
 
-Total heat transfer of solar irradiation through the glass windows. 
+Total heat transfer of solar irradiation through the glass windows: 
 \begin{equation}
 \dot{Q}_{solar}=g.\sum(A_{glass}.\dot{q}_{solar})
 \end{equation}
