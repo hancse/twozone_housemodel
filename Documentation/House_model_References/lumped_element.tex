@@ -1744,42 +1744,6 @@ The heat pump will deliver its thermal power via an internal heat exchanger from
 	\item 3-pipe connection
 \end{itemize}
 
-\subsection{Package "housemodel"}
-
-The repository "\textsf{twozone\_housemodel-git}" contains the modules for the house model. The customary way to organize the modules is to make a \emph{Python package} with \emph{subpackages}. This opens up the possibility of publishing the package on PyPi, so that it can be imported.
-
-See: \url{https://pypi.org/}
-
-From commit \textsf{e74ce58} the files in the \textsf{twozone\_housemodel-git} repository are organized as a package. The proposed structure, implemented in this commit, is:
-
-\dirtree{%
-	.1 twozone\_housemodel-git.
-	.2 housemodel.
-	.3 \_\_init\_\_.py.
-	.3 controls.
-	.4 \_\_init\_\_.py.
-	.3 solvers.
-	.4 \_\_init\_\_.py.
-	.3 sourcesink.
-	.4 \_\_init\_\_.py.
-	.3 tools.
-	.4 \_\_init\_\_.py.
-	.2 tests.
-	.3 \_\_init\_\_.py.
-	.3 context1.py.
-	.3 test\_*.py.
-} 
-
-\begin{itemize}
-	\item the \emph{repository root} \textsf{twozone\_housemodel-git} contains the simulation scripts and configuration files (for now) 
-	\item the \emph{package root} \textsf{housemodel} contains the complete package. This can be seen since it contains an (empty) \textsf{\_\_init\_\_.py} module.
-	\item the \emph{subpackage} folders contain the modules with common functions and classes for all simulations. They each contain an (empty) \textsf{\_\_init\_\_.py} module.
-	\item a \textsf{tests} folder is placed carefully as a subfolder of the \emph{repository root}. 
-	See: \url{https://docs.python-guide.org/writing/structure/} for the underlying philosophy. Here, testing modules (scripts) can be placed. If the names of the test scripts start with \textsf{test\_}, they can be automatically run with the \textsf{pytest} Python package.
-\end{itemize}
-
-\textit{Note}: Running the simulations and tests is best done from the \emph{repository root}. All simulations and tests have been updated to find the package, subpackages and configuration files from this directory.
-
 \subsection{Scripts}
 
 Simulations can be run as a Python script or as an IPython (Jupyter) notebook. The structure of a script can be summarized as follows:
