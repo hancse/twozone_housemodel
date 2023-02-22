@@ -149,9 +149,11 @@ def main(show=False, xl=False):
     h.make_k_ext_and_add_ambient()  # initialize k_ext_mat and add diagonal elements
     logger.info(f" \n\n C^-1: \n {h.c_inv_mat} \n K_ext: \n {h.k_ext_mat}, \n q_vec: \n {h.q_vec} \n")
 
-    b = StratifiedBufferNew("MyBuffer", begin_tag=2,
-                            volume=0.1, height=1.0,
-                            num_layers=8, U_wall=0.12, T_ini=80.0)
+    b = StratifiedBufferNew.from_dict(param["Buffer"])
+    # inputs_buffervessel = (U=0.12, As=0.196, Aq=0.196, Tamb=10,
+    # Tsupply=80, Treturn=Tr_GMTD,
+    # cpwater=4190, lamb=0.644, mdots=mdots, mdotd=mdotd, mass_water=150/8, z=1/8)
+
     b.generate_nodes()
     b.fill_c_inv()
     b.generate_edges()

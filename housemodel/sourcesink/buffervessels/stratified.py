@@ -1,6 +1,7 @@
 import numpy as np
 
 from housemodel.basics.ckf_tools import make_c_inv_matrix
+from housemodel.tools.new_configurator import load_config
 from housemodel.basics.components import (CapacityNode, FixedNode)
 import logging
 
@@ -181,7 +182,7 @@ class StratifiedBufferNew:
 
     """
 
-    def __init__(self, name, begin_tag=0, num_layers=5,
+    def __init__(self, name="DefaultBuffer", begin_tag=0, num_layers=5,
                  volume=0.1, height=1.0, U_wall=0.12, T_ini=20):
         self.name = name
         self.begin_tag = begin_tag   # anchor point of buffer vessel in house model
@@ -217,6 +218,14 @@ class StratifiedBufferNew:
 
         self.temperatures = None
         self.calculate_buffer_properties()
+
+    @classmethod
+    def from_dict(cls, d):
+        """ classmethod to enable constructing an instance from configuration file.
+        """
+        return cls(name=d["name"],begin_tag=d["begin_tag"], num_layers=d["num_layers"],
+                            volume=d["volume"], height=d["height"],
+                            U_wall=d["U_wall"], T_ini=d["T_ini"])
 
     def calculate_buffer_properties(self):
         self.A_base = self.volume / self.height
@@ -328,6 +337,12 @@ class StratifiedBufferNew:
 
 
 if __name__ == "__main__":
+    from pathlib import Path
+    CONFIGDIR = Path(__file__).parent.parent.parent.parent.absolute()
+    param = load_config(str(CONFIGDIR / "for_heat_pump_NTA8800_with_buffervessel_nodes_edges.yaml"))
+    b0 = StratifiedBufferNew()
+    b1 = StratifiedBufferNew.from_dict(param["Buffer"])
+
     b2 = StratifiedBufferNew(name="MyBuffer", num_layers=8)
     b2.generate_nodes()
     b2.fill_c_inv()
