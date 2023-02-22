@@ -182,6 +182,8 @@ if __name__ == "__main__":
     from pathlib import Path
     CONFIGDIR = Path(__file__).parent.parent.parent.parent.absolute()
     param = load_config(str(CONFIGDIR / "for_heat_pump_NTA8800_with_buffervessel_nodes_edges.yaml"))
+    # param = load_config(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
+
     b0 = StratifiedBufferNew()
     b1 = StratifiedBufferNew.from_dict(param["Buffer"])
 
@@ -194,18 +196,3 @@ if __name__ == "__main__":
 
     print()
 
-    """
-
-    from pathlib import Path
-    CONFIGDIR = Path(__file__).parent.parent.parent.parent.absolute()
-    param = load_config(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
-
-    b2.boundaries_from_dict(param['boundaries'])
-    b2.make_k_ext_and_add_ambient()
-
-    b = StratifiedBuffer("MyBuffer")
-    c_list = [1.0, 2.0]
-    c1 = make_c_inv_matrix(c_list)
-    print(c1, "\n")
-    k_list = [[0, 1, 1.0]]
-    """

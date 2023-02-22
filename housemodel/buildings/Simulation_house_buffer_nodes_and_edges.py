@@ -130,14 +130,13 @@ def main(show=False, xl=False):
 
     logger.info(f" \n\n C^-1: \n {h.c_inv_mat} \n K_ext: \n {h.k_ext_mat}, \n q_vec: \n {h.q_vec} \n")
 
-    # create StratifiedBuffer object
-    b = StratifiedBufferNew("Buffervessel")
-    section = param["Buffer"]
-    b.nodes_from_dict(section["nodes"])
+    # create StratifiedBufferNew object
+    b = StratifiedBufferNew()
+    # b = StratifiedBufferNew.from_dict(param["Buffer"])
+    b.generate_nodes()
     b.fill_c_inv()
-
-    b.boundaries_from_dict(param["boundaries"])  # function selects "indoor" as ambient
-    # b.add_fixed_to_k()  # crashes because Fixed node connects to node 2,3,4 and b.k_matrix has rank 3 (index 0,1,2)
+    b.generate_edges()
+    b.generate_ambient()
     b.make_k_ext_and_add_ambient()
 
     # b.edges_from_dict(param['edges'])
