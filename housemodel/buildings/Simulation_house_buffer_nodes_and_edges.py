@@ -21,7 +21,7 @@ from housemodel.controls.Temperature_SP import simple_thermostat
 from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
 from housemodel.buildings.building import Building
-from housemodel.sourcesink.buffervessels.stratified import StratifiedBuffer
+from housemodel.sourcesink.buffervessels.stratified import StratifiedBufferNew
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
 from housemodel.basics.powersource import PowerSource
 
@@ -131,7 +131,7 @@ def main(show=False, xl=False):
     logger.info(f" \n\n C^-1: \n {h.c_inv_mat} \n K_ext: \n {h.k_ext_mat}, \n q_vec: \n {h.q_vec} \n")
 
     # create StratifiedBuffer object
-    b = StratifiedBuffer("Buffervessel")
+    b = StratifiedBufferNew("Buffervessel")
     section = param["Buffer"]
     b.nodes_from_dict(section["nodes"])
     b.fill_c_inv()
