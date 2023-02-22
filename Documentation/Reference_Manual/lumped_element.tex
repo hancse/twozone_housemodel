@@ -1861,10 +1861,12 @@ Simulations can be run as a Python script or as an IPython (Jupyter) notebook. T
 	\item create an empty $\mathbf{\dot{q}}$-vector with \texttt{TotalSystem.make\_empty\_q\_vec()}.
 \end{itemize}
 
-Note: generation of the $\mathbf{K_{int}}$-matrix of the total system there are a number of feasible approaches:
+\begin{footnotesize}
+	
+\textbf{Note:} generation of the $\mathbf{K_{int}}$-matrix of the total system there are a number of feasible approaches:
 
 \begin{enumerate}
-	\item  read \emph{all} edges in the model using the methods \texttt{TotalSystem.edges\_from\_dict(param["edges"])} and \texttt{TotalSystem.fill\_k(param["edges"])}.
+	\item  read \emph{all} edges in the model using the methods \texttt{TotalSystem.edges\_from\_dict(param["edges"])} and \\ \texttt{TotalSystem.fill\_k(param["edges"])}.
 	This can only be done in one step, after the parts (\texttt{Building} etc.) in the TotalSystem have been defined. The assumption is that the edge list for the total system \textit{i.e.} all edges \emph{within} parts and \emph{between} parts can be read from the section "edges" in the configuration file. If parts of the TotalSystem e.g. the StratifiedBuffer class generate their own internal thermal conductance edges, these edges have to be backconverted (serialized) into a *.yaml string before merging with the other edges. Alternatively, an intermediary version of the configuration file has to be generated before \texttt{TotalSystem.edges\_from\_dict(param["edges"])} can be called. This results in a somewhat awkward script, looking differently depending on the presence of a buffer vessel in the total system.
 	
 	\item read the edges \emph{within} a subsystem (part) from its own section in the configuration file. This works well for parts that do not generate their own edges and edge list. Parts derived from e.g. the StratifiedBuffer class generate their own edges and edge list, which is not spelled out in the configuration file. The top-level "edges" section in the configuration file only contains the edges \emph{between} parts of the TotalSystem. This approach enables merging of edges from the configuration file with edges self-generated from physical parameters by some subsystem classes.
@@ -1873,10 +1875,13 @@ Note: generation of the $\mathbf{K_{int}}$-matrix of the total system there are 
 
 	\begin{enumerate}
 		\item merge the edge lists (read and generated) from all parts of the total system with the edge list containing the edges between the parts. This requires merging  the edge lists into a flattened \texttt{TotalSystem.edge\_list}.  A $\mathbf{K_{int}}$-matrix for the total system can be generated with the method \texttt{fill\_k(TotalSystem.edge\_list)}. 
-		\item Alternatively, a block diagonal $\mathbf{K_{int}}$-matrix can be constructed from $\mathbf{K_{int}}$-matrices calculated for  each part. Then the edges between the parts have to be added one by one with a dedicated method of the TotalSystem class. Thermal conductivities \emph{between} subsystems (\textit{e.g.} between the Building contents and a Radiator) are thus added after assembly of the subsystems (matrices) into a complete model (set of differential equations). Therefore, the $\mathbf{K}$-matrix is completed \emph{after} merging the matrices of the subsystems. 
+		\item Alternatively, a block diagonal $\mathbf{K_{int}}$-matrix can be constructed from $\mathbf{K_{int}}$-matrices calculated for  each part. Then the edges between the parts have to be added one by one with a dedicated method of the TotalSystem class. Thermal conductivities \emph{between} subsystems (\textit{e.g.} between the Building contents and a Radiator) are thus added after assembly of the subsystems (matrices) into a complete model (set of differential equations). The $\mathbf{K}$-matrix is completed \emph{after} merging the matrices of the subsystems. 
 	\end{enumerate} 
 \end{enumerate}
     
     After testing out these different approaches, strategy 2(a) is chosen.  
+
+\end{footnotesize}
+
 
 \newpage

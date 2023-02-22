@@ -1,12 +1,13 @@
 import numpy as np
 
 from housemodel.basics.ckf_tools import make_c_inv_matrix
-from housemodel.tools.new_configurator import load_config
 from housemodel.basics.components import (CapacityNode, FixedNode)
 import logging
 
 # logging.basicConfig(level="DEBUG")
 logging.basicConfig(level="INFO")
+
+
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.INFO)
@@ -15,18 +16,18 @@ logging.basicConfig(level="INFO")
 class StratifiedBuffer:
     def __init__(self, name=""):
         self.name = name
-        self.num_nodes = 0         # = number of layers in the vessel
+        self.num_nodes = 0  # = number of layers in the vessel
         self.num_edges = 0
-        self.nodes = []            # np.zeros(self.num_nodes, dtype=object)
-        self.edges = []            # np.zeros(self.num_nodes - 1)
+        self.nodes = []  # np.zeros(self.num_nodes, dtype=object)
+        self.edges = []  # np.zeros(self.num_nodes - 1)
         self.boundaries = []
         self.ambient = None
 
         self.c_inv_mat = None  # np.zeros((self.num_nodes, self.num_nodes))
-        self.k_mat = None      # np.zeros_like(self.c_inv_mat)
+        self.k_mat = None  # np.zeros_like(self.c_inv_mat)
         self.k_ext_mat = None  # np.zeros_like(self.c_inv_mat)
-        self.q_vec = None      # np.zeros(self.num_nodes, 1)
-        self.f_mat = None      # np.zeros(self.num_nodes, self.num_nodes)
+        self.q_vec = None  # np.zeros(self.num_nodes, 1)
+        self.f_mat = None  # np.zeros(self.num_nodes, self.num_nodes)
 
         self.tag_list = []
         self.cap_list = []
@@ -89,8 +90,8 @@ class StratifiedBuffer:
         to diagonal elements
 
         """
-        if self.num_nodes > 0:                                            # c-1 matrix and rank has to be defined
-            self.k_ext_mat = np.zeros((self.num_nodes, self.num_nodes))   # initialize with zeros
+        if self.num_nodes > 0:  # c-1 matrix and rank has to be defined
+            self.k_ext_mat = np.zeros((self.num_nodes, self.num_nodes))  # initialize with zeros
             for c in self.ambient.connected_to:
                 idx = self.tag_list.index(c[0])
                 cond = c[1]
@@ -179,19 +180,20 @@ class StratifiedBufferNew:
     """parent class for cylindrical stratified buffer vessel
 
     """
-    def __init__(self, name, begin_node=0, volume=0.1, height=1.0, n_layers=5, u=0.12, T_ini=20):
-        self.name = name
-        self.num_nodes = n_layers
-        self.nodes = []
-        self.begin_node = begin_node                  # anchor point of hot water supply to house model
-        self.end_node = self.begin_node + n_layers-1  # anchor point of cold water return from house model
-        self.edges = []
 
+    def __init__(self, name, begin_tag=0, num_layers=5,
+                 volume=0.1, height=1.0, U_wall=0.12, T_ini=20):
+        self.name = name
+        self.begin_tag = begin_tag   # anchor point of buffer vessel in house model
+        self.num_nodes = num_layers
         self.volume = volume
         self.height = height
-        self.Uwall = u         # conductivity vessel wall to ambient in [W/K m^2]
+        self.U_wall = U_wall         # conductivity vessel wall to ambient in [W/K m^2]
         self.T_ini = T_ini
 
+        self.end_node = self.begin_tag + num_layers - 1  # anchor point of cold water return from house model
+        self.nodes = []
+        self.edges = []
         self.boundaries = []
         self.ambient = None
 
@@ -200,26 +202,27 @@ class StratifiedBufferNew:
         self.edge_list = []
 
         self.c_inv_mat = None
+        self.k_int_mat = None
         self.k_ext_mat = None
 
-        self.rho = 1000             # [kg/m^3]
-        self.cp = 4190              # [J/(K kg)]
-        self.conductivity = 0.644   # [W/m K]
+        self.rho = 1000  # [kg/m^3]
+        self.cp = 4190  # [J/(K kg)]
+        self.conductivity = 0.644  # [W/m K]  # specific thermal conductivity between layers (lambda or k)
 
-        self.layer_height = None
+        self.A_base = None  # contact area between layers (= area of vessel bottom and top face)
         self.radius = None
+        self.layer_height = None
         self.A_wall_layer = None
-        self.A_base = None   # contact area between layers (= area of vessel bottom and top face)
         self.cap_layer = None
 
         self.temperatures = None
         self.calculate_buffer_properties()
 
     def calculate_buffer_properties(self):
+        self.A_base = self.volume / self.height
+        self.radius = np.sqrt(self.A_base / np.pi)
         self.layer_height = self.height / self.num_nodes
-        self.radius = np.sqrt(self.volume / (self.height * np.pi))
         self.A_wall_layer = 2 * np.pi * self.radius * self.layer_height
-        self.A_base = np.pi * np.square(self.radius)
         self.cap_layer = (self.volume / self.num_nodes) * self.rho * self.cp
 
     def set_volume(self, vol):
@@ -230,6 +233,23 @@ class StratifiedBufferNew:
         self.height = h
         self.calculate_buffer_properties()
 
+    def set_U_wall(self, u):
+        self.U_wall = u
+
+    def set_T_ini(self, t):
+        self.T_ini = t
+
+    def set_rho(self, r):
+        self.rho = r
+        self.calculate_buffer_properties()
+
+    def set_cp(self, cp):
+        self.cp = cp
+        self.calculate_buffer_properties()
+
+    def set_cond_medium(self, c):
+        self.conductivity = c
+
     def generate_nodes(self):
         """initializes "nodes" attribute with data from yaml file
            makes a list from tags belonging to the StratifiedBuffer object
@@ -237,7 +257,7 @@ class StratifiedBufferNew:
         """
         for n in range(self.num_nodes):
             node = CapacityNode(label=f"{self.name}{n}",
-                                tag=self.begin_node + n,
+                                tag=self.begin_tag + n,
                                 cap=self.cap_layer,
                                 temp=self.T_ini)
             # append by reference, therefore new node object in each iteration
@@ -282,8 +302,8 @@ class StratifiedBufferNew:
         to diagonal elements
 
         """
-        if self.num_nodes > 0:                                            # c-1 matrix and rank has to be defined
-            self.k_ext_mat = np.zeros((self.num_nodes, self.num_nodes))   # initialize with zeros
+        if self.num_nodes > 0:  # c-1 matrix and rank has to be defined
+            self.k_ext_mat = np.zeros((self.num_nodes, self.num_nodes))  # initialize with zeros
             for c in self.ambient.connected_to:
                 idx = self.tag_list.index(c[0])
                 cond = c[1]
@@ -296,11 +316,11 @@ class StratifiedBufferNew:
         self.edge_list = [[a, b, c] for a, b in zip(self.tag_list, self.tag_list[1:])]
 
     def generate_ambient(self):
-        c_mid = self.Uwall * self.A_wall_layer
-        c_end = self.Uwall * (self.A_wall_layer + self.A_base)
+        c_mid = self.U_wall * self.A_wall_layer
+        c_end = self.U_wall * (self.A_wall_layer + self.A_base)
         self.ambient = FixedNode(label='indoor',
                                  temp=20.0,
-                                 connected_to = [[a, c_mid] for a in self.tag_list])
+                                 connected_to=[[a, c_mid] for a in self.tag_list])
         for c in self.ambient.connected_to:
             if c[0] == self.tag_list[0] or c[0] == self.tag_list[-1]:
                 c[1] = c_end
@@ -308,7 +328,7 @@ class StratifiedBufferNew:
 
 
 if __name__ == "__main__":
-    b2 = StratifiedBufferNew(name="MyBuffer", n_layers=8)
+    b2 = StratifiedBufferNew(name="MyBuffer", num_layers=8)
     b2.generate_nodes()
     b2.fill_c_inv()
     b2.generate_edges()

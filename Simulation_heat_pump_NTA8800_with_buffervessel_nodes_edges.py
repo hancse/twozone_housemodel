@@ -133,7 +133,7 @@ def model_stratified_buffervessel(t, x,
 
 def main(show=False, xl=False):
     # read configuration file into dictionary
-    param = load_config(str(CONFIGDIR / "for_heat_pump_NTA8800_with_buffervessel.yaml"))
+    param = load_config(str(CONFIGDIR / "for_heat_pump_NTA8800_with_buffervessel_nodes_edges.yaml"))
     # convert duration in hours to days and round up with ceil function
     days_sim = math.ceil(param['timing']['Duration'] / 24)
     print(days_sim)
@@ -149,9 +149,9 @@ def main(show=False, xl=False):
     h.make_k_ext_and_add_ambient()  # initialize k_ext_mat and add diagonal elements
     logger.info(f" \n\n C^-1: \n {h.c_inv_mat} \n K_ext: \n {h.k_ext_mat}, \n q_vec: \n {h.q_vec} \n")
 
-    b = StratifiedBufferNew("MyBuffer", begin_node=2,
+    b = StratifiedBufferNew("MyBuffer", begin_tag=2,
                             volume=0.1, height=1.0,
-                            n_layers=8, u=0.12, T_ini=80.0)
+                            num_layers=8, U_wall=0.12, T_ini=80.0)
     b.generate_nodes()
     b.fill_c_inv()
     b.generate_edges()
