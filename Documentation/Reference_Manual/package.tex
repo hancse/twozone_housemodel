@@ -185,22 +185,39 @@ From commit \textsf{e74ce58} the files in the \textsf{twozone\_housemodel-git} r
 % \lstinputlisting[label=list:eq_circ, caption=, language=Python, 
 % linerange={69-71}]{Listings/testloadshort10mM_object_oriented.py}
 
-\subsection{A Colloid with Particles}
+\subsection{Stratified Buffer Vessel}
 
-The \textsf{Particle} class in the module \textsf{particles.py} has four scalar attributes:
+The \textsf{StratifiedBuffer} class in the module \textsf{stratified.py} contains the representation of a stratified buffer vessel. The vessel is assumed to have a \emph{cylindrical} shape. Therefore it has the following attributes:
 
 \begin{itemize}
-	\item particle radius in $m$.
-	\item relative zeta potential in units of $ eV/kT $
-	\item complex permittivity (DC)
-	\item volume fraction of particles in the colloid.
+	\item (input) volume $V$ in $m$.
+	\item (input) height $h$ in $m$
+	\item (input) num\_layers $N$
+	\item {layer\_height = $h / N$}
+	\item radius $r = \sqrt{[V / (h * \pi)]}$
+	\item wall surface of a layer $A_{wall,layer} = 2 * \pi * r * h/N$
+	\item $A_{base} = V / h = \pi * r^2$
+	\item cap\_layer = $(V / N) * \rho * c_p$
 \end{itemize}
 
-The \textsf{Particle} object represents a collection of monodisperse particles in the colloidal solution. Polydisperse colloids can be modelled by adding a \textsf{list} of \textsf{Particle} objects to the \textsf{Colloid} object. This list is initialized with \textsf{None} for a pure ionic salt solution. The (list of) Particle objects can be added or appended to manually or read from  the configuration file in *.yml format.
+\lstinputlisting[label=list:stratified, caption=, language=Python, linerange={178-224}]{../../housemodel/sourcesink/buffervessels/stratified.py}
 
-% \lstinputlisting[label=list:eq_circ, caption=, language=Python,
-% linerange={35-38}]{Listings/polydisperse_oo.py}
+The \textsf{StratifiedBuffer} class is a central component in the thermal network. Therefore, the class shares the attributes:
+\begin{itemize}
+	\item \textsf{nodes} of type \textsf{CapacityNode}. \textsf{num\_nodes} equals num\_layers $N$.
+	\item \textsf{edges} of type \textsf{CondEdge}. \textsf{num\_edges} equals $N-1$.
+	\item a boundary condition \textsf{ambient} representing the indoor surroundings of the buffer vessel.
+\end{itemize}
 
-To be continued...
+In contrast to the other \textsf{housemodel} classes, the internal capacitive nodes, conductive edges and ambient node, and hence the $\mathbf{C^{-1}}$, $\mathbf{K_{int}}$ and $\mathbf{K_{ext}}$-matrices can be calculated from the input parameters and need not be read from the configuration file. For this purpose the following methods are added to this class:
+
+\begin{itemize}
+	\item \textsf{generate\_nodes}
+	\item \textsf{generate\_edges}
+	\item \textsf{generate\_ambient}
+\end{itemize}
+
+The attributes \textsf{begin\_node} and \textsf{end\_node} = \textsf{begin\_node + n\_layers-1} are added to provide the anchor point(s) to the house model.
+
 
 \newpage

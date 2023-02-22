@@ -308,7 +308,7 @@ class StratifiedBufferNew:
 
 
 if __name__ == "__main__":
-    b2 = StratifiedBufferNew(name="MyBuffer", n_layers=10)
+    b2 = StratifiedBufferNew(name="MyBuffer", n_layers=8)
     b2.generate_nodes()
     b2.fill_c_inv()
     b2.generate_edges()

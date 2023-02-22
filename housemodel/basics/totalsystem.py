@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.linalg import block_diag
+import itertools
 
 from housemodel.tools.new_configurator import load_config
 
@@ -184,6 +185,33 @@ class TotalSystem:
         See: https://stackoverflow.com/questions/18114415/how-do-i-concatenate-3-lists-using-a-list-comprehension
         """
         self.tag_list = [t for tag in [p.tag_list for p in self.parts] for t in tag]
+
+    def merge_edge_lists(self, lol):
+        """merge internal edge lists from parts and edge list read from config *.yaml file.
+        since the parts are already sorted on parts.tag_list[0]
+        See: https://www.geeksforgeeks.org/python-ways-to-concatenate-two-lists
+        See: https://stackoverflow.com/questions/18114415/how-do-i-concatenate-3-lists-using-a-list-comprehension
+        See Also: https://stackoverflow.com/questions/952914/how-do-i-make-a-flat-list-out-of-a-list-of-lists
+        See Also: https://stackoverflow.com/questions/1077015/how-can-i-get-a-flat-result-from-a-list-comprehension-instead-of-a-nested-list
+        """
+        self.edge_list = [item for sublist in lol for item in sublist]
+
+    def merge_edge_lists1(self, lol):
+        flat_list = []
+        for sublist in lol:
+            for item in sublist:
+                flat_list.append(item)
+        self.edge_list = flat_list
+
+    def merge_edge_lists2(self, lol):
+        lol = [[1, 2, 3], [4, 5, 6], [7], [8, 9]]
+        merged = list(itertools.chain.from_iterable(lol))
+        self.edge_list = merged
+
+    def merge_edge_lists3(self, lol):
+        merged = [p.edge_list for p in self.parts]
+        merged.append(lol)
+        self.merge_edge_lists(merged)
 
     def merge_k_ext(self):
         """merge external conductivity matrices of parts by block diagonal addition
