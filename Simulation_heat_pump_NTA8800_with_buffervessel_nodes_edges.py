@@ -279,8 +279,10 @@ def main(show=False, xl=False):
     nta = Heatpump_NTA()
     nta.Pmax = 8
     nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
+
     nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
                                   nta.cal_COP_val, order=1)
+
     nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
                                   nta.cal_Pmax_val, order=1)
     water_temp = np.zeros(len(t))
@@ -336,7 +338,7 @@ def main(show=False, xl=False):
 
         toplevel = TBuffervessel0[i]
         total.flows[1].set_flow_rate(np.clip((80 - toplevel) * 1.0e-6, 0, 50.0e-6))
-        total.flows[0].set_flow_rate(np.clip(Qinst / ((toplevel - Tr_GMTD) * total.flows[1].cp), 0, 50.0e-6))
+        total.flows[0].set_flow_rate(np.clip(Qinst / ((toplevel - Tr_GMTD) * total.flows[0].cp), 0, 50.0e-6))
 
         # mdots = np.clip((80 - toplevel) * 0.001, 0, 0.05)
         # mdotd = np.clip(Qinst / ((TBuffervessel0[i] - Tr_GMTD) * 4180), 0, 0.05)
