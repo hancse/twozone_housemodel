@@ -135,6 +135,7 @@ def main(show=False, xl=False):
         # total.flows[n].flow_from_dict(param['flows'][n])
         total.flows[n].make_df_matrix(rank=total.k_mat.shape[0])
 
+    """
     # combine F-matrices into matrix total.f_mat
     total.f_mat = np.zeros_like(total.flows[0].df_mat)
     for n in range(len(total.flows)):
@@ -149,6 +150,7 @@ def main(show=False, xl=False):
     row_sums = np.sum(total.f_mat, axis=1).tolist()
     total.f_mat = total.f_mat - np.diag(np.array(row_sums), k=0)
     print(total.f_mat, "\n")
+    """
 
     # read NEN5060 data from spreadsheet NEN5060-2018.xlsx into pandas DataFrame
     df_nen = read_nen_weather_from_xl()
