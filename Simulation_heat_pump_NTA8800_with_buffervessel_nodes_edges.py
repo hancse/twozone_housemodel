@@ -12,7 +12,7 @@ from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from scipy.interpolate import interp1d
 from scipy.integrate import solve_ivp
-from tqdm import tqdm, trange
+from tqdm import tqdm
 
 from housemodel.tools.new_configurator import load_config
 
@@ -24,8 +24,8 @@ from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
 
 from housemodel.buildings.building import Building
 from housemodel.sourcesink.buffervessels.stratified import StratifiedBufferNew
-from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
 from housemodel.basics.powersource import PowerSource
+from housemodel.basics.flows import Flow
 from housemodel.basics.totalsystem import TotalSystem
 
 from housemodel.controls.ivPID.PID import PID
@@ -37,7 +37,7 @@ import housemodel.tools.ReturnTemperature as Tr
 import matplotlib
 import matplotlib.pyplot as plt
 
-from pathlib import  Path
+from pathlib import Path
 
 import logging
 
@@ -78,57 +78,6 @@ def model_radiator_ne(t, x,
     dTdt = np.dot(tot_sys.c_inv_mat, dTdt)
 
     return dTdt.flatten().tolist()
-
-
-def model_stratified_buffervessel(t, x,
-                                  U, As, Aq, Tamb,
-                                  Tsupply, Treturn, cpwater, lamb,
-                                  mdots, mdotd, mass_water, z):
-    """model function for scipy.integrate.odeint.
-
-    :param x:            (array):   variable array dependent on time with the vairable Air temperature, Wall temperature Return water temperature and buffervessel temperature
-    :param t:            (float):
-    :param Pin:          (float):  Power input in [W]
-    :param U:            (float):
-    :param A:            (float):  Area of
-    :param T_amb:        (float):
-    :param rho:          (float):
-    :param volume:       (float):
-    :param cp: (float):  Thermal resistance from indoor air to outdoor air [K/W]
-
-    x,t: ode input function func : callable(x, t, ...) or callable(t, x, ...)
-    Computes the derivative of y at t.
-    If the signature is ``callable(t, y, ...)``, then the argument tfirst` must be set ``True``.
-    """
-
-    # Water supply
-    mdote = mdots - mdotd
-
-    if mdote > 0:
-        deltaPlus = 1
-        deltaMinus = 0
-    else:
-        deltaPlus = 0
-        deltaMinus = 1
-
-    dT1 = ((mdots * cpwater * (Tsupply - x[0])) + (mdote * cpwater * (x[0] - x[1]) * deltaMinus) - (
-                U * As * (x[0] - Tamb)) + ((Aq * lamb) / z) * (x[0] - x[1])) / (mass_water * cpwater)
-    dT2 = ((mdote * cpwater * (x[0] - x[1]) * deltaPlus) + (mdote * cpwater * (x[1] - x[2]) * deltaMinus) - (
-                U * As * (x[1] - Tamb)) + ((Aq * lamb) / z) * (x[0] + x[2] - (2 * x[1]))) / (mass_water * cpwater)
-    dT3 = ((mdote * cpwater * (x[1] - x[2]) * deltaPlus) + (mdote * cpwater * (x[2] - x[3]) * deltaMinus) - (
-                U * As * (x[2] - Tamb)) + ((Aq * lamb) / z) * (x[1] + x[3] - (2 * x[2]))) / (mass_water * cpwater)
-    dT4 = ((mdote * cpwater * (x[2] - x[3]) * deltaPlus) + (mdote * cpwater * (x[3] - x[4]) * deltaMinus) - (
-                U * As * (x[3] - Tamb)) + ((Aq * lamb) / z) * (x[2] + x[4] - (2 * x[3]))) / (mass_water * cpwater)
-    dT5 = ((mdote * cpwater * (x[3] - x[4]) * deltaPlus) + (mdote * cpwater * (x[4] - x[5]) * deltaMinus) - (
-                U * As * (x[4] - Tamb)) + ((Aq * lamb) / z) * (x[3] + x[5] - (2 * x[4]))) / (mass_water * cpwater)
-    dT6 = ((mdote * cpwater * (x[4] - x[5]) * deltaPlus) + (mdote * cpwater * (x[5] - x[6]) * deltaMinus) - (
-                U * As * (x[5] - Tamb)) + ((Aq * lamb) / z) * (x[4] + x[6] - (2 * x[5]))) / (mass_water * cpwater)
-    dT7 = ((mdote * cpwater * (x[5] - x[6]) * deltaPlus) + (mdote * cpwater * (x[6] - x[7]) * deltaMinus) - (
-                U * As * (x[6] - Tamb)) + ((Aq * lamb) / z) * (x[5] + x[7] - (2 * x[6]))) / (mass_water * cpwater)
-    dT8 = ((mdotd * cpwater * (Treturn - x[7])) + (mdote * cpwater * (x[6] - x[7]) * deltaPlus) - (
-                U * As * (x[7] - Tamb)) + ((Aq * lamb) / z) * (x[6] - x[7])) / (mass_water * cpwater)
-
-    return [dT1, dT2, dT3, dT4, dT5, dT6, dT7, dT8]
 
 
 def main(show=False, xl=False):
@@ -178,6 +127,30 @@ def main(show=False, xl=False):
     total.make_empty_q_vec()
     logger.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
 
+    # calculate flow matrices and combine into f_mat_all
+    if total.flows:
+        total.flows = []
+    for n in range(len(param['flows'])):
+        total.flows.append(Flow())
+        total.flows[n].flow_from_dict(param['flows'][n])
+        total.flows[n].make_Fmatrix(rank=total.k_mat.shape[0])
+
+    # combine F-matrices into matrix Fall
+    f_mat_all = np.zeros_like(total.flows[0].f_mat)
+    for n in range(len(total.flows)):
+        f_mat_all += total.flows[n].f_mat
+    # f_mat_all = np.add(flows[0].f_mat, flows[1].f_mat)
+    print(f_mat_all, "\n")
+
+    # remove matrix elements > 0 from Fall
+    f_mat_all = np.where(f_mat_all <= 0, f_mat_all, 0)
+    print(f_mat_all, "\n")
+
+    # create diagonal elements in Fall, so that som over each row is zero
+    row_sums = np.sum(f_mat_all, axis=1).tolist()
+    f_mat_all = f_mat_all - np.diag(np.array(row_sums), k=0)
+    print(f_mat_all, "\n")
+
     # read NEN5060 data from spreadsheet NEN5060-2018.xlsx into pandas DataFrame
     df_nen = read_nen_weather_from_xl()
     # generate and insert timezone-aware UTC and local timestamps (with DST)
@@ -186,7 +159,7 @@ def main(show=False, xl=False):
     df_irr = run_qsun(df_nen)
     print(df_irr.head())
 
-    time_sim = df_irr.iloc[0:days_sim*24, 0].values
+    time_sim = df_irr.iloc[0:days_sim * 24, 0].values
 
     # Interval in seconds the control algorithm
     # Timestep is in minutes
@@ -203,7 +176,7 @@ def main(show=False, xl=False):
                      df_irr.total_N * param['solar_irradiation']['N'] +
                      df_irr.total_NE * param['solar_irradiation']['NE']).values
     Qsolar.values *= param['solar_irradiation']['g_value']
-    Qsolar.values = Qsolar.values[0:days_sim*24]
+    Qsolar.values = Qsolar.values[0:days_sim * 24]
 
     Qint = PowerSource("Q_internal")
     Qint.connected_to = param['internal']['distribution']
@@ -212,7 +185,7 @@ def main(show=False, xl=False):
                                      param['internal']['t1'],
                                      param['internal']['t2'])
     Qint.values = Qint.values.flatten()
-    Qint.values = Qint.values[0:days_sim*24]
+    Qint.values = Qint.values[0:days_sim * 24]
 
     Toutdoor = PowerSource("T_outdoor")
     Toutdoor.values = df_nen.loc[:, 'temperatuur'].values
@@ -292,9 +265,9 @@ def main(show=False, xl=False):
     TBuffervessel7 = np.ones(len(t)) * y0[9]
 
     pid = PID(controllers[0]['kp'],
-                  controllers[0]['ki'],
-                  controllers[0]['kd'],
-                  t[0])
+              controllers[0]['ki'],
+              controllers[0]['kd'],
+              t[0])
 
     pid.SetPoint = 17.0
     pid.setSampleTime(0)
@@ -452,7 +425,7 @@ def main(show=False, xl=False):
         ax[1, 0].set_xlabel(('Time (s)'))
         ax[1, 0].set_ylabel(('Power (kW)'))
 
-        ax[1, 1].plot(time_d, data[3], label='Return temp',color='b')
+        ax[1, 1].plot(time_d, data[3], label='Return temp', color='b')
         ax[1, 1].legend(loc='upper right')
         ax[1, 1].set_title('Return Temperature')
         ax[1, 1].set_xlabel(('Time (s)'))

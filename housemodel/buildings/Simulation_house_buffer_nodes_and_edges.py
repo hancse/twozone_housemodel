@@ -27,7 +27,7 @@ from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
 from housemodel.basics.powersource import PowerSource
 
 # from housemodel.sourcesink.radiators import Radiator
-from housemodel.sourcesink.flows import Flow
+from housemodel.basics.flows import Flow
 from housemodel.basics.totalsystem import TotalSystem
 
 import matplotlib
