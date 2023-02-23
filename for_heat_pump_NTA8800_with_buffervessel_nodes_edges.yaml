@@ -49,14 +49,14 @@ flows:
     flow_rate: 50.0e-6   # [m^3/s]
     density: 1000     # [kg/m^3]
     cp: 4200         # J/(kg K)]
-    pass_by: [5, 4, 3, 5]
+    pass_by: [9, 8, 7, 6, 5, 4, 3, 2, 9]
     # [2, 1, 0, 2]
   -
     label: hp_flow
     flow_rate: 100.0e-6   # [m^3/s]
     density: 1000     # [kg/m^3]
     cp: 4200         # J/(kg K)]
-    pass_by: [3, 4, 5, 3]
+    pass_by: [2, 3, 4, 5, 6, 7, 8, 9, 2]
     #  [0, 1, 2, 0]
   # -
     # label: floor_flow

@@ -322,7 +322,7 @@ def main(show=False, xl=False):
     # larger than the time between two elements of the "t" array
     # this leads to an "index-out-of-range" error in the last evaluation
     # of the model function, where e.g SP_T[8760] is called.
-    # Therefore set "first_step" equal or smaller than the spacing of "t".
+    # Therefore, set "first_step" equal or smaller than the spacing of "t".
     # https://github.com/scipy/scipy/issues/9198
 
     for i in tqdm(range(len(t) - 1)):
@@ -441,12 +441,12 @@ def main(show=False, xl=False):
         ax[1, 1].set_ylabel(('Temperature (°C)'))
 
         ax[2, 1].plot(time_d, data[7], label='Top')
-        ax[2, 1].plot(time_d, data[8], label='T1')
+        # ax[2, 1].plot(time_d, data[8], label='T1')
         ax[2, 1].plot(time_d, data[9], label='T2')
-        ax[2, 1].plot(time_d, data[10], label='T3')
+        # ax[2, 1].plot(time_d, data[10], label='T3')
         ax[2, 1].plot(time_d, data[11], label='T4')
-        ax[2, 1].plot(time_d, data[12], label='T5')
-        ax[2, 1].plot(time_d, data[13], label='T6')
+        # ax[2, 1].plot(time_d, data[12], label='T5')
+        # ax[2, 1].plot(time_d, data[13], label='T6')
         ax[2, 1].plot(time_d, data[14], label='Bottom')
         ax[2, 1].legend(loc='upper right')
         ax[2, 1].set_title('Buffervessel')
