@@ -74,7 +74,7 @@ def model_radiator_ne(t, x,
     # https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
     x = np.array(x)[np.newaxis]
 
-    dTdt = (-tot_sys.k_mat @ x.T) + local_q_vector
+    dTdt = (-tot_sys.k_mat @ x.T) - (tot_sys.f_mat @ x.T) + local_q_vector
     dTdt = np.dot(tot_sys.c_inv_mat, dTdt)
 
     return dTdt.flatten().tolist()
@@ -131,25 +131,24 @@ def main(show=False, xl=False):
     if total.flows:
         total.flows = []
     for n in range(len(param['flows'])):
-        total.flows.append(Flow())
-        total.flows[n].flow_from_dict(param['flows'][n])
-        total.flows[n].make_Fmatrix(rank=total.k_mat.shape[0])
+        total.flows.append(Flow.from_dict(param['flows'][n]))
+        # total.flows[n].flow_from_dict(param['flows'][n])
+        total.flows[n].make_df_matrix(rank=total.k_mat.shape[0])
 
-    # combine F-matrices into matrix Fall
-    f_mat_all = np.zeros_like(total.flows[0].f_mat)
+    # combine F-matrices into matrix total.f_mat
+    total.f_mat = np.zeros_like(total.flows[0].df_mat)
     for n in range(len(total.flows)):
-        f_mat_all += total.flows[n].f_mat
-    # f_mat_all = np.add(flows[0].f_mat, flows[1].f_mat)
-    print(f_mat_all, "\n")
+        total.f_mat += np.multiply(total.flows[n].df_mat, total.flows[n].heat_rate)
+    print(total.f_mat, "\n")
 
     # remove matrix elements > 0 from Fall
-    f_mat_all = np.where(f_mat_all <= 0, f_mat_all, 0)
-    print(f_mat_all, "\n")
+    total.f_mat = np.where(total.f_mat <= 0, total.f_mat, 0)
+    print(total.f_mat, "\n")
 
     # create diagonal elements in Fall, so that som over each row is zero
-    row_sums = np.sum(f_mat_all, axis=1).tolist()
-    f_mat_all = f_mat_all - np.diag(np.array(row_sums), k=0)
-    print(f_mat_all, "\n")
+    row_sums = np.sum(total.f_mat, axis=1).tolist()
+    total.f_mat = total.f_mat - np.diag(np.array(row_sums), k=0)
+    print(total.f_mat, "\n")
 
     # read NEN5060 data from spreadsheet NEN5060-2018.xlsx into pandas DataFrame
     df_nen = read_nen_weather_from_xl()
@@ -334,31 +333,23 @@ def main(show=False, xl=False):
         Q_vectors[air_node, i] += Qinst
 
         toplevel = TBuffervessel0[i]
-        mdots = np.clip((80 - toplevel) * 0.001, 0, 0.05)
-        mdotd = np.clip(Qinst / ((TBuffervessel0[i] - Tr_GMTD) * 4180), 0, 0.05)
+        total.flows[1].set_flow_rate(np.clip((80 - toplevel) * 1.0e-6, 0, 50.0e-6))
+        total.flows[0].set_flow_rate(np.clip(Qinst / ((toplevel - Tr_GMTD) * total.flows[1].cp), 0, 50.0e-6))
 
-        # calculate flow matrices and combine into f_mat_all
-        flows = []
-        for n in range(len(param['flows'])):
-            flows.append(Flow())
-            flows[n].flow_from_dict(param['flows'][n])
-            flows[n].make_Fmatrix(rank=total.k_mat.shape[0])
+        # mdots = np.clip((80 - toplevel) * 0.001, 0, 0.05)
+        # mdotd = np.clip(Qinst / ((TBuffervessel0[i] - Tr_GMTD) * 4180), 0, 0.05)
 
-        # combine F-matrices into matrix Fall
-        f_mat_all = np.zeros_like(flows[0].f_mat)
-        for n in range(len(flows)):
-            f_mat_all += flows[n].f_mat
-        # f_mat_all = np.add(flows[0].f_mat, flows[1].f_mat)
-        print(f_mat_all, "\n")
+        # combine F-matrices into matrix total.f_mat
+        total.f_mat = np.zeros_like(total.flows[0].df_mat)
+        for n in range(len(total.flows)):
+            total.f_mat += np.multiply(total.flows[n].df_mat, total.flows[n].heat_rate)
 
-        # remove matrix elements > 0 from Fall
-        f_mat_all = np.where(f_mat_all <= 0, f_mat_all, 0)
-        print(f_mat_all, "\n")
+        # remove matrix elements > 0 from total.f_mat
+        total.f_mat = np.where(total.f_mat <= 0, total.f_mat, 0)
 
-        # create diagonal elements in Fall, so that som over each row is zero
-        row_sums = np.sum(f_mat_all, axis=1).tolist()
-        f_mat_all = f_mat_all - np.diag(np.array(row_sums), k=0)
-        print(f_mat_all, "\n")
+        # create diagonal elements in total.f_mat, so that som over each row is zero
+        row_sums = np.sum(total.f_mat, axis=1).tolist()
+        total.f_mat = total.f_mat - np.diag(np.array(row_sums), k=0)
 
         ts = [t[i], t[i + 1]]
         result = solve_ivp(model_radiator_ne, ts, y0,
