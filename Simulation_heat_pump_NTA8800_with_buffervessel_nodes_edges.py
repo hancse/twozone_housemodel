@@ -144,6 +144,7 @@ def main(show=False, xl=False):
     # read nodes attribute from dictionary and create capacity matrix
     h.nodes_from_dict(section["nodes"])
     h.fill_c_inv()
+    h.edges_from_dict(section["edges"])
     # read FixedNode objects (external nodes);
     h.boundaries_from_dict(param["boundaries"])  # function selects "outdoor" as ambient
     h.make_k_ext_and_add_ambient()  # initialize k_ext_mat and add diagonal elements
@@ -167,8 +168,9 @@ def main(show=False, xl=False):
     total.merge_tag_lists()
 
     # compose k-matrix from edges
-    total.edges_from_dict(param["edges"])
-    total.edge_list = [*param["edges"], *b.edge_list]
+    total.edges_between_from_dict(param["edges"])
+    total.merge_edge_lists_from_parts_and_between()
+
     total.fill_k(total.edge_list)
     total.merge_k_ext()
     total.k_mat += total.k_ext_mat
@@ -366,27 +368,27 @@ def main(show=False, xl=False):
         toplevel = TBuffervessel0[i]
         mdots = np.clip((80 - toplevel) * 0.001, 0, 0.05)
         mdotd = np.clip(Qinst / ((TBuffervessel0[i] - Tr_GMTD) * 4180), 0, 0.05)
-
+        """
         inputs_buffervessel = (0.12, 0.196, 0.196, 10, 80, Tr_GMTD, 4190, 0.644, mdots, mdotd, 150 / 8, 1 / 8)
         result_buffervessel = solve_ivp(model_stratified_buffervessel, ts, y0buffervessel,
                                         method='RK45', args=inputs_buffervessel,
                                         first_step=control_interval)
-
+        """
         Tair[i + 1] = result.y[0, -1]
         Twall[i + 1] = result.y[1, -1]
         Treturn[i] = Tr_GMTD
         Power[i] = Qinst
-        TBuffervessel0[i + 1] = result_buffervessel.y[0, -1]
-        TBuffervessel1[i + 1] = result_buffervessel.y[1, -1]
-        TBuffervessel2[i + 1] = result_buffervessel.y[2, -1]
-        TBuffervessel3[i + 1] = result_buffervessel.y[3, -1]
-        TBuffervessel4[i + 1] = result_buffervessel.y[4, -1]
-        TBuffervessel5[i + 1] = result_buffervessel.y[5, -1]
-        TBuffervessel6[i + 1] = result_buffervessel.y[6, -1]
-        TBuffervessel7[i + 1] = result_buffervessel.y[7, -1]
+        TBuffervessel0[i + 1] = result.y[2, -1]
+        TBuffervessel1[i + 1] = result.y[3, -1]
+        TBuffervessel2[i + 1] = result.y[4, -1]
+        TBuffervessel3[i + 1] = result.y[5, -1]
+        TBuffervessel4[i + 1] = result.y[6, -1]
+        TBuffervessel5[i + 1] = result.y[7, -1]
+        TBuffervessel6[i + 1] = result.y[8, -1]
+        TBuffervessel7[i + 1] = result.y[9, -1]
 
         y0 = result.y[:, -1]
-        y0buffervessel = result_buffervessel.y[:, -1]  # remove
+        # y0buffervessel = result_buffervessel.y[:, -1]  # remove
 
         # return t, Tair, Twall, Treturn, Power, water_temp, cop_hp, TBuffervessel1, TBuffervessel2, TBuffervessel3, TBuffervessel4, TBuffervessel5, TBuffervessel6, TBuffervessel7, TBuffervessel8
         data = (t, Tair, Twall, Treturn, Power, water_temp, cop_hp,

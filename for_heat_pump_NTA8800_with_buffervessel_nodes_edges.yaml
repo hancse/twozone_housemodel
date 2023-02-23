@@ -26,6 +26,7 @@ Buffer:
   volume: 0.15   # m^3
   height: 0.765   # m
   U_wall: 0.12  # conductivity vessel wall to ambient in [W/K m^2]
+  T_amb: 15
   T_ini: 80     # C
 
 Radiator:

@@ -58,6 +58,7 @@ class TotalSystem:
         # self.cap_list = []
         # self.cond_list =
         self.edge_list = []
+        self.edge_list_between_parts = []
 
         logging.info(f" TotalSystem object {self.name} created")
 
@@ -65,12 +66,39 @@ class TotalSystem:
         """reads ALL edges from parameter dict
 
         """
+        if self.edge_list or self.edges:
+            self.edges = []
+            self.edge_list = []
+        if not lol or len(lol) <= 0:
+            return
+
         self.num_edges = len(lol)
         for n in range(self.num_edges):
             edge = CondEdge(label="",
                             conn_nodes=[lol[n][0], lol[n][1]],
                             cond=lol[n][2])
             self.edges.append(edge)
+            self.edge_list.append(lol[n])
+            logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
+
+    def edges_between_from_dict(self, lol):
+        """reads ONLY edges BETWEEN parts from parameter dict
+
+        """
+        if self.edge_list_between_parts or self.edges:
+            self.edges = []
+            self.edge_list_between_parts = []
+        if not lol or len(lol) <= 0:
+            logging.info(f" no edges found between parts")
+            return
+
+        self.num_edges = len(lol)
+        for n in range(self.num_edges):
+            edge = CondEdge(label="",
+                            conn_nodes=[lol[n][0], lol[n][1]],
+                            cond=lol[n][2])
+            self.edges.append(edge)
+            self.edge_list_between_parts.append(lol[n])
             logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
 
     def fill_k(self, lol):
@@ -208,9 +236,9 @@ class TotalSystem:
         merged = list(itertools.chain.from_iterable(lol))
         self.edge_list = merged
 
-    def merge_edge_lists3(self, lol):
+    def merge_edge_lists_from_parts_and_between(self):
         merged = [p.edge_list for p in self.parts]
-        merged.append(lol)
+        merged.append(self.edge_list_between_parts)
         self.merge_edge_lists(merged)
 
     def merge_k_ext(self):

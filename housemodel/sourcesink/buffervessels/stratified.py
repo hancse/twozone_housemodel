@@ -19,13 +19,14 @@ class StratifiedBufferNew:
     """
 
     def __init__(self, name="DefaultBuffer", begin_tag=0, num_layers=5,
-                 volume=0.1, height=1.0, U_wall=0.12, T_ini=20):
+                 volume=0.1, height=1.0, U_wall=0.12, T_amb=18.0, T_ini=20):
         self.name = name
         self.begin_tag = begin_tag   # anchor point of buffer vessel in house model
         self.num_nodes = num_layers
         self.volume = volume
         self.height = height
         self.U_wall = U_wall         # conductivity vessel wall to ambient in [W/K m^2]
+        self.T_amb = T_amb
         self.T_ini = T_ini
 
         self.end_node = self.begin_tag + num_layers - 1  # anchor point of cold water return from house model
@@ -67,7 +68,7 @@ class StratifiedBufferNew:
         """
         return cls(name=d["name"],begin_tag=d["begin_tag"], num_layers=d["num_layers"],
                             volume=d["volume"], height=d["height"],
-                            U_wall=d["U_wall"], T_ini=d["T_ini"])
+                            U_wall=d["U_wall"], T_amb= d["T_amb"], T_ini=d["T_ini"])
 
     def calculate_buffer_properties(self):
         self.A_base = self.volume / self.height
@@ -170,7 +171,7 @@ class StratifiedBufferNew:
         c_mid = self.U_wall * self.A_wall_layer
         c_end = self.U_wall * (self.A_wall_layer + self.A_base)
         self.ambient = FixedNode(label='indoor',
-                                 temp=20.0,
+                                 temp=self.T_amb,
                                  connected_to=[[a, c_mid] for a in self.tag_list])
         for c in self.ambient.connected_to:
             if c[0] == self.tag_list[0] or c[0] == self.tag_list[-1]:
