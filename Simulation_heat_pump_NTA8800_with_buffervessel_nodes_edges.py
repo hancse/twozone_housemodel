@@ -360,20 +360,38 @@ def main(show=False, xl=False):
         air_node = total.find_tag_from_node_label("air")
         Q_vectors[air_node, i] += Qinst
 
+        toplevel = TBuffervessel0[i]
+        mdots = np.clip((80 - toplevel) * 0.001, 0, 0.05)
+        mdotd = np.clip(Qinst / ((TBuffervessel0[i] - Tr_GMTD) * 4180), 0, 0.05)
+
+        # calculate flow matrices and combine into f_mat_all
+        flows = []
+        for n in range(len(param['flows'])):
+            flows.append(Flow())
+            flows[n].flow_from_dict(param['flows'][n])
+            flows[n].make_Fmatrix(rank=total.k_mat.shape[0])
+
+        # combine F-matrices into matrix Fall
+        f_mat_all = np.zeros_like(flows[0].f_mat)
+        for n in range(len(flows)):
+            f_mat_all += flows[n].f_mat
+        # f_mat_all = np.add(flows[0].f_mat, flows[1].f_mat)
+        print(f_mat_all, "\n")
+
+        # remove matrix elements > 0 from Fall
+        f_mat_all = np.where(f_mat_all <= 0, f_mat_all, 0)
+        print(f_mat_all, "\n")
+
+        # create diagonal elements in Fall, so that som over each row is zero
+        row_sums = np.sum(f_mat_all, axis=1).tolist()
+        f_mat_all = f_mat_all - np.diag(np.array(row_sums), k=0)
+        print(f_mat_all, "\n")
+
         ts = [t[i], t[i + 1]]
         result = solve_ivp(model_radiator_ne, ts, y0,
                            method='RK45', args=inputs,
                            first_step=control_interval)
 
-        toplevel = TBuffervessel0[i]
-        mdots = np.clip((80 - toplevel) * 0.001, 0, 0.05)
-        mdotd = np.clip(Qinst / ((TBuffervessel0[i] - Tr_GMTD) * 4180), 0, 0.05)
-        """
-        inputs_buffervessel = (0.12, 0.196, 0.196, 10, 80, Tr_GMTD, 4190, 0.644, mdots, mdotd, 150 / 8, 1 / 8)
-        result_buffervessel = solve_ivp(model_stratified_buffervessel, ts, y0buffervessel,
-                                        method='RK45', args=inputs_buffervessel,
-                                        first_step=control_interval)
-        """
         Tair[i + 1] = result.y[0, -1]
         Twall[i + 1] = result.y[1, -1]
         Treturn[i] = Tr_GMTD
