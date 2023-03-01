@@ -1,0 +1,90 @@
+\input{preamble}
+
+%Document title, author and date (empty)
+\title{House Model Reference Manual \\
+	FutureFactory}
+\author{Trung Nguyen, Maarten van den Berg \\
+	Marijn Jongerden, Paul van Kan and Rob ter Steeg \\ \\
+	Academy of Engineering and Automotive Science (AEA) \\
+HAN University of Applied Sciences\\
+Arnhem, The Netherlands}
+% \date{}
+
+\begin{document}
+	
+\ldf          % LaTeX default font
+
+% Set up code listing style:
+\lstset{
+	language=Python,
+	% Fonts:
+	basicstyle=\ttfamily\footnotesize,
+	%keywordstyle=\ttfamily,
+	%identifierstyle=,
+	%commentstyle=\ttfamily\scriptsize,
+	% B/W code:
+	% commentstyle=\ttfamily\itshape,  % Italic
+	% stringstyle=\ttfamily,
+	% identifierstyle=\ttbf,           % Bold typewriter type
+	% keywordstyle=\ttbf,              % Bold tt
+	% Colour:
+	commentstyle=\scriptsize\ttfamily\color{brown},
+	stringstyle=\ttfamily\color{darkgreen},
+	identifierstyle=\color{blue},
+	keywordstyle=\ttfamily\color{red},
+	% Spaces:
+	showstringspaces=false,
+	breaklines=true,
+	breakatwhitespace=true,
+	% Line numbering:
+	numbers=left,
+	numberstyle=\tiny,
+	stepnumber=2, 
+	numbersep=5pt,
+	% Frames:
+	frame=single,
+	frameround=tttt,
+	backgroundcolor=\color{lightgrey},
+	morekeywords={pthread\_create},
+}
+
+%\renewcommand{\thelstlisting}{\thechapter.\arabic{lstlisting}}  % This is the default?
+%\numberwithin{lstlisting}{section}  % AMSmath: number code listings per section
+%\numberwithin{lstlisting}{chapter}  % AMSmath: number code listings per chapter
+
+\maketitle
+% \newpage
+
+%\begin{center}
+%	\today
+%\end{center}
+
+\tableofcontents
+\newpage
+
+\input{introduction}
+\input{RCvalues}
+\input{lumped_element}
+\input{solar_irradiation}
+\input{PV_solar_collector}
+\input{manual_huismodel}
+\input{package}
+\input{housemodel_machinelearning}
+
+%\bibliography{mybibliography}
+\printbibliography[heading=bibintoc]
+\newpage
+
+\begin{appendices}
+	\input{code_management}
+	\input{installation_python}
+	\input{buffer}
+	\input{buffervessel_docs}
+	\input{change_solver}
+	\input{7R4Cmodel}
+	\input{pid_controller}
+	\input{finite_elements}
+	\input{NEN_ISO}
+\end{appendices}
+
+\end{document}

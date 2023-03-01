@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.linalg import block_diag
+import itertools
 
 from housemodel.tools.new_configurator import load_config
 
@@ -43,6 +44,7 @@ class TotalSystem:
         self.edges = []            # np.zeros(self.num_nodes - 1)
         # self.boundaries = []
         self.ambients = None
+        self.flows = []
 
         self.c_inv_mat = None  # np.zeros((self.num_nodes, self.num_nodes))
         self.k_mat = None      # np.zeros_like(self.c_inv_mat)
@@ -55,7 +57,9 @@ class TotalSystem:
 
         self.tag_list = []
         # self.cap_list = []
-        # self.cond_list = []
+        # self.cond_list =
+        self.edge_list = []
+        self.edge_list_between_parts = []
 
         logging.info(f" TotalSystem object {self.name} created")
 
@@ -63,12 +67,39 @@ class TotalSystem:
         """reads ALL edges from parameter dict
 
         """
+        if self.edge_list or self.edges:
+            self.edges = []
+            self.edge_list = []
+        if not lol or len(lol) <= 0:
+            return
+
         self.num_edges = len(lol)
         for n in range(self.num_edges):
             edge = CondEdge(label="",
                             conn_nodes=[lol[n][0], lol[n][1]],
                             cond=lol[n][2])
             self.edges.append(edge)
+            self.edge_list.append(lol[n])
+            logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
+
+    def edges_between_from_dict(self, lol):
+        """reads ONLY edges BETWEEN parts from parameter dict
+
+        """
+        if self.edge_list_between_parts or self.edges:
+            self.edges = []
+            self.edge_list_between_parts = []
+        if not lol or len(lol) <= 0:
+            logging.info(f" no edges found between parts")
+            return
+
+        self.num_edges = len(lol)
+        for n in range(self.num_edges):
+            edge = CondEdge(label="",
+                            conn_nodes=[lol[n][0], lol[n][1]],
+                            cond=lol[n][2])
+            self.edges.append(edge)
+            self.edge_list_between_parts.append(lol[n])
             logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
 
     def fill_k(self, lol):
@@ -183,6 +214,33 @@ class TotalSystem:
         See: https://stackoverflow.com/questions/18114415/how-do-i-concatenate-3-lists-using-a-list-comprehension
         """
         self.tag_list = [t for tag in [p.tag_list for p in self.parts] for t in tag]
+
+    def merge_edge_lists(self, lol):
+        """merge internal edge lists from parts and edge list read from config *.yaml file.
+        since the parts are already sorted on parts.tag_list[0]
+        See: https://www.geeksforgeeks.org/python-ways-to-concatenate-two-lists
+        See: https://stackoverflow.com/questions/18114415/how-do-i-concatenate-3-lists-using-a-list-comprehension
+        See Also: https://stackoverflow.com/questions/952914/how-do-i-make-a-flat-list-out-of-a-list-of-lists
+        See Also: https://stackoverflow.com/questions/1077015/how-can-i-get-a-flat-result-from-a-list-comprehension-instead-of-a-nested-list
+        """
+        self.edge_list = [item for sublist in lol for item in sublist]
+
+    def merge_edge_lists1(self, lol):
+        flat_list = []
+        for sublist in lol:
+            for item in sublist:
+                flat_list.append(item)
+        self.edge_list = flat_list
+
+    def merge_edge_lists2(self, lol):
+        lol = [[1, 2, 3], [4, 5, 6], [7], [8, 9]]
+        merged = list(itertools.chain.from_iterable(lol))
+        self.edge_list = merged
+
+    def merge_edge_lists_from_parts_and_between(self):
+        merged = [p.edge_list for p in self.parts]
+        merged.append(self.edge_list_between_parts)
+        self.merge_edge_lists(merged)
 
     def merge_k_ext(self):
         """merge external conductivity matrices of parts by block diagonal addition

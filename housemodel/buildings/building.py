@@ -2,7 +2,7 @@ import numpy as np
 
 from housemodel.basics.ckf_tools import make_c_inv_matrix
 from housemodel.tools.new_configurator import load_config
-from housemodel.basics.components import (CapacityNode, FixedNode)
+from housemodel.basics.components import (CapacityNode, CondEdge, FixedNode)
 import logging
 
 # logging.basicConfig(level="DEBUG")
@@ -17,6 +17,8 @@ class Building:
         self.name = name
         self.num_nodes = 0
         self.nodes = []            # np.zeros(self.num_nodes, dtype=object)
+        self.num_edges = 0
+        self.edges = []
         self.boundaries = []
         self.ambient = None
 
@@ -25,7 +27,8 @@ class Building:
         self.q_vec = None      # np.zeros(self.num_nodes, 1)
 
         self.tag_list = []
-        self.cap_list = []
+        self.edge_list = []
+        # self.cap_list = []
 
         logging.info(f" Building object {self.name} created")
 
@@ -65,9 +68,7 @@ class Building:
         choose "outdoor" node as ambient for Building class
 
         Args:
-            lod: list-of dicts read from "boundaries section in *.yaml configuration file
-
-        Returns: None
+            lod: list-of dicts read from "boundaries" section in *.yaml configuration file
 
         """
         for n in range(len(lod)):
@@ -98,16 +99,21 @@ class Building:
     # obsolete functions which are only relevant for TotalSystem class
     # and are not used in subsystem classes
 
-    """
     def edges_from_dict(self, lol):
+        if self.edge_list or self.edges:
+            self.edges = []
+            self.edge_list = []
+        if not lol or len(lol) <= 0:
+            return
+
         self.num_edges = len(lol)
         for n in range(self.num_edges):
             edge = CondEdge(label="",
                             conn_nodes=[lol[n][0], lol[n][1]],
                             cond=lol[n][2])
             self.edges.append(edge)
+            self.edge_list.append(lol[n])
             logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
-    """
 
     """
     def fill_k(self, lol):

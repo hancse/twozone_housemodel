@@ -35,6 +35,7 @@ class LinearRadiator:
         self.q_int = None
 
         self.tag_list = []
+        self.edge_list = []
         self.cap_list = []
         self.cond_list = []
 

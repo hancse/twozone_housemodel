@@ -1,0 +1,34 @@
+% \chapter{Introduction}
+
+\section{Introduction}
+
+Building energy simulation is a vast field of research that started in the late 50’s and that is still highly active nowadays. Building energy simulations are mainly used to help taking design decisions, to analyze current designs and to forecast future building energy use. Building energy modelling methods can mainly be divided into three categories:
+\begin{itemize}
+  
+    \item White box models (physics-based)
+    \item Black box models (data-driven)
+    \item Grey box models (hybrid)
+
+\end{itemize}
+
+
+White box models are based on the equations related to the fundamental laws of energy and mass balance and heat transfer. White box models can be differentiated in two types, \emph{distributed} parameter models and \emph{lumped} parameter models. Lumped parameter models simplify the description of distributed physical systems into discrete entities that approximate the behavior of a distributed system. The advantage of using lumped models is the decrease in simulation time \textbf{(Ramallo-González et al.\cite{Alfonso})}. White box models are of special interest for the design phase as they are used to predict and analyse the performance of the building envelope and building systems.
+
+Black box models are based on the statistical relation between input and output system values. The statistical relation between input and output is based on actual data. The relation between the parameters can differ based on the amount of data and the method used to analyze the relation. Currently, there is a large and active field of research about statistical models that are used on black box models \textbf{(Coacley et al.\cite{Coakley})}. Black box models are of special interest when there is a large amount of actual input and output data available. 
+
+Grey box models are hybrid models that aim to combine the advantages of both approaches. In order to use them it is necessary to implement some equations and it is also required to have actual data of inputs and outputs.
+
+In the FutureFactory project, the modelling research in the HAN-AEA-BES group is extended from a static lumped element white box model into a dynamic model. The extension enables incorporation of building installations for heating and climatization into the model of the building itself. The installations are represented by either their physical parameters or by a grey-box approach. In the latter approach, gas boiler can be modeled as an abstract heat source with a minimum and maximum thermal power, regulated by a (PI(D)) controller with hysteresis which takes the difference between the actual room temperature and the setpoint of the room thermostat as the error signal. 
+
+Similarly, a heat pump can be modelled as a heat source which delivers thermal power dependent on outdoor (evaporator) temperature and delivery (condensor) temperature. The efficiency parameter (COP) then depends on the same two basic parameters. Such grey-box models are applied in working standards as he Dutch NTA 8800 (Appendix Q).
+
+This research is aimed at establishing how a dynamic model can be made, depending on lumped elements yet showing the essential control behaviour of basic building HVAC installations. Successful extension of the modelling capacities can be applied to lay a solid foundation under key decisions in the energy transition of the built environment.
+
+\today
+
+Trung Nguyen, Maarten van den Berg \\
+Marijn Jongerden, Paul van Kan and Rob ter Steeg \\ \\
+Academy of Engineering and Automotive Science (AEA) \\
+HAN University of Applied Sciences, Arnhem, The Netherlands
+
+\newpage
