@@ -128,80 +128,43 @@ From commit \textsf{e74ce58} the files in the \textsf{twozone\_housemodel-git} r
 
 \textit{Note}: Running the simulations and tests is best done from the \emph{repository root}. All simulations and tests have been updated to find the package, subpackages and configuration files from this directory.
 
-\subsubsection{Subpackage \textsf{classes}}
+\subsubsection{Subpackage \textsf{basics}}
  The subpackage \textsf{classes} contains the following Python modules:
 
  \begin{itemize}
-	\item \textbf{constants.py}. This module contains basic physical constants listed in Listing~\ref{list:constants}.
+	\item \textbf{ckf\_tools.py}. This module contains basic functions to generate the matrices $\mathbf{C^{-1}}$, $\mathbf{K}$ and the source vector $\mathbf{\dot{q}}$.
 \end{itemize}
 
 % \lstinputlisting[label=list:constants,caption= Physical Constants in 
 % constants.py, language=Python, linerange={2-11}]{Listings/constants.py}
  
  \begin{itemize}
-     \item \textbf{cells.py}. This module covers Python classes for describing the electrolysis cells used in the experiments and simulations. The (abstract) base class \textsf{Cell} has an attribute \textsf{cell\_constant}. Derived classes \textsf{PlanarCell} and \textsf{CylindricalCell} contain specific geometrical parameters used for determining the frequency dependence of electrode polarization. See Listing~\ref{list:cells}.
+     \item \textbf{components.py}. This module covers the fundamental abstract classes for the network of nodes and edges.
  \end{itemize}
  
 % \lstinputlisting[label=list:cells,caption= Class Cell and derived classes in 
 % cells.py, language=Python, linerange={2-49}]{Listings/cells.py}
 
  \begin{itemize}
-     \item \textbf{electrolytes.py}. This module covers Python classes for describing the basic electrolytes (ionic salt solutions) used in the experiments and simulations. The base class \textsf{Electrolyte} contains the attributes and methods listed in Listing~\ref{list:electrolytes}.
+     \item \textbf{flows.py}. This module contains the \textsf{Flow} class used for generating and updating the convective water flows in the thermal model.
  \end{itemize}
  
 % \lstinputlisting[label=list:electrolytes,caption= Class Electrolyte in
 % electrolytes.py, language=Python, linerange={2-61}]{Listings/electrolytes.py}
 
  \begin{itemize}
-     \item \textbf{particles.py}. This module covers Python classes for describing the colloidal particles present in the ionic solutions. The base class \textsf{Particles} contains the attributes and methods listed in Listing~\ref{list:particles}.
+     \item \textbf{source\_term.py}. This module contains the \textsf{SourceTerm} class used for generating and updating the Fixed Nodes in the thermal model.
  \end{itemize}
  
 % \lstinputlisting[label=list:particles,caption= Class Particles in particles.py,
 % language=Python, linerange={2-35}]{Listings/particles.py}
 
  \begin{itemize}
-     \item \textbf{colloids.py}. This module covers Python classes for describing the colloidal systems consisting of a cell, an electrolyte and colloidal particles. The base class \textsf{Colloids} contains the attributes and methods listed in Listing~\ref{list:colloids}.
+     \item \textbf{totalsystem.py}. This module contains the \textsf{TotalSystem} class which incorporates the complete model expressed in the matrices $\mathbf{C^{-1}}$, $\mathbf{K}$, $\mathbf{F}$, and the source vector $\mathbf{\dot{q}}$. An instance of this class is passed to the model function of the \textsf{scipy.integrate.solve\_ivp} function.
  \end{itemize}
  
 % \lstinputlisting[label=list:colloids,caption= Class Colloids in colloids.py,
 % language=Python, linerange={2-60}]{Listings/colloids.py}
-
-\subsection{Use Case}
-
- \begin{itemize}
-	\item \textbf{import classes}
-\end{itemize}
-
-% \lstinputlisting[label=list:import, caption=, language=Python,
-% linerange={11-16}]{Listings/testloadshort10mM_object_oriented.py}
-
- \begin{itemize}
-	\item \textbf{instantiate classes}
-\end{itemize}
-
-% \lstinputlisting[label=list:instantiate, caption=, language=Python,
-% linerange={53-58}]{Listings/testloadshort10mM_object_oriented.py}
-
- \begin{itemize}
-	\item \textbf{perform calculations}
-\end{itemize}
-
-% \lstinputlisting[label=list:calculations, caption=, language=Python,
-% linerange={60-67}]{Listings/testloadshort10mM_object_oriented.py}
-
- \begin{itemize}
-	\item \textbf{load-short correction}
-\end{itemize}
-
-% \lstinputlisting[label=list:loadshort, caption=, language=Python,
-% linerange={73-74}]{Listings/testloadshort10mM_object_oriented.py}
-
- \begin{itemize}
-	\item \textbf{equivalent circuit}
-\end{itemize}
-
-% \lstinputlisting[label=list:eq_circ, caption=, language=Python, 
-% linerange={69-71}]{Listings/testloadshort10mM_object_oriented.py}
 
 \subsection{Stratified Buffer Vessel}
 
