@@ -4,6 +4,7 @@
 #   - Logarithmic Mean Temperature Difference (LMTD)
 # Ref: Phetteplace - Optimal Design of Piping Systems for District Heating
 # prepared by Hakan ibrahim Tol, PhD
+# See: https://github.com/DrTol/radiator_performance-Python
 
 # INPUTS
 # q     : [kW] Heat demand at actual condition
