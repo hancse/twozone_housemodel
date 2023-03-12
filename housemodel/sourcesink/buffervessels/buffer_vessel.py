@@ -2,14 +2,15 @@ from scipy.integrate import solve_ivp  # ODE solver
 import numpy as np  # linear algebra
 import matplotlib
 
-matplotlib.use('qt5agg')
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
-#from housemodel.sourcesink.buffervessels import cp_water, rho_water, lambda_water
+
 cp_water = 4190
 rho_water = 1000
 lambda_water = 0.644
 
-class StratifiedBuffer():
+
+class StratifiedBuffer:
     """parent class for cylindrical stratified buffer vessel
 
     """
@@ -100,7 +101,6 @@ class StratifiedBuffer():
 
 
 if __name__ == "__main__":
-
     test = StratifiedBuffer(5, 2.5, 8)
     As = test.Awall_layer
     Aq = test.Abase
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     inputs = (Tsupply, Treturn, mdots, mdotd)
     result = solve_ivp(test.model_stratified_buffervessel, [0, 3600 * 2], initial_condition, args=inputs)
 
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(10, 5))
     for i in range(len(result.y)):
         plt.plot(result.t, result.y[i, :], label=f'$T_{i + 1}$')
     plt.legend(loc='best')

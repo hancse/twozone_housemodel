@@ -3,7 +3,7 @@ import numpy as np  # linear algebra
 from math import e
 import matplotlib
 
-matplotlib.use('qt5agg')
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 
 
@@ -30,6 +30,7 @@ def model_buffervessel(t, x, Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
     t_buffervesseldt = (Pin + U * A * (T_amb - x[0]) + (rho * cp * flux * (Twaterin - x[0]))) / (rho * volume * cp)
 
     return t_buffervesseldt
+
 
 def model_stratified_buffervessel(t, x, U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdots, mdotd, mass_water, z):
     """model function for scipy.integrate.odeint.
@@ -66,10 +67,8 @@ def model_stratified_buffervessel(t, x, U, As, Aq, Tamb, Tsupply, Treturn, cpwat
         mdots = 2400000/(4190*(80-x[7]))
         mdotd = 10
 
-
     # States :
     mdote = mdots - mdotd
-
 
     if mdote > 0:
         deltaPlus = 1
@@ -80,9 +79,6 @@ def model_stratified_buffervessel(t, x, U, As, Aq, Tamb, Tsupply, Treturn, cpwat
         deltaMinus = 1
     else:
         deltaMinus = 0
-
-
-
 
     dT1 = ((mdots * cpwater * (Tsupply - x[0])) + (mdote *cpwater*(x[0] - x[1]) * deltaMinus) - (U * As * (x[0]- Tamb)) + ((Aq * lamb) / z) * (x[0] - x[1])) / (mass_water*cpwater)
     dT2 = ((mdote *cpwater*(x[0] - x[1]) * deltaPlus) + (mdote *cpwater*(x[1] - x[2]) * deltaMinus) - (U * As * (x[1]- Tamb)) + ((Aq * lamb) / z) * (x[0] + x[2] - (2*x[1]))) / (mass_water*cpwater)
@@ -97,7 +93,7 @@ def model_stratified_buffervessel(t, x, U, As, Aq, Tamb, Tsupply, Treturn, cpwat
 
 
 def buffervessel(Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
-    """Compute air and wall tempearature inside the house.
+    """Compute air and wall temperature inside the house.
 
     :param T_outdoor:    (array):  Outdoor temperature in degree C
     :param Q_internal:   (array):  Internal heat gain in w.
@@ -113,6 +109,7 @@ def buffervessel(Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
     result = solve_ivp(model_buffervessel, [0, 1000], [15], args=inputs)
     Tbuffervessel = result.y[0, :]
     return [result.t, Tbuffervessel]
+
 
 def stratified_buffervessel(U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdotsupply, mdotd, mass_water, z):
     """Compute air and wall tempearature inside the house.
@@ -133,7 +130,7 @@ def stratified_buffervessel(U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, md
 
 
 if __name__ == "__main__":
-    """test = buffervessel(20000, 14, 0.7, 20, 1000, 0.02, 4180, 1 * 10 ** -4, 15)
+    test = buffervessel(20000, 14, 0.7, 20, 1000, 0.02, 4180, 1 * 10 ** -4, 15)
 
     calculatedTbuffer = np.zeros_like(test[0])
     for i in range(len(test[0])):
@@ -144,13 +141,13 @@ if __name__ == "__main__":
     plt.plot(test[0], calculatedTbuffer, label='Formule')
     plt.legend(loc='best')
     plt.title("Buffervessel Simulation")
-    plt.show()"""
+    plt.show()
 
 
     #me = ms - md
     stratified_vessel = stratified_buffervessel(0.12, 0.196, 0.196, 10, 80, 20, 4190, 0.644, 0, 0.02, 150 / 8, 1 / 8)
 
-    plt.figure(figsize=(15, 5))  # key-value pair: no spaces
+    plt.figure(figsize=(10, 5))  # key-value pair: no spaces
     plt.plot(stratified_vessel[0]/3600, stratified_vessel[1], label='T1')
     plt.plot(stratified_vessel[0]/3600, stratified_vessel[2], label='T2')
     plt.plot(stratified_vessel[0]/3600, stratified_vessel[3], label='T3')
@@ -162,4 +159,3 @@ if __name__ == "__main__":
     plt.legend(loc='best')
     plt.title("Stratified Buffervessel Simulation")
     plt.show()
-
