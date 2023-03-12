@@ -187,30 +187,23 @@ class StratifiedBufferNew:
         # self.ambient.connected_to = [[i, j if (self.tag_list[0] < i < self.tag_list[-1]) else c_end] for i, j in b2.ambient.connected_to]
 
 
-def model(t, x, tot_sys, Q_vectors, control_interval):
+def model(t, x, tot_sys):
     """model function for scipy.integrate.solve_ivp.
 
     Args:
         t:                (array):   time
         x:                (float):   row vector with temperature nodes
         tot_sys:          (object):  model system
-        Q_vectors:        (ndarray): set of Q_vectors for all input times
-        control_interval: (int)    : in seconds
 
     Returns:
         (list): vector elements of dx/dt
     """
-    index = int(t / control_interval)
-    local_q_vector = Q_vectors[:, [index]]
-
-    # tot_sys.add_ambient_to_q()
-    # tot_sys.add_source_to_q(Q_solar, index)
 
     # Conversion of 1D array to a 2D array
     # https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
     x = np.array(x)[np.newaxis]
 
-    dTdt = (-tot_sys.k_mat @ x.T) - (tot_sys.f_mat @ x.T) + local_q_vector
+    dTdt = (-tot_sys.k_mat @ x.T) - (tot_sys.f_mat @ x.T) + tot_sys.q_vector
     dTdt = np.dot(tot_sys.c_inv_mat, dTdt)
 
     return dTdt.flatten().tolist()
@@ -273,7 +266,7 @@ if __name__ == "__main__":
         print(f"{f.flow_rate*f.density*f.cp}")
 
     initial_condition = np.ones(b2.num_nodes) * b2.T_ini
-    inputs = (total, Q_vectors)
+    inputs = (total,)
     result = solve_ivp(model, [0, 3600 * 2], initial_condition, args=inputs)
 
     plt.figure(figsize=(10, 5))

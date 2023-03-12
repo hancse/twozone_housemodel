@@ -99,6 +99,57 @@ class StratifiedBuffer:
 
         return dT
 
+    def model2_stratified_buffervessel(self, t, x, Tsupply, Treturn, mdots, mdotd):
+        """arranged differently
+
+        """
+        mdote = mdots - mdotd
+        n = self.n_layers - 1
+
+        if mdote > 0:
+            deltaPlus = 1
+        else:
+            deltaPlus = 0
+
+        if mdote < 0:
+            deltaMinus = 1
+        else:
+            deltaMinus = 0
+
+        dT = np.zeros(len(x))
+
+        supply_flow = mdots * cp_water
+        between_flow = mdote * cp_water
+        demand_flow = mdotd * cp_water
+        leak_amb_tb = self.uwall * (self.Abase + self.Awall_layer)
+        leak_amb_m = self.uwall * self.Awall_layer
+        cond_between = self.Abase * lambda_water / self.layer_height
+        cap_lay = self.mass_water_layer * cp_water
+
+        # Equation for the top layer of the buffervessel
+        dT[0] = supply_flow * (Tsupply - x[0])
+        dT[0] += between_flow * (x[0] - x[1]) * deltaMinus
+        dT[0] -= leak_amb_tb * (x[0] - self.Tamb)
+        dT[0] += cond_between * (x[0] - x[1])
+        dT[0] /= cap_lay
+
+        # Equation for the middle layers of the buffervessel
+        for i in range(len(dT) - 2):
+            dT[i+1] = between_flow * (x[i] - x[i + 1]) * deltaPlus
+            dT[i+1] += between_flow * (x[i + 1] - x[i + 2]) * deltaMinus
+            dT[i+1] -= leak_amb_m * (x[i + 1] - self.Tamb)
+            dT[i+1] += cond_between * ( x[i] + x[i + 2] - (2 * x[i + 1]))
+            dT[i+1] /= cap_lay
+
+        # Equation for the bottom layer of the buffervessel
+        dT[n] = demand_flow * (Treturn - x[n])
+        dT[n] += (between_flow * (x[n - 1] - x[n]) * deltaPlus)
+        dT[n] -= leak_amb_tb * (x[n] - self.Tamb)
+        dT[n] += cond_between * (x[n - 1] - x[n])
+        dT[n] /= cap_lay
+
+        return dT
+
 
 if __name__ == "__main__":
     test = StratifiedBuffer(5, 2.5, 8)
@@ -121,7 +172,7 @@ if __name__ == "__main__":
 
     initial_condition = np.ones(test.n_layers) * 80
     inputs = (Tsupply, Treturn, mdots, mdotd)
-    result = solve_ivp(test.model_stratified_buffervessel, [0, 3600 * 2], initial_condition, args=inputs)
+    result = solve_ivp(test.model2_stratified_buffervessel, [0, 3600 * 2], initial_condition, args=inputs)
 
     plt.figure(figsize=(10, 5))
     for i in range(len(result.y)):
