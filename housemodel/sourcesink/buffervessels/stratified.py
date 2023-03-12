@@ -203,7 +203,7 @@ def model(t, x, tot_sys):
     # https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
     x = np.array(x)[np.newaxis]
 
-    dTdt = (-tot_sys.k_mat @ x.T) - (tot_sys.f_mat @ x.T) + tot_sys.q_vector
+    dTdt = (-tot_sys.k_mat @ x.T) - (tot_sys.f_mat @ x.T) + tot_sys.q_vec
     dTdt = np.dot(tot_sys.c_inv_mat, dTdt)
 
     return dTdt.flatten().tolist()
@@ -252,12 +252,13 @@ if __name__ == "__main__":
     total.k_mat += total.k_ext_mat
     total.merge_ambients()  # assignment by reference, no copy!
     total.make_empty_q_vec()
+    total.add_ambient_to_q()
     # logger.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
 
     # calculate flow matrices and combine into f_mat_all
     if total.flows:
         total.flows = []
-    total.flows.append(Flow("Supply", flow_rate=0.001,
+    total.flows.append(Flow("Supply", flow_rate=0.0,
                             node_list=[0, 1, 2, 3, 4, 5, 6, 7, 0]))
     total.flows.append(Flow("Demand", flow_rate=0.001,
                             node_list=[7, 6, 5, 4, 3, 2, 1, 0, 7]))
@@ -265,13 +266,28 @@ if __name__ == "__main__":
         f.make_df_matrix(rank=total.k_mat.shape[0])
         print(f"{f.flow_rate*f.density*f.cp}")
 
+    # combine F-matrices into matrix total.f_mat
+    total.f_mat = np.zeros_like(total.flows[0].df_mat)
+    for n in range(len(total.flows)):
+        total.f_mat += np.multiply(total.flows[n].df_mat, total.flows[n].heat_rate)
+
+    # remove matrix elements > 0 from total.f_mat
+    total.f_mat = np.where(total.f_mat <= 0, total.f_mat, 0)
+
+    # create diagonal elements in total.f_mat, so that som over each row is zero
+    row_sums = np.sum(total.f_mat, axis=1).tolist()
+    total.f_mat = total.f_mat - np.diag(np.array(row_sums), k=0)
+
+    total.q_vec[7] += total.flows[1].heat_rate*Treturn
+    total.f_mat[7, 7] += total.flows[1].heat_rate
+
     initial_condition = np.ones(b2.num_nodes) * b2.T_ini
     inputs = (total,)
     result = solve_ivp(model, [0, 3600 * 2], initial_condition, args=inputs)
 
     plt.figure(figsize=(10, 5))
     for i in range(len(result.y)):
-        plt.plot(result.t, result.y[i, :], label=f'$T_{i + 1}$')
+        plt.plot(result.t, result.y[i, :], label=f'$T_{i}$')
     plt.legend(loc='best')
     plt.title("Stratified Buffervessel Simulation")
     plt.show()
