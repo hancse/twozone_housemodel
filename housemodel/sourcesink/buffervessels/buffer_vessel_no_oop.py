@@ -112,7 +112,7 @@ def buffervessel(Pin, U, A, T_amb, rho, volume, cp, flux, Twaterin):
 
 
 def stratified_buffervessel(U, As, Aq, Tamb, Tsupply, Treturn, cpwater, lamb, mdotsupply, mdotd, mass_water, z):
-    """Compute air and wall tempearature inside the house.
+    """Compute air and wall temperature inside the house.
 
     :param T_outdoor:    (array):  Outdoor temperature in degree C
     :param Q_internal:   (array):  Internal heat gain in w.
