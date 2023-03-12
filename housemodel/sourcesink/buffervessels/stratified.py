@@ -1,17 +1,25 @@
 import numpy as np
+from scipy.integrate import solve_ivp  # ODE solver
 
 from housemodel.basics.ckf_tools import make_c_inv_matrix
 from housemodel.tools.new_configurator import load_config
 from housemodel.basics.components import (CapacityNode, FixedNode)
+from housemodel.basics.totalsystem import TotalSystem
+from housemodel.basics.flows import Flow
+
+import matplotlib
+import matplotlib.pyplot as plt
 import logging
+
+matplotlib.use('Qt5Agg')
 
 # logging.basicConfig(level="DEBUG")
 logging.basicConfig(level="INFO")
 
-
 # logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.INFO)
+
 
 class StratifiedBufferNew:
     """parent class for cylindrical stratified buffer vessel
@@ -66,9 +74,9 @@ class StratifiedBufferNew:
     def from_dict(cls, d):
         """ classmethod to enable constructing an instance from configuration file.
         """
-        return cls(name=d["name"],begin_tag=d["begin_tag"], num_layers=d["num_layers"],
-                            volume=d["volume"], height=d["height"],
-                            U_wall=d["U_wall"], T_amb= d["T_amb"], T_ini=d["T_ini"])
+        return cls(name=d["name"], begin_tag=d["begin_tag"], num_layers=d["num_layers"],
+                   volume=d["volume"], height=d["height"],
+                   U_wall=d["U_wall"], T_amb=d["T_amb"], T_ini=d["T_ini"])
 
     def calculate_buffer_properties(self):
         self.A_base = self.volume / self.height
@@ -179,6 +187,35 @@ class StratifiedBufferNew:
         # self.ambient.connected_to = [[i, j if (self.tag_list[0] < i < self.tag_list[-1]) else c_end] for i, j in b2.ambient.connected_to]
 
 
+def model(t, x, tot_sys, Q_vectors, control_interval):
+    """model function for scipy.integrate.solve_ivp.
+
+    Args:
+        t:                (array):   time
+        x:                (float):   row vector with temperature nodes
+        tot_sys:          (object):  model system
+        Q_vectors:        (ndarray): set of Q_vectors for all input times
+        control_interval: (int)    : in seconds
+
+    Returns:
+        (list): vector elements of dx/dt
+    """
+    index = int(t / control_interval)
+    local_q_vector = Q_vectors[:, [index]]
+
+    # tot_sys.add_ambient_to_q()
+    # tot_sys.add_source_to_q(Q_solar, index)
+
+    # Conversion of 1D array to a 2D array
+    # https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
+    x = np.array(x)[np.newaxis]
+
+    dTdt = (-tot_sys.k_mat @ x.T) - (tot_sys.f_mat @ x.T) + local_q_vector
+    dTdt = np.dot(tot_sys.c_inv_mat, dTdt)
+
+    return dTdt.flatten().tolist()
+
+
 if __name__ == "__main__":
     from pathlib import Path
     CONFIGDIR = Path(__file__).parent.parent.parent.parent.absolute()
@@ -188,12 +225,62 @@ if __name__ == "__main__":
     b0 = StratifiedBufferNew()
     b1 = StratifiedBufferNew.from_dict(param["Buffer"])
 
-    b2 = StratifiedBufferNew(name="MyBuffer", num_layers=8)
+    b2 = StratifiedBufferNew(name="MyBuffer", volume=5,
+                             height=2.5, num_layers=8,
+                             T_amb=20, T_ini=80)
+    Tsupply = 62.5
+    Treturn = 50
+    supply_flow = 0      # m^3/s
+    demand_flow = 0.001  # m^3/s = 1 kg/s
+
+    leak_to_amb_top = b2.U_wall*(b2.A_base+b2.A_wall_layer)
+    leak_to_amb_mid = b2.U_wall*b2.A_wall_layer
+    layer_to_layer = b2.A_base*b2.conductivity/b2.layer_height
+    print(f"{leak_to_amb_top}, {leak_to_amb_mid}, {layer_to_layer}, {b2.cap_layer}")
+
     b2.generate_nodes()
     b2.fill_c_inv()
     b2.generate_edges()
     b2.generate_ambient()
     b2.make_k_ext_and_add_ambient()
 
-    print()
+    total = TotalSystem("Buffer", [b2])
+    total.sort_parts()
+    # compose c-1-matrix from parts and merge tag_lists
+    total.merge_c_inv()
+    total.merge_tag_lists()
 
+    # compose k-matrix from edges
+    total.edges_between_from_dict(param["edges"])
+    total.merge_edge_lists_from_parts_and_between()
+
+    total.fill_k(total.edge_list)
+    total.merge_k_ext()
+    total.k_mat += total.k_ext_mat
+    total.merge_ambients()  # assignment by reference, no copy!
+    total.make_empty_q_vec()
+    # logger.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
+
+    # calculate flow matrices and combine into f_mat_all
+    if total.flows:
+        total.flows = []
+    total.flows.append(Flow("Supply", flow_rate=0.001,
+                            node_list=[0, 1, 2, 3, 4, 5, 6, 7, 0]))
+    total.flows.append(Flow("Demand", flow_rate=0.001,
+                            node_list=[7, 6, 5, 4, 3, 2, 1, 0, 7]))
+    for f in total.flows:
+        f.make_df_matrix(rank=total.k_mat.shape[0])
+        print(f"{f.flow_rate*f.density*f.cp}")
+
+    initial_condition = np.ones(b2.num_nodes) * b2.T_ini
+    inputs = (total, Q_vectors)
+    result = solve_ivp(model, [0, 3600 * 2], initial_condition, args=inputs)
+
+    plt.figure(figsize=(10, 5))
+    for i in range(len(result.y)):
+        plt.plot(result.t, result.y[i, :], label=f'$T_{i + 1}$')
+    plt.legend(loc='best')
+    plt.title("Stratified Buffervessel Simulation")
+    plt.show()
+
+    print()

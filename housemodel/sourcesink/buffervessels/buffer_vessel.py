@@ -15,7 +15,7 @@ class StratifiedBuffer:
 
     """
 
-    def __init__(self, volume, height, n_layers=5, hot_node = 0, u = 0.12, Tamb = 20):
+    def __init__(self, volume, height, n_layers=5, hot_node=0, u=0.12, Tamb=20):
         # super.__init__()
         self.n_layers = n_layers
         self.hot_node = hot_node  # anchor point of hot water supply to house model
@@ -106,10 +106,18 @@ if __name__ == "__main__":
     Aq = test.Abase
     mass_water = test.mass_water_layer
     z = test.layer_height
+
     Tsupply = 62.5
     Treturn = 50
     mdots = 0
-    mdotd = 1
+    mdotd = 1  # kg/s
+
+    leak_to_amb_top = test.uwall*(test.Abase+test.Awall_layer)
+    leak_to_amb_mid = test.uwall*test.Awall_layer
+    layer_to_layer = test.Abase*lambda_water/test.layer_height
+    cap_layer = test.mass_water_layer*cp_water
+    print(f"{leak_to_amb_top}, {leak_to_amb_mid}, {layer_to_layer}, {cap_layer}, "
+          f"{mdots*cp_water}, {mdotd*cp_water}")
 
     initial_condition = np.ones(test.n_layers) * 80
     inputs = (Tsupply, Treturn, mdots, mdotd)
