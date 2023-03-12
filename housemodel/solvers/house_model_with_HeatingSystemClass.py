@@ -7,7 +7,7 @@ import numpy as np                       # linear algebra
 # from housemodel.tools.PIDsim import PID
 from housemodel.controls.ivPID.PID import PID
 from housemodel.sourcesink.heatpumps.Heating_system import HeatingSystem
-from housemodel.sourcesink.boilers_without_PID import GasBoiler
+from housemodel.sourcesink.boilers.boilers_without_PID import GasBoiler
 
 def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
                      control_interval):

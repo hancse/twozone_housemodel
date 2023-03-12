@@ -1,4 +1,4 @@
-from housemodel.sourcesink.boilers_without_PID import GasBoiler
+from housemodel.sourcesink.boilers.boilers_without_PID import GasBoiler
 from housemodel.controls.ivPID.PID import PID
 from housemodel.sourcesink.heatpumps.Hybrid_HP import HybridHP
 from housemodel.sourcesink.heatpumps.Heatpump_HM import Heatpump_NTA, calc_WP_general

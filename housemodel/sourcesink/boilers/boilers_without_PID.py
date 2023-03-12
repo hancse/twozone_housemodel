@@ -1,4 +1,4 @@
-class GasBoiler():
+class GasBoiler:
     """class for modelling PID-controlled gas boiler.
 
     """

@@ -17,7 +17,7 @@ from housemodel.controls.Temperature_SP import thermostat_sp, SP_profile
 
 import matplotlib.pyplot as plt
 
-from housemodel.sourcesink.boilers import GasBoiler
+from housemodel.sourcesink.boilers.boilers import GasBoiler
 # from numpy import diff
 
 
