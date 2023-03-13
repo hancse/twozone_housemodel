@@ -6,6 +6,7 @@ from scipy.integrate import solve_ivp       # ODE solver
 import numpy as np                          # linear algebra
 from housemodel.controls.ivPID.PID import PID
 from housemodel.sourcesink.buffervessels.buffer_vessel import StratifiedBuffer
+from tqdm import tqdm
 
 cp_water = 4190
 def relay(d, SP):
@@ -210,7 +211,7 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
     # of the model function, where e.g SP_T[8760] is called.
     # Therefore set "first_step" equal or smaller than the spacing of "t".
     # https://github.com/scipy/scipy/issues/9198
-    for i in range(len(t)-1):
+    for i in tqdm(range(len(t)-1)):
 
         # here comes the "arduino style" controller
         pid_Room_Temp.SetPoint = SP_T[i]
