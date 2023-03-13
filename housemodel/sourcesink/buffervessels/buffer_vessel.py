@@ -104,7 +104,8 @@ class StratifiedBuffer:
 
         """
         mdote = mdots - mdotd
-        n = self.n_layers - 1
+        # changed definition of index n
+        n = self.n_layers
 
         if mdote > 0:
             deltaPlus = 1
@@ -130,23 +131,25 @@ class StratifiedBuffer:
         dT[0] = supply_flow * (Tsupply - x[0])
         dT[0] += between_flow * (x[0] - x[1]) * deltaMinus
         dT[0] -= leak_amb_tb * (x[0] - self.Tamb)
-        dT[0] += cond_between * (x[0] - x[1])
+        # corrected error in next line
+        dT[0] += cond_between * (x[1] - x[0])
         dT[0] /= cap_lay
 
         # Equation for the middle layers of the buffervessel
-        for i in range(len(dT) - 2):
-            dT[i+1] = between_flow * (x[i] - x[i + 1]) * deltaPlus
-            dT[i+1] += between_flow * (x[i + 1] - x[i + 2]) * deltaMinus
-            dT[i+1] -= leak_amb_m * (x[i + 1] - self.Tamb)
-            dT[i+1] += cond_between * ( x[i] + x[i + 2] - (2 * x[i + 1]))
-            dT[i+1] /= cap_lay
+        # changed loop range
+        for i in range(1, n-1):
+            dT[i] = between_flow * (x[i-1] - x[i]) * deltaPlus
+            dT[i] += between_flow * (x[i] - x[i+1]) * deltaMinus
+            dT[i] -= leak_amb_m * (x[i] - self.Tamb)
+            dT[i] += cond_between * (x[i-1] + x[i+1] - (2 * x[i]))
+            dT[i] /= cap_lay
 
         # Equation for the bottom layer of the buffervessel
-        dT[n] = demand_flow * (Treturn - x[n])
-        dT[n] += (between_flow * (x[n - 1] - x[n]) * deltaPlus)
-        dT[n] -= leak_amb_tb * (x[n] - self.Tamb)
-        dT[n] += cond_between * (x[n - 1] - x[n])
-        dT[n] /= cap_lay
+        dT[n-1] = demand_flow * (Treturn - x[n-1])
+        dT[n-1] += (between_flow * (x[n-2] - x[n-1]) * deltaPlus)
+        dT[n-1] -= leak_amb_tb * (x[n-1] - self.Tamb)
+        dT[n-1] += cond_between * (x[n-2] - x[n-1])
+        dT[n-1] /= cap_lay
 
         return dT
 

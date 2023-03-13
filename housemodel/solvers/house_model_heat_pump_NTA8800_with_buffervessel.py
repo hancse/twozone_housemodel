@@ -69,10 +69,8 @@ def model_stratified_buffervessel(t, x, U, As, Aq, Tamb, Tsupply, Treturn, cpwat
     Computes the derivative of y at t.
     If the signature is ``callable(t, y, ...)``, then the argument tfirst` must be set ``True``.
     """
-
     #Water supply
     mdote = mdots - mdotd
-
 
     if mdote > 0:
         deltaPlus = 1
