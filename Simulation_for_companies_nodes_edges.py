@@ -24,20 +24,13 @@ from housemodel.buildings.building import Building
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
 from housemodel.basics.powersource import PowerSource
 
-# from housemodel.sourcesink.radiators import Radiator
 from housemodel.basics.totalsystem import TotalSystem
-# from housemodel.buildings.components import FixedNode
-
-# from housemodel.simulation2 import Simulation2
-# from housemodel.for_companies_solver import SolverForCompanies
-
 
 import matplotlib
+import matplotlib.pyplot as plt
+import logging
 
 matplotlib.use('Qt5Agg')
-import matplotlib.pyplot as plt
-
-import logging
 
 logging.basicConfig()
 logger = logging.getLogger('COMP')

@@ -26,7 +26,6 @@ from housemodel.sourcesink.buffervessels.stratified import StratifiedBufferNew
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
 from housemodel.basics.powersource import PowerSource
 
-# from housemodel.sourcesink.radiators import Radiator
 from housemodel.basics.flows import Flow
 from housemodel.basics.totalsystem import TotalSystem
 
