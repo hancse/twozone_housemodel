@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
     plt.figure(figsize=(10, 5))
     for i in range(len(result.y)):
-        plt.plot(result.t, result.y[i, :], label=f'$T_{i + 1}$')
+        plt.plot(result.t, result.y[i, :], label=f'$T_{i}$')
     plt.legend(loc='best')
     plt.title("Stratified Buffervessel Simulation")
     plt.show()
