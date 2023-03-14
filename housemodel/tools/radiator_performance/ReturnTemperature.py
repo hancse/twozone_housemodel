@@ -21,72 +21,74 @@ import math
 import housemodel.tools.radiator_performance.TemperatureDifference as TD
 
 
-def Tr_AMTD(q,Ts,Ti,q_o,Ts_o,Tr_o,Ti_o,n):
-# Calculates the return temperature from the radiator unit - based on AMTD
+def Tr_AMTD(q, Ts, Ti, q_o, Ts_o, Tr_o, Ti_o, n):
+    """Calculates the return temperature from the radiator unit - based on AMTD"""
 
     # import math
     # import TemperatureDifference as TD
 
-    AMTD_o=TD.AMTD(Ts_o,Tr_o,Ti_o)
+    AMTD_o = TD.AMTD(Ts_o, Tr_o, Ti_o)
 
-    Tr=2*(Ti+(AMTD_o*(q/q_o)**(1/n)))-Ts
+    Tr = 2 * (Ti+(AMTD_o*(q/q_o)**(1/n))) - Ts
 
     # Checking Error
-    AF=(Tr-Ti)/(Ts-Ti)
+    AF = (Tr-Ti) / (Ts-Ti)
 
     #if AF>=0.5:
     #    print("Warning: Approach factor is ",AF," - Error less than 0.04")
     #else:
     #    print("Warning: Approach factor is ",AF," - Error larger than 0.04")
 
-    if Tr>=Ts or Tr<=20:
+    if Tr >= Ts or Tr <= 20:
         return math.nan
     else:
         return Tr
 
-def Tr_GMTD(q,Ts,Ti,q_o,Ts_o,Tr_o,Ti_o,n):
-# Calculates the return temperature from the radiator unit - based on GMTD
+
+def Tr_GMTD(q, Ts, Ti, q_o, Ts_o, Tr_o, Ti_o, n):
+    """Calculates the return temperature from the radiator unit - based on GMTD"""
 
     # import math
     # import TemperatureDifference as TD
     
-    GMTD_o=TD.GMTD(Ts_o,Tr_o,Ti_o)
+    GMTD_o = TD.GMTD(Ts_o, Tr_o, Ti_o)
 
-    Tr=Ti+((Ts-Ti)**(-1)*GMTD_o**2*(q/q_o)**(2/n));
+    Tr = Ti + ((Ts-Ti)**(-1)*GMTD_o**2*(q/q_o)**(2/n))
 
     # Checking Error
-    AF=(Tr-Ti)/(Ts-Ti)
+    AF = (Tr-Ti) / (Ts-Ti)
 
     #if AF>=0.33:
     #    print("Warning: Approach factor is ",AF," - Error less than 0.05")
     #else:
     #    print("Warning: Approach factor is ",AF," - Error larger than 0.05")
 
-    if Tr>=Ts:
+    if Tr >= Ts:
         return math.nan
     else:
         return Tr
 
+
 def Tr_LMTD(q,Ts,Ti,q_o,Ts_o,Tr_o,Ti_o,n):
-    # Calculates the return temperature from the radiator unit - based on LMTD
+    """Calculates the return temperature from the radiator unit - based on LMTD"""
 
     # import math
     # import TemperatureDifference as TD
 
-    LMTD_o=TD.LMTD(Ts_o,Tr_o,Ti_o)
+    LMTD_o = TD.LMTD(Ts_o, Tr_o, Ti_o)
 
     # Iteration for the implicit LMTD method
-    fTol=0.001                                       # Iteration tolerance
-    error=10                                        # Iteration error
+    fTol = 0.001                                       # Iteration tolerance
+    error = 10                                         # Iteration error
 
-    Tr_it1=Tr_GMTD(q,Ts,Ti,q_o,Ts_o,Tr_o,Ti_o,n)    # Initial iteration value - based on GMTD
+    Tr_it1 = Tr_GMTD(q, Ts, Ti, q_o, Ts_o, Tr_o, Ti_o, n)    # Initial iteration value - based on GMTD
 
-    while error>fTol:
+    while error > fTol:
         Tr_it2 = Ti + ((Ts - Ti) / math.exp((q / q_o) ** (-1 / n) * (Ts - Tr_it1) / LMTD_o))
         error = abs(Tr_it2 - Tr_it1)
         Tr_it1 = Tr_it2
 
-    if Tr_it2>=Ts:
+    if Tr_it2 >= Ts:
         return math.nan
     else:
         return Tr_it2
