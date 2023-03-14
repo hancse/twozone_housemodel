@@ -1039,22 +1039,32 @@ The methods of this class are:
 	\item \textsf{update}: uses \textsf{scipy.optimize.root()} to find the roots $\mathbf{x}$ of the radiator equations.
 \end{itemize}
 
-\lstinputlisting[label=lst:Radiator, linerange={76-134}, 
+\lstinputlisting[label=lst:Radiator, linerange={78-109}, 
 caption={Radiator class}] 
-{../../housemodel/sourcesink/radiators.py}
+{../../housemodel/sourcesink/radiators/radiators.py}
 
 The Radiator class uses a helper function \textsf{LMTD\_radiator} to determine the effective temperature drop:
 
-\lstinputlisting[label=lst:lmtd, linerange={14-44}, 
+\lstinputlisting[label=lst:lmtd, linerange={16-46}, 
 caption={LMTD\_radiator function}] 
-{../../housemodel/sourcesink/radiators.py}
+{../../housemodel/sourcesink/radiators/radiators.py}
 
-Other radiator models can be found in \cite{TolRadiator}.
+Other radiator models can be found in \cite{TolRadiator, TolThesis}.
+
+The Radiator object has the following attributes:
+
+\begin{itemize}
+	\item a "hot" node $T_{feed}$. This is a node of type \textsf{CapacityNode} (see section \ref{sec:capnode}).
+	\item a "cold" node $T_{return}$. This is a node of type \textsf{FixedNode} (see section \ref{sec:fixnode}), with a variable temperature, but no heat capacity.
+	\item an "effective" temperature \emph{difference} with the surroundings of the radiator \textit{i.e.} the interior of the building in the model.
+	\item the instantaneous thermal power delivered by the radiator to the interior of the building.
+	\item a \textsf{Flow} object (shared with \textit{e.g.} a buffer vessel).
+\end{itemize} 
 
 \subsection{Model component properties towards an integrated implementation}
 Here we summarize the properties of the different model components. 
 
-\subsubsection{Capacity Node}
+\subsubsection{Capacity Node} \label{sec:capnode}
 
 \textbf{description}: A capacity node represents the heat capacity of a part of the system, \textit{for example}, the air in a room, or the water in a layer of the buffer vessel. Within the model, for each capacity node the evolution of the temperature over time will be computed. The capacity nodes are used in the components of the house model and the buffer vessel. 
 \\
@@ -1069,12 +1079,12 @@ Here we summarize the properties of the different model components.
 
 In the listing below, from the module \texttt{components.py}, the definition of the component as a \texttt{dataclass} is shown: 
 \begin{minipage}{\linewidth}
-\lstinputlisting[label=lst:capnode, linerange={10-15}, 
+\lstinputlisting[label=lst:capnode, linerange={4-9}, 
 caption={Capacity Node}]
 {../../housemodel/basics/components.py}
 \end{minipage}
 
-\subsubsection{Fixed temperature Node (external node)}
+\subsubsection{Fixed temperature Node (external node)} \label{sec:fixnode}
 \textbf{description}: This is a node with a predefined temperature. This temperature will not change due to heat exchange with its surrounding nodes. The predefined (external) temperature should be constant within a given time interval. This node represents a part of the system with a very large heat capacity (much larger than other components), \textit{for example}, the ambient air or the ground. 
 
 \textbf{properties}
@@ -1089,7 +1099,7 @@ caption={Capacity Node}]
 
 In the listing below, from the module \texttt{components.py}, the definition of the component as a \texttt{dataclass} is shown:
 \begin{minipage}{\linewidth}
-\lstinputlisting[label=lst:capnode, linerange={18-26}, 
+\lstinputlisting[label=lst:fixnode, linerange={12-20}, 
 caption={Fixed Node (external node)}] 
 {../../housemodel/basics/components.py}
 \end{minipage}
@@ -1106,7 +1116,7 @@ The attribute \texttt{connected\_to} is a list with elements \texttt{[tag, condu
 	\item \emph{conductance\_value} [J/K] or [J/\degree C]. This should be provided in the \textbf{input}.
 \end{itemize}
 
-\lstinputlisting[label=lst:capnode, linerange={29-33}, 
+\lstinputlisting[label=lst:capnode, linerange={23-29}, 
 caption={Conductance Edges}] 
 {../../housemodel/basics/components.py}
 

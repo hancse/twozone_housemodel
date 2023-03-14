@@ -77,11 +77,12 @@ def calc_mean_diff_rad(Tinlet, Treturn, Tamb):
 
 class Radiator:
     """ class for general Radiator object."""
-    def __init__(self, exp_rad=1.3):
+    def __init__(self, name="DefaultRadiator", begin_tag=0, exp_rad=1.3):
+        self.name = name
         self.T_feed = None
         self.c_rad = None
         self.exp_rad = exp_rad
-        self.c_w = 4.2e3     # [J/kg K]
+        self.cp = 4190    # [J/kg K]
         self.rho = 1000      # [kg/m^3]
         self.flow = None     # [m^3/s]
         self.F_rad = None     # heat flow in [W/K] = flow * rho * c_w
@@ -92,12 +93,27 @@ class Radiator:
         self.boundaries = []
         self.return_node = FixedNode
 
-        self.k_mat = None
+        self.c_inv_mat = None
+        self.k_int_mat = None
+        self.k_ext_mat = None
         self.f_mat = None
-        self.q_vec = None
+        # self.q_vec = None
 
         self.__denominator = None
         self.__lmtd = None
+
+    @classmethod
+    def from_dict(cls, d):
+        """ classmethod to enable constructing an instance from configuration file.
+        """
+        return cls(name=d["name"], begin_tag=d["begin_tag"], exp_rad=d["exp_rad"])
+
+    def calculate_radiator_properties(self):
+        pass
+
+    def set_exponent(self, e):
+        self.exp_rad = e
+        self.calculate_radiator_properties()
 
     def boundaries_from_dict(self, lod):
         for n in range(len(lod)):

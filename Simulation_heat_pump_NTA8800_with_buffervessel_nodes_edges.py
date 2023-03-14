@@ -32,7 +32,9 @@ from housemodel.controls.ivPID.PID import PID
 from housemodel.sourcesink.heatpumps.Heatpump_HM import Heatpump_NTA
 from housemodel.controls.heating_curves import hyst, outdoor_reset
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
-import housemodel.tools.ReturnTemperature as Tr
+
+import housemodel.tools.radiator_performance.ReturnTemperature as Tr
+# import housemodel.tools.ReturnTemperature as Tr
 
 import matplotlib
 import matplotlib.pyplot as plt
