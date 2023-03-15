@@ -1058,8 +1058,111 @@ The Radiator object has the following attributes:
 	\item a "cold" node $T_{return}$. This is a node of type \textsf{FixedNode} (see section \ref{sec:fixnode}), with a variable temperature, but no heat capacity.
 	\item an "effective" temperature \emph{difference} with the surroundings of the radiator \textit{i.e.} the interior of the building in the model.
 	\item the instantaneous thermal power delivered by the radiator to the interior of the building.
-	\item a \textsf{Flow} object (shared with \textit{e.g.} a buffer vessel).
+	\item a \textsf{Flow} object with a \textsf{node\_list} starting at the cold node, passing through \textit{e.g.} a buffer vessel, and ending, via the top layer of the vessel, at the hot node. There (part of) the thermal energy "disappears" from the flow to the building. The remaining thermal energy is returned to the bottom layer of the vessel
 \end{itemize} 
+
+\begin{figure}[h!]
+	\begin{center}
+		\begin{circuitikz}
+			\ctikzset{bipoles/thickness=3}
+			\draw (7.5,0)
+			to [short] (7.5,8)
+			to [short] (5,8)
+			to [short] (5,5)
+			to [short] (4,5)
+			node[color=red, circ, label={[red]above:$T_{feed}$}]{}
+			to [short, *-*] (4,3)
+			node[color=blue, circ, label={[blue]above:$T_{return}$}]{}
+			to [short] (5,3)
+			to [short] (5,0)
+			to [short] (7.5,0)
+			(4,4) to[amp, label=$\dot{Q}_{radiator}$] ++(-4,0)
+			node[color=red, circ, label={[red]above:$T_{air}$}]{};
+			\draw (8,0)
+			node[color=darkgreen, circ, label={[darkgreen]above:$T_{bottom}$}]{}
+			to[R,R=$R_{mid,bot}$] (8,4) 
+			node[color=darkgreen, circ, label={[darkgreen]above:$T_{mid}$}]{}
+			to[R,R=$R_{top,mid}$, -*] (8,8)
+			node[color=darkgreen, circ, label={[darkgreen]above:$T_{top}$}]{};
+		\end{circuitikz}
+		\caption{Radiator model}
+		\label{fig:rad}
+	\end{center}
+\end{figure}
+
+The $\mathbf{DF_{demand}}$-matrix will remain symmetric, but will get extra contributions to the diagonal elements. It may be a good idea to split the $\mathbf{F}$-matrix into two parts, $\mathbf{F_{int}}$ and $\mathbf{F_{ext}}$. Thus, the thermal flow \emph{between} the \textsf{CapacityNodes} and from the \textsf{FixedNodes} to the \textsf{CapacityNodes} can be separately calculated.
+
+\subsubsection{Example: building with radiator and buffervessel}
+
+As an example we take the 2R2C building, equipped with a radiator and a stratified buffervessel with three layers. Extension of the number of layers in the buffer vessel is straightforward once the differential equations and matrices of the middle layer are known.
+
+	Writing down the matrix representation of the set we get:
+\begin{equation}
+	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
+	\begin{bmatrix}
+		C_{air} & 0 & 0 & 0 & 0 & 0 &  \\
+		0 &  C_{wall} & 0 & 0 & 0 & 0  \\
+		0 &  0 & C_{rad} & 0 & 0 & 0  \\
+		0 &  0 & 0 & C_{top} & 0 & 0  \\
+		0 &  0 & 0 & 0 & C_{mid} & 0  \\
+		0 &  0 & 0 & 0 & 0 & C_{bot}  \\
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		\frac{dT_{air}}{dt} \\
+		\frac{dT_{wall}}{dt} \\
+		\frac{dT_{rad}}{dt} \\
+		\frac{dT_{top}}{dt} \\
+		\frac{dT_{mid}}{dt}  \\
+		\frac{dT_{bot}}{dt} \\
+	\end{bmatrix}
+\end{equation}
+
+Assuming all thermal conductance values between layers are equal as in the Python code:
+
+\begin{equation}
+	\mathbf{K_{int}} \cdot \boldsymbol{\theta} = \frac{1}{R_{int}} \cdot
+	\begin{bmatrix}
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 1 & -1 & 0 \\
+		0 & 0 & 0 & -1 & 2 & -1 \\
+		0 & 0 & 0 & 0 & -1 & 1  
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{air} \\
+		T_{wall} \\
+		T_{rad} \\
+		T_{top} \\
+		T_{mid} \\
+		T_{bot}
+	\end{bmatrix}
+\end{equation}
+
+Assuming conductive heat loss from the buffer vessel to the surroundings is equal for \emph{all} layers of the vessel, $\mathbf{K_{ext}}$ becomes:
+
+\begin{equation}
+	\mathbf{K_{ext}} \cdot \boldsymbol{\theta} = \frac{1}{R_{amb}} \cdot
+	\begin{bmatrix}
+		1 & 0 & 0 & 0 & 0 & 0  \\
+		0 &  1 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 1 & 0 & 0 & 0 \\
+		0 & 0  & 0 &  1 & 0 & 0 \\
+		0 & 0 & 0 & 0 &  1 & 0 \\
+		0 & 0 & 0 & 0 & 0 &  1  
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{air} \\
+		T_{wall} \\
+		T_{rad} \\
+		T_{top} \\
+		T_{mid} \\
+		T_{bot}
+	\end{bmatrix}
+\end{equation}
 
 \subsection{Model component properties towards an integrated implementation}
 Here we summarize the properties of the different model components. 
