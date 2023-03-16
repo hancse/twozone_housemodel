@@ -1096,7 +1096,20 @@ The $\mathbf{DF_{demand}}$-matrix will remain symmetric, but will get extra cont
 
 As an example we take the 2R2C building, equipped with a radiator and a stratified buffervessel with three layers. Extension of the number of layers in the buffer vessel is straightforward once the differential equations and matrices of the middle layer are known.
 
-	Writing down the matrix representation of the set we get:
+The total system of differential equations can be described by the matrix equation:
+
+\begin{subequations}
+	\label{app:eq:matexample}
+	\begin{align}
+		\mathbf{C} \cdot \boldsymbol{\dot{\theta}} + \mathbf{K} \cdot \boldsymbol{\theta} + \mathbf{F} \cdot \boldsymbol{\theta} &= \mathbf{\dot{q}} \\
+		\mathbf{K} &= \mathbf{K_{int}} + \mathbf{K_{ext}} \\
+		\mathbf{F} &= \mathbf{F_{int}} + \mathbf{F_{ext}} \\
+		\mathbf{\dot{q}} &= \mathbf{\dot{q_{amb}}} + \mathbf{\dot{q_{K}}} + \mathbf{\dot{q_{F}}} + \mathbf{\dot{q_{c}}}
+	\end{align}
+\end{subequations}
+
+Writing down the $\mathbf{C}$-matrix representation of the set we get the following. Note the node $C_{rad}$ which represents the heat capacity of the (filled) radiator:
+
 \begin{equation}
 	\mathbf{C} \cdot \boldsymbol{\dot{\theta}} =
 	\begin{bmatrix}
@@ -1118,10 +1131,29 @@ As an example we take the 2R2C building, equipped with a radiator and a stratifi
 	\end{bmatrix}
 \end{equation}
 
-Assuming all thermal conductance values between layers are equal as in the Python code:
+The internal thermal conductance within the total system consisting of building, radiator and buffer vessel is represented by the matrix $\mathbf{K_{int}}$. The only matrix element \emph{between} subsystems is $\frac{-1}{R_{air,rad}}$. All thermal conductance values between the layers of the buffer vessel are assumed to be equal to $\frac{1}{R_{int}}$:
 
 \begin{equation}
-	\mathbf{K_{int}} \cdot \boldsymbol{\theta} = \frac{1}{R_{int}} \cdot
+	\mathbf{K_{int}} \cdot \boldsymbol{\theta} = 
+	\begin{bmatrix}
+		\frac{1}{R_{a,w}} & \frac{-1}{R_{a,w}} & 0 & 0 & 0 & 0 \\
+		\frac{-1}{R_{a,w}} & \frac{1}{R_{a,w}} & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0  
+	\end{bmatrix}
+    +
+    \begin{bmatrix}
+    	\frac{1}{R_{a,r}} & 0 & \frac{-1}{R_{a,r}} & 0 & 0 & 0 \\
+    	0 & 0 & 0 & 0 & 0 & 0 \\
+    	\frac{-1}{R_{a,r}} & 0 & \frac{1}{R_{a,r}} & 0 & 0 & 0 \\
+    	0 & 0 & 0 & 0 & 0 & 0 \\
+    	0 & 0 & 0 & 0 & 0 & 0 \\
+    	0 & 0 & 0 & 0 & 0 & 0  
+    \end{bmatrix}
+    +
+	\frac{1}{R_{int}} \cdot
 	\begin{bmatrix}
 		0 & 0 & 0 & 0 & 0 & 0 \\
 		0 & 0 & 0 & 0 & 0 & 0 \\
@@ -1129,6 +1161,40 @@ Assuming all thermal conductance values between layers are equal as in the Pytho
 		0 & 0 & 0 & 1 & -1 & 0 \\
 		0 & 0 & 0 & -1 & 2 & -1 \\
 		0 & 0 & 0 & 0 & -1 & 1  
+	\end{bmatrix}
+    \cdot
+	\begin{bmatrix}
+		T_{air} \\
+		T_{wall} \\
+		T_{rad} \\
+		T_{top} \\
+		T_{mid} \\
+		T_{bot}
+	\end{bmatrix}
+\end{equation}
+
+The "air" node of the building connects to the outdoor environment, which is a \textsf{FixedNode}. The buffer vessel connects to the indoor environment, which is also modelled as a \textsf{FixedNode}. Assuming conductive heat loss from the buffer vessel to the surroundings is equal for \emph{all} layers of the vessel, $\mathbf{K_{ext}}$ becomes:
+
+\begin{equation}
+	\mathbf{K_{ext,amb}} \cdot \boldsymbol{\theta} = 
+	\frac{1}{R_{amb,outd}} \cdot
+	\begin{bmatrix}
+		1 & 0 & 0 & 0 & 0 & 0  \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0  & 0 &  0 & 0 & 0 \\
+		0 & 0 & 0 & 0 &  0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0  
+	\end{bmatrix}
+    +
+	\frac{1}{R_{amb,ind}} \cdot
+	\begin{bmatrix}
+		0 & 0 & 0 & 0 & 0 & 0  \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0  & 0 &  1 & 0 & 0 \\
+		0 & 0 & 0 & 0 &  1 & 0 \\
+		0 & 0 & 0 & 0 & 0 &  1  
 	\end{bmatrix}
 	\cdot
 	\begin{bmatrix}
@@ -1141,14 +1207,123 @@ Assuming all thermal conductance values between layers are equal as in the Pytho
 	\end{bmatrix}
 \end{equation}
 
+
+The matrix $\mathbf{K_{ext,amb}}$ is accompanied by a term $\mathbf{\dot{q_{amb}}}$ in the total $\mathbf{\dot{q}}$-vector:
+
+\begin{equation}
+	\mathbf{\dot{q}} = 
+	\begin{bmatrix}
+		\frac{1}{R_{air, outd}} \cdot T_{outd} \\
+		0 \\
+		0 \\
+		\frac{1}{R_{int}} \cdot T_{ind} \\
+		\frac{1}{R_{int}} \cdot T_{ind} \\
+		\frac{1}{R_{int}} \cdot T_{ind} 
+	\end{bmatrix}
+\end{equation}
+
+\textbf{Convective heat transfer}
+
+A water flow runs through pipes from the top layer of the buffer vessel through the radiator and back into the bottom layer. This \emph{directed} demand flow $F_{demand}$ passes the nodes [bot mid top rad bot] or [5 4 3 2 5].
+However, the thermal transfer from the radiator with \emph{tag} 2 to the bottom layer of the buffer vessel, with \emph{tag} 5, is NOT equal to $F_{demand} \cdot (T_{rad} - T_{bot})$, but equal to $F_{demand} \cdot (T_{return} - T_{bot})$.
+Therefore, a \textsf{FixedNode} $T_{return}$ has to be calculated, which carries the flow back from the radiator to the bottom layer of the buffer vessel. The elements with indices [2, 5] and [5, 2] thus need to be absent in the $\mathbf{DF_{d,int}}$-matrix (indicated in red):
+
+\begin{equation}
+	\mathbf{DF_{d,int}} \cdot \boldsymbol{\theta} = 
+	F_{demand} \cdot
+	\begin{bmatrix}
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & -1 & 0 & \color{red}{0} \\
+		0 & 0 & 1 & 0 & -1 & 0 \\
+		0 & 0 & 0 & 1 & 0 & -1 \\
+		0 & 0 & \color{red}{0} & 0 & 1 & 0  
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{air} \\
+		T_{wall} \\
+		T_{rad} \\
+		T_{top} \\
+		T_{mid} \\
+		T_{bot}
+	\end{bmatrix}
+\end{equation}
+
+The thermal convection through the demand flow from the top node with \emph{tag} 3 to the radiator node with \emph{tag} 2 is modelled as $F_{demand} \cdot (T_{top} - T_{rad})$. This represents the thermal loss during "warming up" of the radiator body if its temperature is initially lower than that of the top layer of the buffer vessel. When the heat capacity $C_{rad}$ of node 2 is small, relative to the heat capacities of the other nodes, the radiator node will assume and follow the temperature of the top node of the buffer vessel with a minor delay after the flow (pump) is started.
+
+As a consequence of the reasoning above, a matrix $\mathbf{DF_{d,ext}}$  and a term in the $\mathbf{\dot{q}}$-vector have to introduced:
+
+\begin{equation}
+	\mathbf{DF_{d, ext}} \cdot \boldsymbol{\theta} = 
+	F_{demand} \cdot
+	\begin{bmatrix}
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 1 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 1  
+	\end{bmatrix}
+	\cdot
+	\begin{bmatrix}
+		T_{air} \\
+		T_{wall} \\
+		T_{rad} \\
+		T_{top} \\
+		T_{mid} \\
+		T_{bot}
+	\end{bmatrix}
+    \qquad
+    \mathbf{\dot{q_{F}}} = 
+    F_{demand} \cdot
+    \begin{bmatrix}
+        0 \\
+    	0 \\
+    	0 \\
+    	T_{return}  \\
+    	0 \\
+    	T_{return}  
+    \end{bmatrix}
+\end{equation}
+
+This matrix-vector also contains the convective term $F_{demand} \cdot (T_{return} - T_{top})$ which represents the convective heat loss of the buffer vessel to the interior of the house.
+
+On stopping the flow, the conductive temperature equalization between the building interior and the radiator (no flow, still hot) is NOT represented by the expression $\dfrac{1}{R_{air,rad}} \cdot (T_{rad}-T_{air})$. Instead, the radiator cools with a rate $\dfrac{1}{R_{air,rad}} \cdot \Delta T$, with $\Delta T = \Delta T_{LMTD}$. This introduces a fixed node with temperature $T = $
+ 
+	The $\dot{q}$-vector becomes:
+
+\begin{equation}
+	\mathbf{\dot{q_{F}}} = 
+	\begin{bmatrix}
+	    F_{demand} \cdot \Delta T_{LMTD} \\
+	    0 \\
+	    0 \\
+	    F_{demand} \cdot T_{return}  \\
+	    0 \\
+	    F_{demand} \cdot T_{return}  
+\end{bmatrix}
+\end{equation}
+
 Assuming conductive heat loss from the buffer vessel to the surroundings is equal for \emph{all} layers of the vessel, $\mathbf{K_{ext}}$ becomes:
 
 \begin{equation}
-	\mathbf{K_{ext}} \cdot \boldsymbol{\theta} = \frac{1}{R_{amb}} \cdot
+	\mathbf{K_{ext}} \cdot \boldsymbol{\theta} = 
+	\frac{1}{R_{amb,outdoor}} \cdot
 	\begin{bmatrix}
 		1 & 0 & 0 & 0 & 0 & 0  \\
-		0 &  1 & 0 & 0 & 0 & 0 \\
-		0 & 0 & 1 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0  & 0 &  0 & 0 & 0 \\
+		0 & 0 & 0 & 0 &  0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0  
+	\end{bmatrix}
+	+
+	\frac{1}{R_{amb,indoor}} \cdot
+	\begin{bmatrix}
+		0 & 0 & 0 & 0 & 0 & 0  \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 & 0 \\
 		0 & 0  & 0 &  1 & 0 & 0 \\
 		0 & 0 & 0 & 0 &  1 & 0 \\
 		0 & 0 & 0 & 0 & 0 &  1  
