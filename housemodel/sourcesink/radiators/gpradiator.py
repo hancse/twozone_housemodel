@@ -1,0 +1,3 @@
+
+def gpp(Tsup, Tind):
+

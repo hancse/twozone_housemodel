@@ -3,14 +3,47 @@
 
 import numpy as np
 
-import matplotlib
-import matplotlib.pyplot as plt
 from scipy import interpolate
 from scipy.optimize import root
 from housemodel.sourcesink.heatexchangers import LMTD
 
 from housemodel.basics.components import (FixedNode)
+
+import matplotlib
+import matplotlib.pyplot as plt
+import logging
+
 matplotlib.use("Qt5Agg")
+
+# logging.basicConfig(level="DEBUG")
+logging.basicConfig(level="INFO")
+
+def GMTD_radiator(T_feed, T_return, T_amb, corrfact=1.0):
+    """calculates log mean temperature difference
+
+    representative value in case of varying temperature difference along heat exchanger
+    https://checalc.com/solved/LMTD_Chart.html
+    Args:
+        T_feed:     entry temperature hot fluid or gas
+        T_return:    exit temperature hot fluid or gas
+        T_amb:    entry temperature cold fluid or gas
+        corrfact:    see:     https://checalc.com/solved/LMTD_Chart.html
+                              https://cheguide.com/lmtd_charts.html
+                              https://excelcalculations.blogspot.com/2011/06/lmtd-correction-factor.html
+                              http://fchart.com/ees/heat_transfer_library/heat_exchangers/hs2000.htm
+                              https://yjresources.files.wordpress.com/2009/05/4-3-lmtd-with-tutorial.pdf
+                              https://www.engineeringtoolbox.com/arithmetic-logarithmic-mean-temperature-d_436.html
+    Returns:
+        GMTD temperature      corr_fact * sqrt(T_feed - T_amb) * sqrt(T_ret - T_amb)
+    """
+    DeltaT_feed = T_feed - T_amb
+    DeltaT_ret = T_return - T_amb
+    # assert (DeltaT_fr > 0), "Output temperature difference $\Delta T_1$ is negative"
+    # assert DeltaT_in > DeltaT_out, "Input temperature difference $\Delta T_1$ is smaller than output "
+
+    nominator = np.sqrt(DeltaT_feed) * np.sqrt(DeltaT_ret)
+    geo_mean_diff_temp = corrfact * nominator
+    return geo_mean_diff_temp
 
 
 def LMTD_radiator(T_feed, T_return, T_amb, corrfact=1.0):
@@ -79,28 +112,52 @@ class Radiator:
     """ class for general Radiator object."""
     def __init__(self, name="DefaultRadiator", begin_tag=0, exp_rad=1.3):
         self.name = name
-        self.T_feed = None
-        self.c_rad = None
+        self.begin_tag = begin_tag
+        self.num_nodes = 1
         self.exp_rad = exp_rad
-        self.cp = 4190    # [J/kg K]
-        self.rho = 1000      # [kg/m^3]
-        self.flow = None     # [m^3/s]
-        self.F_rad = None     # heat flow in [W/K] = flow * rho * c_w
-        self.T_amb = 20.0
 
-        self.q_dot = 0.0
-        self.T_ret = None
+        self.end_node = self.begin_tag  # anchor point of cold water return from house model
+        self.nodes = []
+        # self.edges = []
+        # self.num_edges = 0
         self.boundaries = []
         self.return_node = FixedNode
+        self.q_dot = 0.0
+        # self.ambient = None
+
+        self.tag_list = []
+        self.cap_list = []
+        self.edge_list = []
+        self.cond_list = []
 
         self.c_inv_mat = None
         self.k_int_mat = None
         self.k_ext_mat = None
-        self.f_mat = None
-        # self.q_vec = None
+
+        self.q_vec = None  # np.zeros(self.num_nodes, 1)
+        self.f_mat = None  # np.zeros(self.num_nodes, self.num_nodes)
+
+        self.rho = 1000      # [kg/m^3]
+        self.cp = 4190  # [J/(K kg)]
+        self.flow = None     # [m^3/s]
+        self.F_rad = None     # heat flow in [W/K] = flow * rho * c_w
+        self.T_feed = None
+        self.T_amb = None
+
+        # model radiator as in EN442: Q = Km * LMTD ** n
+        self.Km = None
+        # model radiator as in DTU lit: q/q_0 = (LMTD/LMTD_0) ** n
+        self. LMTD_0 = 50
+        self. T_feed_zero = 75     # [C]
+        self. T_ret_zero = 65      # [C]
+        self. T_amb = 20
+        self. q_zero = 1000        # [W]
 
         self.__denominator = None
+        self.__gmtd = None
         self.__lmtd = None
+        self.calculate_radiator_properties()
+        logging.info(f" Radiator object {self.name} created")
 
     @classmethod
     def from_dict(cls, d):
@@ -127,7 +184,30 @@ class Radiator:
     def get_lmtd(self):
         return self.__lmtd
 
-    def func_rad(self, x):
+    def func_rad_gmtd(self, x):
+        """model function for scipy.optimize.root().
+
+        Args:
+            x: vector with unknowns [self.q_dot, self.T_ret]
+
+        Returns:
+            f : vector with model functions evaluated at x
+            df : Jacobian (partial derivatives of model functions wrt x
+        """
+        self.__gmtd = GMTD_radiator(T_feed=self.T_feed, T_return=x[1], T_amb=self.T_amb, corrfact=1.0)
+        # set of nonlinear functions for root finding
+        f = [x[0] - (self.Km * self.__gmtd ** self.exp_rad),
+             x[0] - self.F_rad * (self.T_feed - x[1])]
+
+        DeltaT_feed = self.T_feed - self.T_amb
+        dTdt = -1.0 * self.Km * 0.5*self.exp_rad * np.float_power(DeltaT_feed, (0.5*self.exp_rad))
+        dTdt *= np.float_power(x[1] - self.T_amb, (0.5*self.exp_rad) - 1)
+
+        df = np.array([[1.0, dTdt],
+                       [1.0, self.F_rad]])
+        return f, df
+
+    def func_rad_lmtd(self, x):
         """model function for scipy.optimize.root().
 
         Args:
@@ -139,10 +219,10 @@ class Radiator:
         """
         self.__lmtd = LMTD_radiator(T_feed=self.T_feed, T_return=x[1], T_amb=20.0, corrfact=1.0)
         # set of nonlinear functions for root finding
-        f = [x[0] - (self.c_rad * self.__lmtd ** self.exp_rad),
+        f = [x[0] - (self.Km * self.__lmtd ** self.exp_rad),
              x[0] - self.F_rad * (self.T_feed - x[1])]
 
-        h1 = self.c_rad * self.exp_rad
+        h1 = self.Km * self.exp_rad
         h1 *= self.__lmtd ** (self.exp_rad - 1.0)
 
         h2 = (self.T_feed - x[1]) / (x[1] - self.T_amb)
@@ -155,14 +235,14 @@ class Radiator:
                        [1.0, self.F_rad]])
         return f, df
 
-    def update(self):
+    def update(self, func):
         """update roots [self.q_dot, self.T_ret] with model function
            using scipy.optimize.root().
 
         Returns:
             None
         """
-        opt_res = root(self.func_rad, [self.q_dot, self.T_ret], jac=True, method='hybr')
+        opt_res = root(func, [self.q_dot, self.T_ret], jac=True, method='hybr')
         self.q_dot = opt_res.x[0]
         self.T_ret = opt_res.x[1]
 
@@ -171,6 +251,8 @@ if __name__ == "__main__":
     deg = u"\u00b0"
     log_mean_rad = LMTD_radiator(80, 50, 20)
     print(f"LMTD_radiator : {log_mean_rad} {deg}C")
+    log_mean_rad_zero = LMTD_radiator(75, 65, 20)
+    print(f"LMTD_radiator_design : {log_mean_rad_zero} {deg}C")
 
     lm_ref = calc_log_mean_diff_rad(75, 65, 20)
     print(f"Reference LMTD: {lm_ref}")
@@ -178,16 +260,17 @@ if __name__ == "__main__":
     dt_ref = calc_mean_diff_rad(75, 65, 20)
     print(f"Reference Delta_T: {dt_ref}")
 
-    radiator = Radiator(1.3)
+    radiator = Radiator(name="Test", exp_rad=1.3)
     radiator.T_feed = 80.0
-    radiator.T_ret = (radiator.T_feed + radiator.T_amb) / 2.0
+    T_amb = 20.0
+    radiator.T_ret = (radiator.T_feed + T_amb) / 2.0
     radiator.T_amb = 20.0
-    radiator.c_rad = 50
+    radiator.Km = 50
     radiator.flow = 0.05e-3     # 0.05 l/s
-    radiator.F_rad = radiator.flow * radiator.rho * radiator.c_w
+    radiator.F_rad = radiator.flow * radiator.rho * radiator.cp
     print(f"Frad: {radiator.F_rad} [W/K]")
 
-    radiator.update()
+    radiator.update(radiator.func_rad_gmtd)
     print(f"Q_dot: {radiator.q_dot}, T_return: {radiator.T_ret}")
     print(f"LMTD {radiator.get_lmtd()}")
 
@@ -206,3 +289,4 @@ if __name__ == "__main__":
     ax.grid(True)
     ax.set_ylim(0, 1.75)
     plt.show()
+    

@@ -3,7 +3,7 @@
 
 # INPUTS
 q = 0.5   # [kW] Actual heat demand rate
-Ts = 90   # [°C] Actual radiator supply temperature
+Ts = 80   # [°C] Actual radiator supply temperature
 Ti = 20   # [°C] Actual indoor (set) temperature
 
 q_o = 1    # [kW] Design (peak) heat demand rate

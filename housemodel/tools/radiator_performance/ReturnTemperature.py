@@ -17,7 +17,8 @@
 
 # n     : [-]  Emprical radiator constant
 
-import math
+# import math
+import numpy as np
 import housemodel.tools.radiator_performance.TemperatureDifference as TD
 
 
@@ -40,7 +41,7 @@ def Tr_AMTD(q, Ts, Ti, q_o, Ts_o, Tr_o, Ti_o, n):
     #    print("Warning: Approach factor is ",AF," - Error larger than 0.04")
 
     if Tr >= Ts or Tr <= 20:
-        return math.nan
+        return np.nan
     else:
         return Tr
 
@@ -64,7 +65,7 @@ def Tr_GMTD(q, Ts, Ti, q_o, Ts_o, Tr_o, Ti_o, n):
     #    print("Warning: Approach factor is ",AF," - Error larger than 0.05")
 
     if Tr >= Ts:
-        return math.nan
+        return np.nan
     else:
         return Tr
 
@@ -84,11 +85,11 @@ def Tr_LMTD(q,Ts,Ti,q_o,Ts_o,Tr_o,Ti_o,n):
     Tr_it1 = Tr_GMTD(q, Ts, Ti, q_o, Ts_o, Tr_o, Ti_o, n)    # Initial iteration value - based on GMTD
 
     while error > fTol:
-        Tr_it2 = Ti + ((Ts - Ti) / math.exp((q / q_o) ** (-1 / n) * (Ts - Tr_it1) / LMTD_o))
+        Tr_it2 = Ti + ((Ts - Ti) / np.exp((q / q_o) ** (-1 / n) * (Ts - Tr_it1) / LMTD_o))
         error = abs(Tr_it2 - Tr_it1)
         Tr_it1 = Tr_it2
 
     if Tr_it2 >= Ts:
-        return math.nan
+        return np.nan
     else:
         return Tr_it2
