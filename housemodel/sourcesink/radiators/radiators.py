@@ -18,33 +18,6 @@ matplotlib.use("Qt5Agg")
 # logging.basicConfig(level="DEBUG")
 logging.basicConfig(level="INFO")
 
-def GMTD_radiator(T_feed, T_return, T_amb, corrfact=1.0):
-    """calculates log mean temperature difference
-
-    representative value in case of varying temperature difference along heat exchanger
-    https://checalc.com/solved/LMTD_Chart.html
-    Args:
-        T_feed:     entry temperature hot fluid or gas
-        T_return:    exit temperature hot fluid or gas
-        T_amb:    entry temperature cold fluid or gas
-        corrfact:    see:     https://checalc.com/solved/LMTD_Chart.html
-                              https://cheguide.com/lmtd_charts.html
-                              https://excelcalculations.blogspot.com/2011/06/lmtd-correction-factor.html
-                              http://fchart.com/ees/heat_transfer_library/heat_exchangers/hs2000.htm
-                              https://yjresources.files.wordpress.com/2009/05/4-3-lmtd-with-tutorial.pdf
-                              https://www.engineeringtoolbox.com/arithmetic-logarithmic-mean-temperature-d_436.html
-    Returns:
-        GMTD temperature      corr_fact * sqrt(T_feed - T_amb) * sqrt(T_ret - T_amb)
-    """
-    DeltaT_feed = T_feed - T_amb
-    DeltaT_ret = T_return - T_amb
-    # assert (DeltaT_fr > 0), "Output temperature difference $\Delta T_1$ is negative"
-    # assert DeltaT_in > DeltaT_out, "Input temperature difference $\Delta T_1$ is smaller than output "
-
-    nominator = np.sqrt(DeltaT_feed) * np.sqrt(DeltaT_ret)
-    geo_mean_diff_temp = corrfact * nominator
-    return geo_mean_diff_temp
-
 
 def LMTD_radiator(T_feed, T_return, T_amb, corrfact=1.0):
     """calculates log mean temperature difference
@@ -77,6 +50,24 @@ def LMTD_radiator(T_feed, T_return, T_amb, corrfact=1.0):
     # assert denominator > eps, "Ratio of input/output temperature difference too large"
     log_mean_diff_temp = corrfact * nominator / denominator
     return log_mean_diff_temp
+
+
+def GMTD_radiator(T_feed, T_return, T_amb, corrfact=1.0):
+    """calculates geometric mean temperature difference
+
+    Args:
+        T_feed:     entry temperature hot fluid or gas
+        T_return:   exit temperature hot fluid or gas
+        T_amb:      entry temperature cold fluid or gas
+        corrfact:   correction factor. See: LMTD_radiator
+    Returns:
+        GMTD temperature      corr_fact * sqrt(T_feed - T_amb) * sqrt(T_ret - T_amb)
+    """
+    DeltaT_feed = T_feed - T_amb
+    DeltaT_ret = T_return - T_amb
+    nominator = np.sqrt(DeltaT_feed) * np.sqrt(DeltaT_ret)
+    geo_mean_diff_temp = corrfact * nominator
+    return geo_mean_diff_temp
 
 
 def calc_corr_fact(delta_t):
@@ -181,6 +172,9 @@ class Radiator:
             self.boundaries.append(node)
         self.return_node = [fn for fn in self.boundaries if fn.label == "return"][0]
 
+    def get_gmtd(self):
+        return self.__gmtd
+
     def get_lmtd(self):
         return self.__lmtd
 
@@ -273,6 +267,7 @@ if __name__ == "__main__":
     radiator.update(radiator.func_rad_gmtd)
     print(f"Q_dot: {radiator.q_dot}, T_return: {radiator.T_ret}")
     print(f"LMTD {radiator.get_lmtd()}")
+    print(f"GMTD {radiator.get_gmtd()}")
 
     Delta_T = [20, 25, 30, 35, 40, 45, 50]
     cf = [0.3, 0.41, 0.52, 0.63, 0.75, 0.87, 1.0]
