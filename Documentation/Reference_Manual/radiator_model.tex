@@ -81,12 +81,11 @@ caption={Radiator class}]
 caption={Radiator class}] 
 {../../housemodel/sourcesink/radiators/radiators.py}
 
-The Radiator class uses helper functions \textsf{GMTD\_radiator} and \textsf{LMTD\_radiator} to determine the effective temperature difference:
+The Radiator class uses helper functions \textsf{GMTD\_radiator} and \textsf{LMTD\_radiator} to determine the effective temperature difference from $T_{supply}$, $T_{return}$ and $T_{indoor}$:
 
 \lstinputlisting[label=lst:lmtd, linerange={22-70}, 
 caption={GMTD\_radiator and LMTD\_radiator helper functions}] 
 {../../housemodel/sourcesink/radiators/radiators.py}
-
 
 In the building model, a fluid flow through the radiator leads to the delivery of heat to the room(s). The equations for the heat transfer of the radiator are: 
 
@@ -101,7 +100,7 @@ In the building model, a fluid flow through the radiator leads to the delivery o
 	\end{equation}
 }
 
-This nonlinear system of equations can be solved for the two unknowns $[\dot{q}_{rad} \quad T_{return}]$, if input data $T_{supply}$, $ T_{ind}$, $C_{rad}$ and $F_{rad}$ are provided. A solver needs the function template in Eq.~\ref{eq:radnonlin}, with the unknowns vector as input variable. Furthermore, the Jacobian of the function template has to be calculated. Evaluation of an analytical expression of the partial derivatives in the Jacobian always outperforms numerical derivative calculations. Thus, for the upper equation (function) in set \ref{eq:radnonlin}:
+In the building model, this nonlinear system of equations can be solved for the two unknowns $[\dot{q}_{rad} \quad T_{return}]$, if input data $T_{supply}$, $ T_{ind}$, $C_{rad}$ and $F_{rad}$ are provided. A solver for such a system of equations needs the function template in Eq.~\ref{eq:radnonlin}, with the unknowns vector as input variable. Furthermore, the Jacobian of the function template has to be calculated. Evaluation of an analytical expression of the partial derivatives in the Jacobian always outperforms numerical derivative calculations. Thus, for the upper equation (function) in set \ref{eq:radnonlin}:
 
 \begin{equation}
 	\begin{aligned}
@@ -142,6 +141,8 @@ The Jacobian matrix becomes:
 	\end{aligned}
 \end{equation} 
 
+As an alternative, $\Delta T_{GMTD})$ can be used. The set of equations becomes:
+
 {\color{blue}
 	\begin{equation}
 		\label{eq:radgmtd}
@@ -153,8 +154,6 @@ The Jacobian matrix becomes:
 	\end{equation}
 }
 
-This nonlinear system of equations can be solved for the two unknowns $[\dot{q}_{rad} \quad T_{r}]$, if input data $T_{a}$, $ T_{i}$, $K_m$ and $F_{rad}$ are provided. A solver needs the function template in Eq.~\ref{eq:radgmtd}, with the unknowns vector as input variable. Furthermore, the Jacobian of the function template has to be calculated. Evaluation of an analytical expression of the partial derivatives in the Jacobian always outperforms numerical derivative calculations. 
-
 Note the left-hand side of the first equation can be written as:
 $$ \dot{q}_{rad} - K_{m} \cdot \left(\Delta T_{s,ind}\right)^{n/2} \cdot \left(T_{return} - T_{ind}\right)^{n/2} $$
 
@@ -163,150 +162,25 @@ Thus, for the upper equation (function) in set \ref{eq:radgmtd}:
 \begin{equation}
 	\begin{aligned}
 		\begin{matrix}
-			\dfrac{\partial f}{\partial \dot{q}_{rad}} &= 1 \\ 
-			\\
 			\dfrac{\partial f}{\partial T_{return}} &= - K_{m} \cdot \left(\Delta T_{s,ind}\right)^{n/2} \cdot \dfrac{n}{2} \cdot \left(T_{return} - T_{ind}\right)^{(n/2)-1} \\ \\
 		\end{matrix}
 	\end{aligned}
 \end{equation} 
-for the second equation:
-\begin{equation}
-	\begin{aligned}
-		\begin{matrix}
-			\dfrac{\partial f}{\partial \dot{q}_{rad}} &= 1 \\ \\
-			\dfrac{\partial f}{\partial T_{return}} &= F_{rad}
-		\end{matrix}
-	\end{aligned}
-\end{equation} 
 
-See: \url{https://www.derivative-calculator.net/}.
+The calculations for solving the vector $\mathbf{x} = [\dot{q}_{rad} \quad T_{return}]^T$ are performed in the method \textsf{update}. This method uses the Newton-Rhapson algorithm in \textsf{scipy.optimize.root()} to find the roots $\mathbf{x}$ of the radiator equations.
+The input argument for the \textsf{scipy.optimize.root()} method can be \textsf{func\_rad\_gmtd} or \textsf{func\_rad\_lmtd}. These functions calculate the radiator equations and their partial derivatives in the Jacobian.
 
-The Jacobian matrix becomes:
-\begin{equation}
-	\begin{aligned}
-		\mathbf{J}_{i,j}=\dfrac{\partial f_{i}(\mathbf{x})}{\partial x_{j}} =
-		\begin{bmatrix}
-			\dfrac{\partial f_1}{\partial \dot{Q}_{rad}} & \dfrac{\partial f_1}{\partial T_{return}} \\ 
-			\vspace{2pt} \\
-			\dfrac{\partial f_2}{\partial \dot{Q}_{rad}} & \dfrac{\partial f_2}{\partial T_{return}}
-		\end{bmatrix}
-	    \qquad
-	    \mathbf{x} =
-	    \begin{bmatrix}
-	    	\dot{q}_{rad} \\ 
-	    	T_{return}
-	    \end{bmatrix}
-	\end{aligned}
-\end{equation} 
+\lstinputlisting[label=lst:lmtd, linerange={181-230}, 
+caption={\textsf{func\_rad\_gmtd} and \textsf{func\_rad\_lmtd} function templates for \textsf{scipy.optimize.root()}}] 
+{../../housemodel/sourcesink/radiators/radiators.py}
 
+\lstinputlisting[label=lst:lmtd, linerange={232-241}, 
+caption={\textsf{update} method caaling \textsf{scipy.optimize.root()}}]
+{../../housemodel/sourcesink/radiators/radiators.py}
 
-\begin{itemize}
-	\item \textsf{func\_rad}: calculates radiator equations and partial derivatives.
-	\item \textsf{update}: uses \textsf{scipy.optimize.root()} to find the roots $\mathbf{x}$ of the radiator equations.
-\end{itemize}
+A discussion about the underlying radiator models can be found in \cite{TolRadiator, TolThesis}. The radiator equations use the (normative) guidelines in \cite{NEN442}. See also Appendix~\ref{app::radeq}.
 
-Other radiator models can be found in \cite{TolRadiator, TolThesis}.
+In the radiator model, there is a choice for the data type of the node with $T_{supply}$, and a (virtual) node with temperature $T_{indoor} + \Delta T$. In the simplest version of the radiator model, these nodes are of type \textsf{FixedNode}. A consequence is, that the radiator has no heat capacity. Moreover, once the demand flow stops, the heat input to the building interior stops instantaneously. If water flows through the radiator, the $\mathbf{DF_{demand}}$-matrix of the demand flow will remain symmetric, but will get extra contributions to the diagonal elements. It may be a good idea to split the $\mathbf{F}$-matrix into two parts, $\mathbf{F_{int}}$ and $\mathbf{F_{ext}}$. Thus, the thermal flow \emph{between} the \textsf{CapacityNodes} and from the \textsf{FixedNodes} to the \textsf{CapacityNodes} can be separately calculated. In the current (simplest) version, $\mathbf{F_{int}}$ contains no entries from the radiator. All contributions are on the diagonal of the $\mathbf{F_{ext}}$ and on the corresponding row of the $\dot{q_{F}}$-vector.
 
-
-
-
-The $\mathbf{DF_{demand}}$-matrix will remain symmetric, but will get extra contributions to the diagonal elements. It may be a good idea to split the $\mathbf{F}$-matrix into two parts, $\mathbf{F_{int}}$ and $\mathbf{F_{ext}}$. Thus, the thermal flow \emph{between} the \textsf{CapacityNodes} and from the \textsf{FixedNodes} to the \textsf{CapacityNodes} can be separately calculated.
-
-\begin{itemize}
-	\item AMTD = $\dfrac{T_{feed} - T_{ind} + (T_{return} - T_{ind})}{2} = 
-	\dfrac{T_{feed} + T_{return} - 2 \cdot T_{ind})}{2}$.
-	\item GMTD = $\sqrt{(T_{feed} - T_{ind})} \cdot  \sqrt{(T_{return} - T_{ind}})$.
-	\item LMTD = $\dfrac{(T_{feed} - T_{ind}) - (T_{return} - T_{ind})}{\ln(T_{feed} - T_{ind}) -\ln(T_{return} - T_{ind})} = \dfrac{T_{feed} - T_{return}}{\ln(T_{feed} - T_{ind}) -\ln(T_{return} - T_{ind})}$.
-\end{itemize}
-
-
-
-\subsubsection{Phetteplace}
-
-A radiator model which is used as  a general load for district heating systems is found in \cite{etde_6539997}:
-
-\begin{equation}
-	\begin{aligned}
-		\dfrac{q_2}{q_0} = \left[\dfrac{\Delta T_{LMTD,1}}{\Delta T_{LMTD,0}}\right]^{n_1} \cdot \left[\dfrac{\Delta T_{LMTD,2}}{\Delta T_{LMTD,1}}\right]^{n_2}
-	\end{aligned}
-	\label{eq:Boehm}
-\end{equation}
-
-where $q$ = heat output from the radiator [W]
-
-$T_{ml}$ = logarithmic mean temperature difference [$\degC$].
-
-$n_1$, $n_2$ = empirically determined coefficients (dimensionless)
-
-and the subscripts denote the following operating conditions:
-\begin{itemize} %[label={}]
-	\item[] 0 = "design" condition for the radiators
-	\item[] 1 = condition of actual supply temperature with the flow rate as determined under the design condition
-	\item[] 2 = any actual operating condition
-\end{itemize}
-
-
-In practice, and in the standard \cite{NEN442}, $n = n_1 = n_2$. This allows for dropping the indices  1 and reduce the expression \ref{eq:Boehm} to:
-
-\begin{equation}
-	\begin{aligned}
-		\dfrac{q}{q_0} = \left[\dfrac{\Delta T_{LMTD}}{\Delta T_{LMTD,0}}\right]^{n}
-	\end{aligned}
-	\label{eq:Boehm442}
-\end{equation}
-
-Using the ratio of $\Delta T_{LMTD}$ values, only an implicit (iterative) solution is possible. From Ref.~\cite{} it is clear that approximation of $\Delta T_{LMTD}$ by $\Delta T_{AMTD}$ is not satisfactory. The approximation by $\Delta T_{GMTD}$ may be satisfactory for our application, so we use:
-
-\begin{equation}
-	\begin{aligned}
-		\dfrac{q}{q_0} &= \left[\dfrac{\Delta T_{GMTD}}{\Delta T_{GMTD,0}}\right]^{n} = \left[\dfrac{\sqrt{(T_s - T_{i})} \cdot  \sqrt{(T_r - T_{i}})}{\Delta T_{GMTD,0}}\right]^{n} \\
-		q &= \dot{m} c_p \cdot (T_s - T_r)
-	\end{aligned}
-	\label{eq:BoehmGMTD}
-\end{equation}
-
-Using:
-
-$$ \Delta T_{s,ind} = T_s - T_i $$
-$$ \Delta T_{r,ind} = T_r - T_i $$
-$$ \Delta T_{s,r} = T_s - T_r $$
-
-We can take the square of the expression for $\dfrac{q}{q_0}$  and subsequently take the n-th root: 
-
-$$ \left(\dfrac{q_2}{q_0}\right)^2 = \left[\dfrac{(T_s - T_{i}) \cdot  (T_r - T_{i})}{\Delta T_{GMTD,0}^2}\right]^{n} $$
-$$ \left(\dfrac{q_2}{q_0}\right)^{2/n} = \left[\dfrac{(T_s - T_{i}) \cdot  (T_r - T_{i})}{\Delta T_{GMTD,0}^2}\right] $$
-
-to arrive at:
-
-\begin{equation}
-	\begin{aligned}
-		T_{r} &= T_i + \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right] \\
-		q &= \dot{m} c_p \cdot (T_s - T_r)
-	\end{aligned}
-	\label{eq:BoehmGMTD}
-\end{equation}
-
-
-In Eq~\ref{eq:BoehmGMTD}, $\Delta T_{GMTD,0}$ and $q_0$ are known, "design" quantities of the radiator. Moreover, $ \Delta T_{s,ind} = T_s - T_i $ is known from the current state of the house model. In contrast to the calculations of Phetteplace \cite{}, where $q$ is also given, we have \emph{two} unknowns $q$ and $T_r$:
-
-\begin{equation}
-	\begin{aligned}
-		T_{r} &= T_i + \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right] \\
-		q &= \dot{m} c_p \cdot (T_s - T_r) \\
-		\\
-		T_{r} &= T_s -\dfrac{q}{\dot{m} c_p}
-	\end{aligned}
-	\label{eq:PPGMTD}
-\end{equation}
-
-\begin{equation}
-	\begin{aligned}
-		T_s -\dfrac{q}{\dot{m_2} c_p} &= T_i + \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right] \\
-		-\dfrac{q}{\dot{m_2} c_p} &= T_i - T_s + \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right]  \\
-		\dfrac{q}{\dot{m_2} c_p} &= T_s - T_i - \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right]  \\
-		\\
-		\dfrac{q}{\dot{m_2} c_p} &= \Delta T_{s,ind} - \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right]  \\
-	\end{aligned}
-	\label{eq:PPGMTD}
-\end{equation}
+\newpage
 

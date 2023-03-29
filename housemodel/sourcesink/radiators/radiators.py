@@ -264,7 +264,7 @@ if __name__ == "__main__":
     radiator.F_rad = radiator.flow * radiator.rho * radiator.cp
     print(f"Frad: {radiator.F_rad} [W/K]")
 
-    radiator.update(radiator.func_rad_gmtd)
+    radiator.update(radiator.func_rad_lmtd)
     print(f"Q_dot: {radiator.q_dot}, T_return: {radiator.T_ret}")
     print(f"LMTD {radiator.get_lmtd()}")
     print(f"GMTD {radiator.get_gmtd()}")

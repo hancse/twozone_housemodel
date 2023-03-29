@@ -1,0 +1,97 @@
+\section{Radiator Equations; Phetteplace, Tol, EN442}
+\label{app::radeq}
+
+\begin{itemize}
+	\item AMTD = $\dfrac{T_{feed} - T_{ind} + (T_{return} - T_{ind})}{2} = 
+	\dfrac{T_{feed} + T_{return} - 2 \cdot T_{ind})}{2}$.
+	\item GMTD = $\sqrt{(T_{feed} - T_{ind})} \cdot  \sqrt{(T_{return} - T_{ind}})$.
+	\item LMTD = $\dfrac{(T_{feed} - T_{ind}) - (T_{return} - T_{ind})}{\ln(T_{feed} - T_{ind}) -\ln(T_{return} - T_{ind})} = \dfrac{T_{feed} - T_{return}}{\ln(T_{feed} - T_{ind}) -\ln(T_{return} - T_{ind})}$.
+\end{itemize}
+
+A radiator model which is used as  a general load for district heating systems is found in \cite{etde_6539997}:
+
+\begin{equation}
+	\begin{aligned}
+		\dfrac{q_2}{q_0} = \left[\dfrac{\Delta T_{LMTD,1}}{\Delta T_{LMTD,0}}\right]^{n_1} \cdot \left[\dfrac{\Delta T_{LMTD,2}}{\Delta T_{LMTD,1}}\right]^{n_2}
+	\end{aligned}
+	\label{eq:Boehm}
+\end{equation}
+
+where $q$ = heat output from the radiator [W]
+
+$T_{ml}$ = logarithmic mean temperature difference [$\degC$].
+
+$n_1$, $n_2$ = empirically determined coefficients (dimensionless)
+
+and the subscripts denote the following operating conditions:
+\begin{itemize} %[label={}]
+	\item[] 0 = "design" condition for the radiators
+	\item[] 1 = condition of actual supply temperature with the flow rate as determined under the design condition
+	\item[] 2 = any actual operating condition
+\end{itemize}
+
+
+In practice, and in the standard \cite{NEN442}, $n = n_1 = n_2$. This allows for dropping the indices  1 and reduce the expression \ref{eq:Boehm} to:
+
+\begin{equation}
+	\begin{aligned}
+		\dfrac{q}{q_0} = \left[\dfrac{\Delta T_{LMTD}}{\Delta T_{LMTD,0}}\right]^{n}
+	\end{aligned}
+	\label{eq:Boehm442}
+\end{equation}
+
+Using the ratio of $\Delta T_{LMTD}$ values, only an implicit (iterative) solution is possible. From Ref.~\cite{} it is clear that approximation of $\Delta T_{LMTD}$ by $\Delta T_{AMTD}$ is not satisfactory. The approximation by $\Delta T_{GMTD}$ may be satisfactory for our application, so we use:
+
+\begin{equation}
+	\begin{aligned}
+		\dfrac{q}{q_0} &= \left[\dfrac{\Delta T_{GMTD}}{\Delta T_{GMTD,0}}\right]^{n} = \left[\dfrac{\sqrt{(T_s - T_{i})} \cdot  \sqrt{(T_r - T_{i}})}{\Delta T_{GMTD,0}}\right]^{n} \\
+		q &= \dot{m} c_p \cdot (T_s - T_r)
+	\end{aligned}
+	\label{eq:BoehmGMTD}
+\end{equation}
+
+Using:
+
+$$ \Delta T_{s,ind} = T_s - T_i $$
+$$ \Delta T_{r,ind} = T_r - T_i $$
+$$ \Delta T_{s,r} = T_s - T_r $$
+
+We can take the square of the expression for $\dfrac{q}{q_0}$  and subsequently take the n-th root: 
+
+$$ \left(\dfrac{q_2}{q_0}\right)^2 = \left[\dfrac{(T_s - T_{i}) \cdot  (T_r - T_{i})}{\Delta T_{GMTD,0}^2}\right]^{n} $$
+$$ \left(\dfrac{q_2}{q_0}\right)^{2/n} = \left[\dfrac{(T_s - T_{i}) \cdot  (T_r - T_{i})}{\Delta T_{GMTD,0}^2}\right] $$
+
+to arrive at:
+
+\begin{equation}
+	\begin{aligned}
+		T_{r} &= T_i + \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right] \\
+		q &= \dot{m} c_p \cdot (T_s - T_r)
+	\end{aligned}
+	\label{eq:BoehmGMTD}
+\end{equation}
+
+
+In Eq~\ref{eq:BoehmGMTD}, $\Delta T_{GMTD,0}$ and $q_0$ are known, "design" quantities of the radiator. Moreover, $ \Delta T_{s,ind} = T_s - T_i $ is known from the current state of the house model. In contrast to the calculations of Phetteplace \cite{}, where $q$ is also given, we have \emph{two} unknowns $q$ and $T_r$:
+
+\begin{equation}
+	\begin{aligned}
+		T_{r} &= T_i + \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right] \\
+		q &= \dot{m} c_p \cdot (T_s - T_r) \\
+		\\
+		T_{r} &= T_s -\dfrac{q}{\dot{m} c_p}
+	\end{aligned}
+	\label{eq:PPGMTD}
+\end{equation}
+
+\begin{equation}
+	\begin{aligned}
+		T_s -\dfrac{q}{\dot{m_2} c_p} &= T_i + \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right] \\
+		-\dfrac{q}{\dot{m_2} c_p} &= T_i - T_s + \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right]  \\
+		\dfrac{q}{\dot{m_2} c_p} &= T_s - T_i - \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right]  \\
+		\\
+		\dfrac{q}{\dot{m_2} c_p} &= \Delta T_{s,ind} - \left[\dfrac{\Delta T_{GMTD,0}^2}{\Delta T_{s,ind}} \cdot \left(\dfrac{q}{q_0}\right)^{2/n}\right]  \\
+	\end{aligned}
+	\label{eq:PPGMTD}
+\end{equation}
+
