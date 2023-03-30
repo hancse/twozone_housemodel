@@ -94,11 +94,6 @@ def calc_log_mean_diff_rad(Tinlet, Treturn, Tamb):
     return lm
 
 
-def calc_mean_diff_rad(Tinlet, Treturn, Tamb):
-    lm = np.mean([Tinlet, Treturn]) - Tamb
-    return lm
-
-
 class Radiator:
     """ class for general Radiator object."""
     def __init__(self, name="DefaultRadiator", begin_tag=0, exp_rad=1.3):
@@ -133,16 +128,16 @@ class Radiator:
         self.flow = None     # [m^3/s]
         self.F_rad = None     # heat flow in [W/K] = flow * rho * c_w
         self.T_feed = None
-        self.T_amb = None
 
         # model radiator as in EN442: Q = Km * LMTD ** n
         self.Km = None
         # model radiator as in DTU lit: q/q_0 = (LMTD/LMTD_0) ** n
-        self. LMTD_0 = 50
-        self. T_feed_zero = 75     # [C]
-        self. T_ret_zero = 65      # [C]
-        self. T_amb = 20
-        self. q_zero = 1000        # [W]
+        self.LMTD_0 = 50
+        self.T_feed_zero = 75     # [C]
+        self.T_ret_zero = 65      # [C]
+        self.T_amb = 20
+        self.q_zero = 1000        # [W]
+        self.m_zero = None
 
         self.__denominator = None
         self.__gmtd = None
@@ -157,7 +152,12 @@ class Radiator:
         return cls(name=d["name"], begin_tag=d["begin_tag"], exp_rad=d["exp_rad"])
 
     def calculate_radiator_properties(self):
-        pass
+        self.LMTD_0 = LMTD_radiator(self.T_feed_zero, self.T_ret_zero, self.T_amb)
+        print(f"LMTD_0 = {self.LMTD_0} \u00b0C")
+        self.m_zero = (self.q_zero) / (self.cp * (self.T_feed_zero - self.T_ret_zero))
+        print(f"mass_flow_zero: {self.m_zero:6f} [kg/s] ({self.m_zero * (1.0e6/self.rho):3f} ml/s)")
+        self.Km = np.exp(np.log(self.q_zero) - (self.exp_rad*np.log(self.LMTD_0)))
+        print(f"Km = {self.Km}")
 
     def set_exponent(self, e):
         self.exp_rad = e
@@ -243,24 +243,18 @@ class Radiator:
 
 if __name__ == "__main__":
     deg = u"\u00b0"
-    log_mean_rad = LMTD_radiator(80, 50, 20)
-    print(f"LMTD_radiator : {log_mean_rad} {deg}C")
-    log_mean_rad_zero = LMTD_radiator(75, 65, 20)
-    print(f"LMTD_radiator_design : {log_mean_rad_zero} {deg}C")
-
     lm_ref = calc_log_mean_diff_rad(75, 65, 20)
     print(f"Reference LMTD: {lm_ref}")
-
-    dt_ref = calc_mean_diff_rad(75, 65, 20)
-    print(f"Reference Delta_T: {dt_ref}")
+    print(f"----------------------------------------")
 
     radiator = Radiator(name="Test", exp_rad=1.3)
-    radiator.T_feed = 80.0
-    T_amb = 20.0
-    radiator.T_ret = (radiator.T_feed + T_amb) / 2.0
+    radiator.T_feed = 55.0                      # = T_top of buffer vessel
+    T_bottom = 30                              # = T_bottom of buffer vessel
+
+    radiator.T_ret = (radiator.T_feed + radiator.T_amb) / 2.0  # crude quess
     radiator.T_amb = 20.0
-    radiator.Km = 50
-    radiator.flow = 0.05e-3     # 0.05 l/s
+    radiator.Km = 12
+    radiator.flow = 0.010e-3  # kg/s    # 0.03 l/s
     radiator.F_rad = radiator.flow * radiator.rho * radiator.cp
     print(f"Frad: {radiator.F_rad} [W/K]")
 
@@ -268,6 +262,10 @@ if __name__ == "__main__":
     print(f"Q_dot: {radiator.q_dot}, T_return: {radiator.T_ret}")
     print(f"LMTD {radiator.get_lmtd()}")
     print(f"GMTD {radiator.get_gmtd()}")
+    print(f"radiator to room: {radiator.F_rad * (radiator.T_feed - radiator.T_ret)} [W]")
+    print(f"radiator to room: {radiator.Km * np.power(radiator.get_lmtd(), radiator.exp_rad)} [W] with Delta t = {radiator.get_lmtd()}")
+    print(f"top-bottom: {radiator.F_rad * (radiator.T_feed - T_bottom)} [W]")
+    print(f"back-to-bottom: {radiator.F_rad * (radiator.T_ret - T_bottom)} [W]")
 
     Delta_T = [20, 25, 30, 35, 40, 45, 50]
     cf = [0.3, 0.41, 0.52, 0.63, 0.75, 0.87, 1.0]
@@ -275,12 +273,15 @@ if __name__ == "__main__":
     Delta_T_2 = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75]
     cf_2 = [0.05, 0.123, 0.209, 0.304, 0.406, 0.515, 0.629, 0.748, 0.872, 1.0, 1.132, 1.267, 1.406, 1.549, 1.694]
 
-    cf_test = calc_corr_fact(dt_ref)
-    print(f"correction factor: {cf_test}")
+    # dt_ref = calc_mean_diff_rad(75, 65, 20) # arithmetic mean, use Phetteplace
+    # print(f"Reference Delta_T: {dt_ref}")
+    # cf_test = calc_corr_fact(dt_ref)
+    # print(f"correction factor: {cf_test}")
+
     fig, ax = plt.subplots()
     ax.plot(Delta_T, cf, 'b-')
     ax.plot(Delta_T_2, cf_2, 'r--')
-    ax.plot(dt_ref, cf_test, 'og')
+    # ax.plot(dt_ref, cf_test, 'og')
     ax.grid(True)
     ax.set_ylim(0, 1.75)
     plt.show()

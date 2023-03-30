@@ -1075,9 +1075,9 @@ Therefore, two \textsf{FixedNode} attributes with temperatures $T_{indoor} + \De
 	\begin{bmatrix}
 		0 & 0 & 0 & 0 & 0 \\
 		0 & 0 & 0 & 0 & 0 \\
-		0 & 0 & 0 & -1 & 0 \\
+		0 & 0 & 0 & -1 & \color{red}{1} \\
 		0 & 0 & 1 & 0 & -1 \\
-		0 & 0 & 0 & 1 & 0  
+		0 & 0 & \color{red}{-1} & 1 & 0  
 	\end{bmatrix}
 	\cdot
 	\begin{bmatrix}
@@ -1095,9 +1095,9 @@ As a consequence of the reasoning above, a matrix $\mathbf{DF_{d,ext}}$  and cor
 	\mathbf{DF_{d, ext}} \cdot \boldsymbol{\theta} = 
 	F_{demand} \cdot
 	\begin{bmatrix}
-		1 & 0 & 0 & 0 & 0 \\
 		0 & 0 & 0 & 0 & 0 \\
-		0 & 0 & 1 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 \\
+		0 & 0 & 0 & 0 & 0 \\
 		0 & 0 & 0 & 0 & 0 \\
 		0 & 0 & 0 & 0 & 1  
 	\end{bmatrix}
@@ -1111,13 +1111,12 @@ As a consequence of the reasoning above, a matrix $\mathbf{DF_{d,ext}}$  and cor
 	\end{bmatrix}
     \qquad
     \mathbf{\dot{q_{F}}} = 
-    F_{demand} \cdot
     \begin{bmatrix}
-        T_{eff} = T_{air} + \Delta T \\
+        \dot{q}_{rad} \\
     	0 \\
-    	T_{return} \\
     	0 \\
-    	T_{return}  
+    	0 \\
+    	F_{demand} \cdot T_{return}  
     \end{bmatrix}
 \end{equation}
 
@@ -1125,12 +1124,25 @@ The terms in the $\mathbf{\dot{q}_F}$-vector seem a bit verbose, but it underlin
 This matrix-vector also contains the convective term $F_{demand} \cdot (T_{return} - T_{top})$ which also represents the convective heat loss of the buffer vessel to the interior of the house, since these two expressions are equal at the solution $\mathbf{x}$ of the radiator equations. Summarizing:
 
 \begin{itemize}
-	\item thermal input to room: $ F_{demand} \cdot \Delta T $ = $ F_{demand} \cdot (T_{top} - T_{return})$.
+	\item thermal input to room: $\dot{q}_{rad} = F_{demand} \cdot (T_{top} - T_{return})$.
 	\item thermal input to bottom layer: $F_{demand} \cdot (T_{return} - T_{bot})$.
 	\item sum of previous two: $F_{demand} \cdot (T_{bot} - T_{top})$.
 \end{itemize}
 
 On stopping the flow, $F_{demand} = 0 $, the convective heat transfer stops instantaneously, since the \textsf{Radiator} object has no heat capacity.
+
+{\color{teal}
+	\begin{equation}
+		\begin{aligned}
+			C_{air}\frac{dT_{air}}{dt} + \frac{1}{R_{a,w}} (T_{air}-T_{wall}) + \frac{1}{R_{a,out}} T_{air} &= \frac{1}{R_{a,out}} T_{wall} \\ \\
+			C_{wall}\frac{dT_{wall}}{dt} + \frac{1}{R_{a,w}} (T_{wall}-T_{air}) &= 0 \\ \\			
+			C_{top}\frac{dT_{top}}{dt} + \frac{1}{R_{mid, top}} (T_{top}-T_{mid}) + \frac{1}{R_{top, in}} T_{top} &= \frac{1}{R_{top, ind}} T_{ind}
+			\\ \\
+			C_{mid}\frac{dT_{mid}}{dt} + \frac{1}{R_{mid, top}} (T_{mid} - T_{top}) + \frac{1}{R_{bot, mid}}(T_{mid}-T_{bot}) + \frac{1}{R_{mid, in}} T_{mid} &= \frac{1}{R_{mid, ind}} T_{ind} \\ \\ 
+			C_{bot}\frac{dT_{bot}}{dt} + \frac{1}{R_{bot, mid}} (T_{bot} - T_{mid}) + \frac{1}{R_{bot, in}} T_{bot} &= \frac{1}{R_{bot, ind}} T_{ind} 
+		\end{aligned}
+	\end{equation}
+}
 
 \subsection{Model component properties towards an integrated implementation}
 Here we summarize the properties of the different model components. 
