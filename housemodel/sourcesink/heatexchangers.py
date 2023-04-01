@@ -45,6 +45,22 @@ def LMTD(T_hot_in, T_hot_out, T_cold_in, T_cold_out, flowpattern='parallel', cor
     return log_mean_diff
 
 
+def calc_log_mean_diff_rad(Tinlet, Treturn, Tamb):
+    """ application of gneral heat exchanger formula to hydronic radiator
+
+    Args:
+        Tinlet:  inlet temperature of radiator
+        Treturn:  return temperature of radiator
+        Tamb:     ambient temperature
+
+    Returns:
+        (float): log mean temp difference of radiator
+    """
+    lm = LMTD(Tinlet, Treturn, Tamb, Tamb,
+              flowpattern='cross')
+    return lm
+
+
 if __name__ == "__main__":
     deg = u"\u00b0"
     pattern = 'parallel'
@@ -59,3 +75,6 @@ if __name__ == "__main__":
     pattern = 'counter'
     log_mean_td = LMTD(80, 50, 20, 20, pattern)
     print("LMTD : %s %f %sC" % (pattern, log_mean_td, deg))
+
+    lm_ref1 = calc_log_mean_diff_rad(75, 65, 20)
+    print(f"Reference LMTD: {lm_ref1} {deg}C")

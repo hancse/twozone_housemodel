@@ -5,7 +5,6 @@ import numpy as np
 
 from scipy import interpolate
 from scipy.optimize import root
-from housemodel.sourcesink.heatexchangers import LMTD
 
 from housemodel.basics.components import (FixedNode)
 
@@ -19,24 +18,18 @@ matplotlib.use("Qt5Agg")
 logging.basicConfig(level="INFO")
 
 
-def LMTD_radiator(T_feed, T_return, T_amb, corrfact=1.0):
+def LMTD_radiator(T_feed, T_return, T_amb):
     """calculates log mean temperature difference
 
     representative value in case of varying temperature difference along heat exchanger
     https://checalc.com/solved/LMTD_Chart.html
     Args:
         T_feed:     entry temperature hot fluid or gas
-        T_return:    exit temperature hot fluid or gas
-        T_amb:    entry temperature cold fluid or gas
-        corrfact:    see:     https://checalc.com/solved/LMTD_Chart.html
-                              https://cheguide.com/lmtd_charts.html
-                              https://excelcalculations.blogspot.com/2011/06/lmtd-correction-factor.html
-                              http://fchart.com/ees/heat_transfer_library/heat_exchangers/hs2000.htm
-                              https://yjresources.files.wordpress.com/2009/05/4-3-lmtd-with-tutorial.pdf
-                              https://www.engineeringtoolbox.com/arithmetic-logarithmic-mean-temperature-d_436.html
+        T_return:   exit temperature hot fluid or gas
+        T_amb:      temperature of surroundings
+
     Returns:
-        LMTD temperature
-        corr_fact * ( Delta T 1 - Delta T 2 ) / ln (Delta t 1 / Delta T 2)
+        LMTD temperature: ( Delta T 1 - Delta T 2 ) / ln (Delta t 1 / Delta T 2)
     """
     eps = 1e-9
     DeltaT_fr = T_feed - T_return
@@ -48,29 +41,36 @@ def LMTD_radiator(T_feed, T_return, T_amb, corrfact=1.0):
     denominator = np.log(DeltaT_feed) - np.log(DeltaT_ret)
     nominator = DeltaT_fr
     # assert denominator > eps, "Ratio of input/output temperature difference too large"
-    log_mean_diff_temp = corrfact * nominator / denominator
+    log_mean_diff_temp = nominator / denominator
     return log_mean_diff_temp
 
 
-def GMTD_radiator(T_feed, T_return, T_amb, corrfact=1.0):
+def GMTD_radiator(T_feed, T_return, T_amb):
     """calculates geometric mean temperature difference
 
     Args:
         T_feed:     entry temperature hot fluid or gas
         T_return:   exit temperature hot fluid or gas
-        T_amb:      entry temperature cold fluid or gas
-        corrfact:   correction factor. See: LMTD_radiator
+        T_amb:      temperature of surroundings
+
     Returns:
-        GMTD temperature      corr_fact * sqrt(T_feed - T_amb) * sqrt(T_ret - T_amb)
+        GMTD temperature: sqrt(T_feed - T_amb) * sqrt(T_ret - T_amb)
     """
     DeltaT_feed = T_feed - T_amb
     DeltaT_ret = T_return - T_amb
     nominator = np.sqrt(DeltaT_feed) * np.sqrt(DeltaT_ret)
-    geo_mean_diff_temp = corrfact * nominator
+    geo_mean_diff_temp = nominator
     return geo_mean_diff_temp
 
 
 def calc_corr_fact(delta_t):
+    """corrfact: see:     https://checalc.com/solved/LMTD_Chart.html
+                          https://cheguide.com/lmtd_charts.html
+                          https://excelcalculations.blogspot.com/2011/06/lmtd-correction-factor.html
+                          http://fchart.com/ees/heat_transfer_library/heat_exchangers/hs2000.htm
+                          https://yjresources.files.wordpress.com/2009/05/4-3-lmtd-with-tutorial.pdf
+                          https://www.engineeringtoolbox.com/arithmetic-logarithmic-mean-temperature-d_436.html
+    """
     dt_model = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75]
     cf_model = [0.05, 0.123, 0.209, 0.304, 0.406, 0.515, 0.629, 0.748, 0.872, 1.0, 1.132, 1.267, 1.406, 1.549, 1.694]
     f = interpolate.interp1d(dt_model, cf_model)
@@ -78,20 +78,25 @@ def calc_corr_fact(delta_t):
     return corr_fact
 
 
-def calc_log_mean_diff_rad(Tinlet, Treturn, Tamb):
-    """
+def plot_corr_fact():
+    Delta_T = [20, 25, 30, 35, 40, 45, 50]
+    cf = [0.3, 0.41, 0.52, 0.63, 0.75, 0.87, 1.0]
 
-    Args:
-        Tinlet:  inlet temperature of radiator
-        Treturn:  return temperature of radiator
-        Tamb:     ambient temperature
+    Delta_T_2 = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75]
+    cf_2 = [0.05, 0.123, 0.209, 0.304, 0.406, 0.515, 0.629, 0.748, 0.872, 1.0, 1.132, 1.267, 1.406, 1.549, 1.694]
 
-    Returns:
-        (float): log mean temp difference of radiator
-    """
-    lm = LMTD(Tinlet, Treturn, Tamb, Tamb,
-              flowpattern='cross')
-    return lm
+    # dt_ref = calc_mean_diff_rad(75, 65, 20) # arithmetic mean, use Phetteplace
+    # print(f"Reference Delta_T: {dt_ref}")
+    # cf_test = calc_corr_fact(dt_ref)
+    # print(f"correction factor: {cf_test}")
+
+    fig, ax = plt.subplots()
+    ax.plot(Delta_T, cf, 'b-')
+    ax.plot(Delta_T_2, cf_2, 'r--')
+    # ax.plot(dt_ref, cf_test, 'og')
+    ax.grid(True)
+    ax.set_ylim(0, 1.75)
+    plt.show()
 
 
 class Radiator:
@@ -127,16 +132,18 @@ class Radiator:
         self.cp = 4190  # [J/(K kg)]
         self.flow = None     # [m^3/s]
         self.F_rad = None     # heat flow in [W/K] = flow * rho * c_w
-        self.T_feed = None
+        self.T_supply = None
+        self.T_return = None
+        self.T_amb = 20
 
         # model radiator as in EN442: Q = Km * LMTD ** n
         self.Km = None
         # model radiator as in DTU lit: q/q_0 = (LMTD/LMTD_0) ** n
         self.LMTD_0 = 50
-        self.T_feed_zero = 75     # [C]
+        self.T_sup_zero = 75     # [C]
         self.T_ret_zero = 65      # [C]
-        self.T_amb = 20
-        self.q_zero = 1000        # [W]
+        self.T_amb_zero = 20
+        self.q_zero = 2000        # [W]
         self.m_zero = None
 
         self.__denominator = None
@@ -152,9 +159,9 @@ class Radiator:
         return cls(name=d["name"], begin_tag=d["begin_tag"], exp_rad=d["exp_rad"])
 
     def calculate_radiator_properties(self):
-        self.LMTD_0 = LMTD_radiator(self.T_feed_zero, self.T_ret_zero, self.T_amb)
+        self.LMTD_0 = LMTD_radiator(self.T_sup_zero, self.T_ret_zero, self.T_amb_zero)
         print(f"LMTD_0 = {self.LMTD_0} \u00b0C")
-        self.m_zero = (self.q_zero) / (self.cp * (self.T_feed_zero - self.T_ret_zero))
+        self.m_zero = (self.q_zero) / (self.cp * (self.T_sup_zero - self.T_ret_zero))
         print(f"mass_flow_zero: {self.m_zero:6f} [kg/s] ({self.m_zero * (1.0e6/self.rho):3f} ml/s)")
         self.Km = np.exp(np.log(self.q_zero) - (self.exp_rad*np.log(self.LMTD_0)))
         print(f"Km = {self.Km}")
@@ -182,18 +189,18 @@ class Radiator:
         """model function for scipy.optimize.root().
 
         Args:
-            x: vector with unknowns [self.q_dot, self.T_ret]
+            x: vector with unknowns [self.q_dot, self.T_return]
 
         Returns:
             f : vector with model functions evaluated at x
             df : Jacobian (partial derivatives of model functions wrt x
         """
-        self.__gmtd = GMTD_radiator(T_feed=self.T_feed, T_return=x[1], T_amb=self.T_amb, corrfact=1.0)
+        self.__gmtd = GMTD_radiator(T_feed=self.T_supply, T_return=x[1], T_amb=self.T_amb)
         # set of nonlinear functions for root finding
         f = [x[0] - (self.Km * self.__gmtd ** self.exp_rad),
-             x[0] - self.F_rad * (self.T_feed - x[1])]
+             x[0] - self.F_rad * (self.T_supply - x[1])]
 
-        DeltaT_feed = self.T_feed - self.T_amb
+        DeltaT_feed = self.T_supply - self.T_amb
         dTdt = -1.0 * self.Km * 0.5*self.exp_rad * np.float_power(DeltaT_feed, (0.5*self.exp_rad))
         dTdt *= np.float_power(x[1] - self.T_amb, (0.5*self.exp_rad) - 1)
 
@@ -205,22 +212,22 @@ class Radiator:
         """model function for scipy.optimize.root().
 
         Args:
-            x: vector with unknowns [self.q_dot, self.T_ret]
+            x: vector with unknowns [self.q_dot, self.T_return]
 
         Returns:
             f : vector with model functions evaluated at x
             df : Jacobian (partial derivatives of model functions wrt x
         """
-        self.__lmtd = LMTD_radiator(T_feed=self.T_feed, T_return=x[1], T_amb=20.0, corrfact=1.0)
+        self.__lmtd = LMTD_radiator(T_feed=self.T_supply, T_return=x[1], T_amb=20.0)
         # set of nonlinear functions for root finding
         f = [x[0] - (self.Km * self.__lmtd ** self.exp_rad),
-             x[0] - self.F_rad * (self.T_feed - x[1])]
+             x[0] - self.F_rad * (self.T_supply - x[1])]
 
         h1 = self.Km * self.exp_rad
         h1 *= self.__lmtd ** (self.exp_rad - 1.0)
 
-        h2 = (self.T_feed - x[1]) / (x[1] - self.T_amb)
-        denominator = np.log(self.T_feed - self.T_amb) - np.log(x[1] - self.T_amb)
+        h2 = (self.T_supply - x[1]) / (x[1] - self.T_amb)
+        denominator = np.log(self.T_supply - self.T_amb) - np.log(x[1] - self.T_amb)
         h2 -= denominator
 
         dTdt = -(h1 * h2) / (denominator * denominator)
@@ -230,59 +237,42 @@ class Radiator:
         return f, df
 
     def update(self, func):
-        """update roots [self.q_dot, self.T_ret] with model function
+        """update roots [self.q_dot, self.T_return] with model function
            using scipy.optimize.root().
 
         Returns:
             None
         """
-        opt_res = root(func, [self.q_dot, self.T_ret], jac=True, method='hybr')
+        if self.T_return is None:
+            self.T_return = 0.5*(self.T_supply + self.T_amb)
+        opt_res = root(func, [self.q_dot, self.T_return], jac=True, method='hybr')
         self.q_dot = opt_res.x[0]
-        self.T_ret = opt_res.x[1]
+        self.T_return = opt_res.x[1]
 
 
 if __name__ == "__main__":
-    deg = u"\u00b0"
-    lm_ref = calc_log_mean_diff_rad(75, 65, 20)
-    print(f"Reference LMTD: {lm_ref}")
-    print(f"----------------------------------------")
+    deg = u"\u00b0"     # degree sign
 
     radiator = Radiator(name="Test", exp_rad=1.3)
-    radiator.T_feed = 55.0                      # = T_top of buffer vessel
-    T_bottom = 30                              # = T_bottom of buffer vessel
+    radiator.T_supply = 75.0                      # = T_top of buffer vessel
+    T_bottom = 40                               # = T_bottom of buffer vessel
 
-    radiator.T_ret = (radiator.T_feed + radiator.T_amb) / 2.0  # crude quess
     radiator.T_amb = 20.0
-    radiator.Km = 12
+    radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
+
+    radiator.Km = 12.5
     radiator.flow = 0.010e-3  # kg/s    # 0.03 l/s
     radiator.F_rad = radiator.flow * radiator.rho * radiator.cp
     print(f"Frad: {radiator.F_rad} [W/K]")
 
     radiator.update(radiator.func_rad_lmtd)
-    print(f"Q_dot: {radiator.q_dot}, T_return: {radiator.T_ret}")
+    print(f"Q_dot: {radiator.q_dot}, T_return: {radiator.T_return}")
     print(f"LMTD {radiator.get_lmtd()}")
     print(f"GMTD {radiator.get_gmtd()}")
-    print(f"radiator to room: {radiator.F_rad * (radiator.T_feed - radiator.T_ret)} [W]")
+    print(f"radiator to room: {radiator.F_rad * (radiator.T_supply - radiator.T_return)} [W]")
     print(f"radiator to room: {radiator.Km * np.power(radiator.get_lmtd(), radiator.exp_rad)} [W] with Delta t = {radiator.get_lmtd()}")
-    print(f"top-bottom: {radiator.F_rad * (radiator.T_feed - T_bottom)} [W]")
-    print(f"back-to-bottom: {radiator.F_rad * (radiator.T_ret - T_bottom)} [W]")
+    print(f"top-bottom: {radiator.F_rad * (radiator.T_supply - T_bottom)} [W]")
+    print(f"back-to-bottom: {radiator.F_rad * (radiator.T_return - T_bottom)} [W]")
 
-    Delta_T = [20, 25, 30, 35, 40, 45, 50]
-    cf = [0.3, 0.41, 0.52, 0.63, 0.75, 0.87, 1.0]
+    # plot_corr_fact()
 
-    Delta_T_2 = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75]
-    cf_2 = [0.05, 0.123, 0.209, 0.304, 0.406, 0.515, 0.629, 0.748, 0.872, 1.0, 1.132, 1.267, 1.406, 1.549, 1.694]
-
-    # dt_ref = calc_mean_diff_rad(75, 65, 20) # arithmetic mean, use Phetteplace
-    # print(f"Reference Delta_T: {dt_ref}")
-    # cf_test = calc_corr_fact(dt_ref)
-    # print(f"correction factor: {cf_test}")
-
-    fig, ax = plt.subplots()
-    ax.plot(Delta_T, cf, 'b-')
-    ax.plot(Delta_T_2, cf_2, 'r--')
-    # ax.plot(dt_ref, cf_test, 'og')
-    ax.grid(True)
-    ax.set_ylim(0, 1.75)
-    plt.show()
-    

@@ -1131,7 +1131,7 @@ This matrix-vector also contains the convective term $F_{demand} \cdot (T_{retur
 
 On stopping the flow, $F_{demand} = 0 $, the convective heat transfer stops instantaneously, since the \textsf{Radiator} object has no heat capacity.
 
-{\color{teal}
+%{\color{teal}
 	\begin{equation}
 		\begin{aligned}
 			C_{air}\frac{dT_{air}}{dt} + \frac{1}{R_{a,w}} (T_{air}-T_{wall}) + \frac{1}{R_{a,out}} T_{air} &= \frac{1}{R_{a,out}} T_{wall} \\ \\
@@ -1142,7 +1142,7 @@ On stopping the flow, $F_{demand} = 0 $, the convective heat transfer stops inst
 			C_{bot}\frac{dT_{bot}}{dt} + \frac{1}{R_{bot, mid}} (T_{bot} - T_{mid}) + \frac{1}{R_{bot, in}} T_{bot} &= \frac{1}{R_{bot, ind}} T_{ind} 
 		\end{aligned}
 	\end{equation}
-}
+%}
 
 \subsection{Model component properties towards an integrated implementation}
 Here we summarize the properties of the different model components. 
@@ -1298,56 +1298,8 @@ caption={Flow}]
 	\item 
 \end{itemize}
 
-\subsection{Heat Pump}
-
-A heat pump can be modeled in several ways. A straightforward approach is to reduce the heat pump to two fixed nodes, external to the building system. These nodes represent the evaporator and condensor \emph{exit} temperatures $T_{evap}$ and $T_{cond}$. In case of a air-water heatpump, $T_{evap}$ can be approched with the instantaneous outdoor (ambient) temperature from the weather conditions. For a heat pump with a liquid heat source this will be the source temperature, in any cases a ground source. $T_{cond}$ can be derived from a heating curve ($T_{cond}$ vs. $T_{outdoor}$) or from a heat pump functional model.
-
-\textbf{properties}
-\begin{itemize}
-	\item $T_{evap}$.
-	\item $T_{cond}$. 
-	\item COP
-	\item Thermal power
-\end{itemize}
-
-The heat pump will deliver its thermal power via an internal heat exchanger from the refrigerant to a liquid heat carrier (water) in a buffer vessel. There are a few options for the connection of the buffer vessel:
-
-\subsubsection{4-way connection}
-
-The most straightforward connection method is a 4-way connection, as shown in Figure~\ref{fig:4way}. The heat source (heat pump) thermally loads the buffer vessel in the top layer. The thermal demand is also taken from the top layer. For low-temperature radiators or a floor heating circuit there is a mixing valve that short circuits feed and return water, to provide an adjustable temperature heat source for the delivery system. The remaining return flow from the delivery system is passed back to the bottom layer of the buffer vessel. The heat source return water is also taken from the bottom layer.
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.7\columnwidth]{Figures/4-way buffer connection}
-	\caption[Short title]{4-way connection of stratified buffer vessel.}
-	\label{fig:4way}
-\end{figure} 
-
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}[b]{0.45\textwidth}
-		\includegraphics[width=\textwidth]{Figures/4-way buffer loaded}
-		\caption{Buffer vessel loading...}
-		\label{fig:4way_loaded}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.45\textwidth}
-		\includegraphics[width=\textwidth]{Figures/4-way buffer unloading}
-		\caption{Buffer vessel unloading...}
-		\label{fig:4way_unloading}
-	\end{subfigure}
-	\caption{Stratified buffer vessel dynamics.}
-	\label{fig:4way_dynamics}
-\end{figure}
-
-\subsubsection{2-way connection}
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.5\columnwidth]{Figures/2-way buffer connection}
-	\caption[Short title]{2-way connection of stratified buffer vessel.}
-	\label{fig:2way}
-\end{figure} 
+\newpage
+\input{heatpump_model}
 
 \subsection{Scripts}
 
