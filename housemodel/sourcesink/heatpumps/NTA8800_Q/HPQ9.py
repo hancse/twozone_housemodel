@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
 from housemodel.sourcesink.heatpumps.NTA8800_Q.defrost8800 import (frost_factor_8800,
                                                                    maximum_frost_factor_8800)
 
@@ -67,6 +67,7 @@ def calc_WP_general(X_val, Y_val, Z_val, order=1):
 
     return par
 
+
 def calc_plane(X_val, Y_val, Z_val):
     # Setup matrices
     Npoints = np.shape(X_val)[0]
@@ -92,6 +93,7 @@ def calc_plane(X_val, Y_val, Z_val):
     print("SSE: %f" % SSE)
 
     return par
+
 
 def plot_lines(x_val, ytop35, ytop45, ytop55, ybottom35, ybottom45, ybottom55):
     fig, ax = plt.subplots(2, 1)
@@ -123,11 +125,10 @@ def plot_lines(x_val, ytop35, ytop45, ytop55, ybottom35, ybottom45, ybottom55):
 def plot_plane(x_val, y_val, z_val, par, zstring, zmin, zmax):
     # plot raw data
     fig = plt.figure(figsize=(8, 6))
-    # ax = fig.add_subplot(111, projection="3d")
-    ax = Axes3D(fig)
+    ax = fig.add_subplot(111, projection="3d")
+    # ax = Axes3D(fig)
     angle = 45
     ax.view_init(45, angle)
-
 
     # ax.scatter(x_val, y_val, z_val, s=100, color='r')
     ax.plot3D(x_val, y_val, z_val, 'o-', markersize=10, color='r', zorder=2)

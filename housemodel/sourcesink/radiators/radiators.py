@@ -103,11 +103,11 @@ class Radiator:
     """ class for general Radiator object."""
     def __init__(self, name="DefaultRadiator", begin_tag=0, exp_rad=1.3):
         self.name = name
-        self.begin_tag = begin_tag
-        self.num_nodes = 1
+        # self.begin_tag = begin_tag
+        # self.num_nodes = 1
         self.exp_rad = exp_rad
 
-        self.end_node = self.begin_tag  # anchor point of cold water return from house model
+        # self.end_node = self.begin_tag  # anchor point of cold water return from house model
         self.nodes = []
         # self.edges = []
         # self.num_edges = 0
@@ -116,17 +116,17 @@ class Radiator:
         self.q_dot = 0.0
         # self.ambient = None
 
-        self.tag_list = []
-        self.cap_list = []
-        self.edge_list = []
-        self.cond_list = []
+        # self.tag_list = []
+        # self.cap_list = []
+        # self.edge_list = []
+        # self.cond_list = []
 
-        self.c_inv_mat = None
-        self.k_int_mat = None
-        self.k_ext_mat = None
+        # self.c_inv_mat = None
+        # self.k_int_mat = None
+        # self.k_ext_mat = None
 
         self.q_vec = None  # np.zeros(self.num_nodes, 1)
-        self.f_mat = None  # np.zeros(self.num_nodes, self.num_nodes)
+        # self.f_mat = None  # np.zeros(self.num_nodes, self.num_nodes)
 
         self.rho = 1000      # [kg/m^3]
         self.cp = 4190  # [J/(K kg)]
@@ -146,7 +146,7 @@ class Radiator:
         self.q_zero = 2000        # [W]
         self.m_zero = None
 
-        self.__denominator = None
+        # self.__denominator = None
         self.__gmtd = None
         self.__lmtd = None
         self.calculate_radiator_properties()

@@ -1,24 +1,30 @@
 
 import numpy as np
 import matplotlib
+
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from mpl_toolkits.mplot3d import Axes3D
 
 from housemodel.sourcesink.heatpumps.NTA8800_Q.defrost8800 import frost_factor_8800
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import (calc_WP_general,
                                                             plot_plane, plot_lines)
+
+from housemodel.sourcesink.boilers.boilers_without_PID import GasBoiler
+from housemodel.basics.flows import Flow
+
 # matplotlib.use('TkAgg')
 matplotlib.use('Qt5Agg')
 
-
-class Heatpump_NTA:
+class HeatpumpNTANew():
     """class for modelling PID-controlled heatpump.
 
     """
-
-    def __init__(self ,):
+    def __init__(self, name="NTA"):
         """
 
         """
+        self.name = name
         self.T_evap = 20
         self.T_cond = 20
         self.cal_T_evap = np.array([7, 7, -7])
@@ -30,6 +36,16 @@ class Heatpump_NTA:
         self.COP_A2W35 = None
         self.Pmax_A2W35 = None
         self.Pmax = None
+        self.flow = None
+
+    @classmethod
+    def from_dict(cls, d):
+        """ classmethod to enable constructing an instance from configuration file.
+        """
+        return cls(name=d["name"])
+
+    def calculate_radiator_properties(self):
+        pass
 
     def set_cal_val(self, cop_val: list, pmax_val: list):
         self.cal_COP_val = np.array(cop_val)
@@ -43,8 +59,8 @@ class Heatpump_NTA:
         """
 
         Args:
-            Te:
-            Tc:
+            Te:    evaporator temperature (outdoor)
+            Tc:    condensor temperature
 
         Returns:
 
@@ -61,9 +77,25 @@ class Heatpump_NTA:
         return cop, p_max
 
 
+class HybridHPNew:
+    """class for modelling a Hybrid Heating system with a heat pump and a gas boiler.
+
+    """
+    def __init__(self, boiler, heat_pump):
+        self.boiler = boiler
+        self.heat_pump = heat_pump
+
+    def update(self, power_requested, Te, Tc):
+        self.heat_pump.cop= self.heat_pump.update(Te, Tc)[0]
+        self.heat_pump.power = self.heat_pump.update(Te, Tc)[1]
+        self.heat_pump.power = self.heat_pump.power * 1000
+        self.boiler.power = self.boiler.update(power_requested - self.heat_pump.power)
+        return self.heat_pump.power, self.boiler.power, self.heat_pump.cop
+
+
 if __name__ == "__main__":
     print("Heat Pump Model (L/W) according to NTA8800:2020, Appendix Q9")
-    nta = Heatpump_NTA()
+    nta = HeatpumpNTANew()
     nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
 
     nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
@@ -84,13 +116,13 @@ if __name__ == "__main__":
     print(f"COP: {c}, Pmax: {p}")
 
     Tin_space = np.linspace(-20, 20, 41, endpoint=True)
-    COP_35 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space + nta.c_coeff[2] *35.0
-    COP_45 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space + nta.c_coeff[2] *45.0
-    COP_55 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space + nta.c_coeff[2] *55.0
+    COP_35 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space +nta.c_coeff[2]*35.0
+    COP_45 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space +nta.c_coeff[2]*45.0
+    COP_55 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space +nta.c_coeff[2]*55.0
 
-    P_35 = nta.p_coeff[0] + nta.p_coeff[1]*Tin_space + nta.p_coeff[2] *35.0
-    P_45 = nta.p_coeff[0] + nta.p_coeff[1]*Tin_space + nta.p_coeff[2] *45.0
-    P_55 = nta.p_coeff[0] + nta.p_coeff[1]*Tin_space + nta.p_coeff[2] *55.0
+    P_35 = nta.p_coeff[0] + nta.p_coeff[1]*Tin_space + nta.p_coeff[2]*35.0
+    P_45 = nta.p_coeff[0] + nta.p_coeff[1]*Tin_space+ nta.p_coeff[2]*45.0
+    P_55 = nta.p_coeff[0] + nta.p_coeff[1]*Tin_space + nta.p_coeff[2]*55.0
 
     # COP defrost correction
     frost_factor = frost_factor_8800(Tin_space)
@@ -105,3 +137,18 @@ if __name__ == "__main__":
     P_55 = P_55 * frost_factor
 
     plot_lines(Tin_space, COP_35, COP_45, COP_55, P_35, P_45, P_55)
+
+    print("Hybrid Heat Pump Model with a boiler and a heat pump according to NTA8800:2020, Appendix Q9")
+
+    nta = HeatpumpNTANew()
+    nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
+    nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
+                                  nta.cal_COP_val, order=1)
+    nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
+                                  nta.cal_Pmax_val, order=1)
+
+    g = GasBoiler(P_max=10000, P_min=1500)
+    c, p = nta.update(7, 35)
+    myhybridHP = HybridHPNew(g, nta)
+    hp_power, boilerpower, cop = myhybridHP.update(7500, 7, 35)
+    print(f"hp_power: {hp_power}, boilerpower: {boilerpower}, COP: {cop}")
