@@ -108,125 +108,31 @@ The \textsf{HeatPump} class in Python encapsulates the attributes above and the 
 	\item \textsf{\_\_init\_\_}: initializes the class members. Members starting with \_\_* are private members.
 \end{itemize}
 
-\lstinputlisting[label=lst:Radiator, linerange={102-151}, 
+\lstinputlisting[label=lst:Radiator, linerange={20-35}, 
 caption={HeatPump class}] 
-{../../housemodel/sourcesink/radiators/radiators.py}
+{../../housemodel/sourcesink/heatpumps/heatpumpnew.py}
 
 \begin{itemize}
 	\item \textsf{from\_dict}. This method operates as an "overloaded" constructor, reading from a Python \textsf{dictionary}.
 \end{itemize}
 
-\lstinputlisting[label=lst:Radiator, linerange={153-157}, 
-caption={Radiator class}] 
-{../../housemodel/sourcesink/radiators/radiators.py}
+\lstinputlisting[label=lst:Radiator, linerange={37-41}, 
+caption={Heatpump constructor from dictionary}] 
+{../../housemodel/sourcesink/heatpumps/heatpumpnew.py}
 
 \begin{itemize}
-	\item \textsf{get\_gmtd} and \textsf{get\_lmtd}: return the value of private member \_\_gmtd or \_\_lmtd.
+	\item \textsf{set\_cal\_val}: set the values of calibration constants $c_0$, $c_1$ and $c_2$ from NTA8800:2022, Appendix Q.
+	\item \textsf{set\_A2W35}: set COP and $P_{max}$ for an ambient temperature of $2~ \degC$ and a condensor delivery temperature of  $35~\degC$.
 \end{itemize}
 
-\lstinputlisting[label=lst:Radiator, linerange={175-179}, 
-caption={Radiator class}] 
-{../../housemodel/sourcesink/radiators/radiators.py}
+\lstinputlisting[label=lst:Radiator, linerange={46-52}, 
+caption={Heatpump calibration methods}] 
+{../../housemodel/sourcesink/heatpumps/heatpumpnew.py}
 
-The Radiator class uses helper functions \textsf{GMTD\_radiator} and \textsf{LMTD\_radiator} to determine the effective temperature difference from $T_{supply}$, $T_{return}$ and $T_{indoor}$:
+Calculations for solving the vector $\mathbf{x} = [\text{COP} \quad P_{max}]^T$ are performed in the method \textsf{update}. This method interpolates the calibration curves for COP and $P_{max}$ for a given $T_{amb}$ and $T_{cond}$. 
 
-\lstinputlisting[label=lst:lmtd, linerange={22-70}, 
-caption={GMTD\_radiator and LMTD\_radiator helper functions}] 
-{../../housemodel/sourcesink/radiators/radiators.py}
-
-In the building model, a fluid flow through the radiator leads to the delivery of heat to the room(s). The equations for the heat transfer of the radiator are: 
-
-{\color{blue}
-	\begin{equation}
-		\label{eq:radnonlin}
-		\begin{aligned}
-			\dot{q}_{rad} &- K_m \cdot (\Delta T_{LMTD})^n &= 0 \\
-			\dot{q}_{rad} &- F_{rad} \cdot (T_{feed} - T_{return}) &= 0 \\ \\
-			&\text{with } \Delta T_{LMTD} = \frac{T_{feed} - T_{return}}{\ln\left(\frac{T_{feed} -T_{air}}{T_{return} - T_{air}}\right)}
-		\end{aligned}
-	\end{equation}
-}
-
-In the building model, this nonlinear system of equations can be solved for the two unknowns $[\dot{q}_{rad} \quad T_{return}]$, if input data $T_{supply}$, $ T_{ind}$, $C_{rad}$ and $F_{rad}$ are provided. A solver for such a system of equations needs the function template in Eq.~\ref{eq:radnonlin}, with the unknowns vector as input variable. Furthermore, the Jacobian of the function template has to be calculated. Evaluation of an analytical expression of the partial derivatives in the Jacobian always outperforms numerical derivative calculations. Thus, for the upper equation (function) in set \ref{eq:radnonlin}:
-
-\begin{equation}
-	\begin{aligned}
-		\begin{matrix}
-			\frac{\partial f}{\partial \dot{Q}_{rad}} &= 1 \\ 
-			\\
-			\dfrac{\partial f}{\partial T_{return}} &= -Cn\cdot \dfrac{\left(\frac{T_1-T_2}{\ln\left(\frac{T_1-T_3}{T_2-T_3}\right)}\right)^{n-1}\,\left(\frac{T_1-T_2}{T_2-T_3}-\ln\left(\frac{T_1-T_3}{T_2-T_3}\right)\right)}{\ln^2\left(\frac{T_1-T_3}{T_2-T_3}\right)} \\ \\
-		\end{matrix}
-	\end{aligned}
-\end{equation} 
-for the second equation:
-\begin{equation}
-	\begin{aligned}
-		\begin{matrix}
-			\frac{\partial f}{\partial \dot{Q}_{rad}} &= 1 \\ \\
-			\frac{\partial f}{\partial T_{return}} &= F_{rad}
-		\end{matrix}
-	\end{aligned}
-\end{equation} 
-
-See: \url{https://www.derivative-calculator.net/}.
-
-The Jacobian matrix becomes:
-\begin{equation}
-	\begin{aligned}
-		\mathbf{J}_{i,j}=\dfrac{\partial f_{i}(\mathbf{x})}{\partial x_{j}} =
-		\begin{bmatrix}
-			\dfrac{\partial f_1}{\partial \dot{Q}_{rad}} & \dfrac{\partial f_1}{\partial T_{return}} \\ 
-			\vspace{2pt} \\
-			\dfrac{\partial f_2}{\partial \dot{Q}_{rad}} & \dfrac{\partial f_2}{\partial T_{return}}
-		\end{bmatrix}
-		\qquad
-		\mathbf{x} =
-		\begin{bmatrix}
-			\dot{q}_{rad} \\ 
-			T_{return}
-		\end{bmatrix}
-	\end{aligned}
-\end{equation} 
-
-As an alternative, $\Delta T_{GMTD})$ can be used. The set of equations becomes:
-
-{\color{blue}
-	\begin{equation}
-		\label{eq:radgmtd}
-		\begin{aligned}
-			\dot{q}_{rad} &- K_m \cdot (\Delta T_{GMTD})^n &= 0 \\
-			\dot{q}_{rad} &- F_{rad} \cdot (T_{s} - T_{r}) &= 0 \\ \\
-			&\text{with } \Delta T_{GMTD} = \sqrt{\Delta T_{s,ind}} \cdot  \sqrt{(T_{return} - T_{ind}})
-		\end{aligned}
-	\end{equation}
-}
-
-Note the left-hand side of the first equation can be written as:
-$$ \dot{q}_{rad} - K_{m} \cdot \left(\Delta T_{s,ind}\right)^{n/2} \cdot \left(T_{return} - T_{ind}\right)^{n/2} $$
-
-Thus, for the upper equation (function) in set \ref{eq:radgmtd}:
-
-\begin{equation}
-	\begin{aligned}
-		\begin{matrix}
-			\dfrac{\partial f}{\partial T_{return}} &= - K_{m} \cdot \left(\Delta T_{s,ind}\right)^{n/2} \cdot \dfrac{n}{2} \cdot \left(T_{return} - T_{ind}\right)^{(n/2)-1} \\ \\
-		\end{matrix}
-	\end{aligned}
-\end{equation} 
-
-The calculations for solving the vector $\mathbf{x} = [\dot{q}_{rad} \quad T_{return}]^T$ are performed in the method \textsf{update}. This method uses the Newton-Rhapson algorithm in \textsf{scipy.optimize.root()} to find the roots $\mathbf{x}$ of the radiator equations.
-The input argument for the \textsf{scipy.optimize.root()} method can be \textsf{func\_rad\_gmtd} or \textsf{func\_rad\_lmtd}. These functions calculate the radiator equations and their partial derivatives in the Jacobian.
-
-\lstinputlisting[label=lst:lmtd, linerange={181-230}, 
-caption={\textsf{func\_rad\_gmtd} and \textsf{func\_rad\_lmtd} function templates for \textsf{scipy.optimize.root()}}] 
-{../../housemodel/sourcesink/radiators/radiators.py}
-
-\lstinputlisting[label=lst:lmtd, linerange={232-241}, 
-caption={\textsf{update} method caaling \textsf{scipy.optimize.root()}}]
-{../../housemodel/sourcesink/radiators/radiators.py}
-
-A discussion about the underlying radiator models can be found in \cite{TolRadiator, TolThesis}. The radiator equations use the (normative) guidelines in \cite{NEN442}. See also Appendix~\ref{app::radeq}.
-
-In the radiator model, there is a choice for the data type of the node with $T_{supply}$, and a (virtual) node with temperature $T_{indoor} + \Delta T$. In the simplest version of the radiator model, these nodes are of type \textsf{FixedNode}. A consequence is, that the radiator has no heat capacity. Moreover, once the demand flow stops, the heat input to the building interior stops instantaneously. If water flows through the radiator, the $\mathbf{DF_{demand}}$-matrix of the demand flow will remain symmetric, but will get extra contributions to the diagonal elements. It may be a good idea to split the $\mathbf{F}$-matrix into two parts, $\mathbf{F_{int}}$ and $\mathbf{F_{ext}}$. Thus, the thermal flow \emph{between} the \textsf{CapacityNodes} and from the \textsf{FixedNodes} to the \textsf{CapacityNodes} can be separately calculated. In the current (simplest) version, $\mathbf{F_{int}}$ contains no entries from the radiator. All contributions are on the diagonal of the $\mathbf{F_{ext}}$ and on the corresponding row of the $\dot{q_{F}}$-vector.
+\lstinputlisting[label=lst:lmtd, linerange={54-73}, 
+caption={\textsf{update} method}]
+{../../housemodel/sourcesink/heatpumps/heatpumpnew.py}
 
 \newpage

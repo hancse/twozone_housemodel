@@ -16,20 +16,16 @@ from housemodel.basics.flows import Flow
 # matplotlib.use('TkAgg')
 matplotlib.use('Qt5Agg')
 
+
 class HeatpumpNTANew():
-    """class for modelling PID-controlled heatpump.
-
-    """
+    """class for modelling PID-controlled heatpump."""
     def __init__(self, name="NTA"):
-        """
-
-        """
         self.name = name
         self.T_evap = 20
         self.T_cond = 20
         self.cal_T_evap = np.array([7, 7, -7])
         self.cal_T_cond = np.array([35, 55, 35])
-        self.cal_COP_val = np.zeros_like(self.cal_T_evap)
+        self.cal_COP_val = np.zeros_like(self.cal_T_cond)
         self.cal_Pmax_val = np.zeros_like(self.cal_T_cond)
         self.c_coeff = np.zeros_like(self.cal_T_cond)
         self.p_coeff = np.zeros_like(self.cal_T_cond)
@@ -44,7 +40,7 @@ class HeatpumpNTANew():
         """
         return cls(name=d["name"])
 
-    def calculate_radiator_properties(self):
+    def calculate_heatpump_properties(self):
         pass
 
     def set_cal_val(self, cop_val: list, pmax_val: list):
@@ -53,7 +49,7 @@ class HeatpumpNTANew():
 
     def set_A2W35(self, cop_val: float, pmax_val: float):
         self.COP_A2W35 = np.array(cop_val)
-        # self.Pmax_A2W35 = np.array(pmax_val)
+        self.Pmax_A2W35 = np.array(pmax_val)
 
     def update(self, Te, Tc):
         """
@@ -69,7 +65,7 @@ class HeatpumpNTANew():
         p_max = self.p_coeff[0] + self.p_coeff[1] * Te + self.p_coeff[2] * Tc
 
         # COP defrost correction
-        frost_factor = frost_factor_8800([Te]) # input = list or 1-dim array
+        frost_factor = frost_factor_8800([Te])  # input = list or 1-dim array
         cop *= frost_factor
         p_max *= frost_factor
         p_max = np.clip(p_max, 0, self.Pmax)
@@ -78,15 +74,13 @@ class HeatpumpNTANew():
 
 
 class HybridHPNew:
-    """class for modelling a Hybrid Heating system with a heat pump and a gas boiler.
-
-    """
+    """class for modelling a Hybrid Heating system with a heat pump and a gas boiler."""
     def __init__(self, boiler, heat_pump):
         self.boiler = boiler
         self.heat_pump = heat_pump
 
     def update(self, power_requested, Te, Tc):
-        self.heat_pump.cop= self.heat_pump.update(Te, Tc)[0]
+        self.heat_pump.cop = self.heat_pump.update(Te, Tc)[0]
         self.heat_pump.power = self.heat_pump.update(Te, Tc)[1]
         self.heat_pump.power = self.heat_pump.power * 1000
         self.boiler.power = self.boiler.update(power_requested - self.heat_pump.power)
@@ -116,12 +110,12 @@ if __name__ == "__main__":
     print(f"COP: {c}, Pmax: {p}")
 
     Tin_space = np.linspace(-20, 20, 41, endpoint=True)
-    COP_35 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space +nta.c_coeff[2]*35.0
-    COP_45 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space +nta.c_coeff[2]*45.0
-    COP_55 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space +nta.c_coeff[2]*55.0
+    COP_35 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space + nta.c_coeff[2]*35.0
+    COP_45 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space + nta.c_coeff[2]*45.0
+    COP_55 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space + nta.c_coeff[2]*55.0
 
     P_35 = nta.p_coeff[0] + nta.p_coeff[1]*Tin_space + nta.p_coeff[2]*35.0
-    P_45 = nta.p_coeff[0] + nta.p_coeff[1]*Tin_space+ nta.p_coeff[2]*45.0
+    P_45 = nta.p_coeff[0] + nta.p_coeff[1]*Tin_space + nta.p_coeff[2]*45.0
     P_55 = nta.p_coeff[0] + nta.p_coeff[1]*Tin_space + nta.p_coeff[2]*55.0
 
     # COP defrost correction
