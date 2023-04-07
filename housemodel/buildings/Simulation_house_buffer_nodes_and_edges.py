@@ -46,6 +46,7 @@ from pathlib import Path
 CONFIGDIR = Path(__file__).parent.parent.parent.absolute()
 
 
+# this script contains experimental calculations and can run with errors
 def main(show=False, xl=False):
     # read configuration file into dictionary
     param = load_config(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
@@ -112,13 +113,13 @@ def main(show=False, xl=False):
     flows = []
     for n in range(len(param['flows'])):
         flows.append(Flow())
-        flows[n].flow_from_dict(param['flows'][n])
-        flows[n].make_Fmatrix(rank=total.k_mat.shape[0])
+        flows[n].from_dict(param['flows'][n])
+        flows[n].make_df_matrix(rank=total.k_mat.shape[0])
 
     # combine F-matrices into matrix Fall
-    f_mat_all = np.zeros_like(flows[0].f_mat)
+    f_mat_all = np.zeros_like(flows[0].df_mat)
     for n in range(len(flows)):
-        f_mat_all += flows[n].f_mat
+        f_mat_all += flows[n].df_mat
     # f_mat_all = np.add(flows[0].f_mat, flows[1].f_mat)
     print(f_mat_all, "\n")
 
