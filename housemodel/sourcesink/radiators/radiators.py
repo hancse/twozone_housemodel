@@ -101,7 +101,7 @@ def plot_corr_fact():
 
 class Radiator:
     """ class for general Radiator object."""
-    def __init__(self, name="DefaultRadiator", begin_tag=0, exp_rad=1.3):
+    def __init__(self, name="DefaultRadiator", exp_rad=1.3):
         self.name = name
         # self.begin_tag = begin_tag
         # self.num_nodes = 1
@@ -156,7 +156,7 @@ class Radiator:
     def from_dict(cls, d):
         """ classmethod to enable constructing an instance from configuration file.
         """
-        return cls(name=d["name"], begin_tag=d["begin_tag"], exp_rad=d["exp_rad"])
+        return cls(name=d["name"], exp_rad=d["exp_rad"])
 
     def calculate_radiator_properties(self):
         self.LMTD_0 = LMTD_radiator(self.T_sup_zero, self.T_ret_zero, self.T_amb_zero)

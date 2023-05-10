@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Nov 10 12:05:19 2020
-
 @author: PvK, MvdB
 """
 
@@ -44,7 +42,8 @@ from pathlib import Path
 import logging
 
 logging.basicConfig()
-logger = logging.getLogger('BUF')
+logger = logging.getLogger('HBNE')
+# logger.setLevel(logging.DEBUG)
 logger.setLevel(logging.INFO)
 
 CONFIGDIR = Path(__file__).parent.absolute()

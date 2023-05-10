@@ -24,7 +24,7 @@ def AMTD(Ts, Tr, Ti):
 
     result = (Ts+Tr-2*Ti) / 2
     if scalar_input:
-        print(f"AMTD: {result.item(0)}")
+        # print(f"AMTD: {result.item(0)}")
         return result.item(0)
     return result
 
@@ -43,7 +43,7 @@ def GMTD(Ts, Tr, Ti):
 
     result = np.sqrt(Ts-Ti) * np.sqrt(Tr-Ti)
     if scalar_input:
-        print(f"GMTD: {result.item(0)}")
+        # print(f"GMTD: {result.item(0)}")
         return result.item(0)
     return result
 
@@ -62,6 +62,6 @@ def LMTD(Ts, Tr, Ti):
 
     result = (Ts-Tr) / np.log((Ts-Ti)/(Tr-Ti))
     if scalar_input:
-        print(f"LMTD: {result.item(0)}")
+        # print(f"LMTD: {result.item(0)}")
         return result.item(0)
     return result
