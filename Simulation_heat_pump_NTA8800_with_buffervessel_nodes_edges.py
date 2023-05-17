@@ -27,12 +27,13 @@ from housemodel.basics.flows import Flow
 from housemodel.basics.totalsystem import TotalSystem
 
 from housemodel.controls.ivPID.PID import PID
-from housemodel.sourcesink.heatpumps.Heatpump_HM import Heatpump_NTA
+from housemodel.sourcesink.heatpumps.heatpumpnew import HeatpumpNTANew
 from housemodel.controls.heating_curves import hyst, outdoor_reset
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
 
 import housemodel.tools.radiator_performance.ReturnTemperature as Tr
 # import housemodel.tools.ReturnTemperature as Tr
+from housemodel.sourcesink.radiators.radiators import Radiator
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -277,8 +278,8 @@ def main(show=False, xl=False):
     pid.setWindup(controllers[0]["maximum"] / control_interval)
 
     # Heat pump initialization
-    nta = Heatpump_NTA()
-    nta.Pmax = 8
+    nta = HeatpumpNTANew()
+    nta.Pmax = 8           # kW
     nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
 
     nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
@@ -290,7 +291,26 @@ def main(show=False, xl=False):
     cop_hp = np.zeros(len(t))
 
     # define hysteresis object for heat pump
-    hp_hyst = hyst(dead_band=0.5, state=True)
+    # hp_hyst = hyst(dead_band=0.5, state=True)
+
+    # Radiator object
+    deg = u"\u00b0"     # degree sign
+    radiator = Radiator(name="Rad", exp_rad=1.3)
+    radiator.T_supply = TBuffervessel0[0]
+
+    radiator.T_amb = Tair[0]
+    radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
+
+    radiator.Km = 12.5
+    radiator.flow.set_flow_rate(0.040e-3)  # m^3/s
+    print(f"Heat rate: {radiator.flow.heat_rate} [W/K] \n")
+
+    radiator.update(radiator.func_rad_lmtd)
+    print(f"Q_dot: {radiator.q_dot}, T_return: {radiator.T_return}")
+    print(f"radiator to room: {radiator.flow.heat_rate * (TBuffervessel0[0] - radiator.T_return)} [W]")
+    print(f"radiator to room: {radiator.Km * np.power(radiator.get_lmtd(), radiator.exp_rad)} [W] with Delta T_LMTD = {radiator.get_lmtd()}")
+    print(f"top-bottom: {radiator.flow.heat_rate * (TBuffervessel0[0] - TBuffervessel7[0])} [W]")
+    print(f"back-to-bottom: {radiator.flow.heat_rate * (radiator.T_return - TBuffervessel7[0])} [W]")
 
     # inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
     inputs = (total, Q_vectors, control_interval)
@@ -327,22 +347,28 @@ def main(show=False, xl=False):
         cop_hp[i], p_hp = nta.update(Toutdoor.values[i], water_temp[i])
 
         # incorporate hysteresis to control
-        p_hp = hp_hyst.update(Tair[i], SP.values[i], p_hp)
-        if Qinst < 2500:
-            Qinst = 0
+        # p_hp = hp_hyst.update(Tair[i], SP.values[i], p_hp)
+        # if Qinst < 2500:
+            # Qinst = 0
 
-        Tr_GMTD = Tr.Tr_GMTD(Qinst / 1000, 80, 20, 5, 80, 60, 20, 1.33)
+        # Tr_GMTD = Tr.Tr_GMTD(Qinst / 1000, 80, 20, 5, 80, 60, 20, 1.33)
+
+        radiator.T_supply = TBuffervessel0[i]
+        radiator.T_amb = Tair[i]
+        radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
+        radiator.update(radiator.func_rad_lmtd)
 
         # update q_vector
         air_node = total.find_tag_from_node_label("air")
         Q_vectors[air_node, i] += Qinst
 
-        toplevel = TBuffervessel0[i]
-        total.flows[1].set_flow_rate(np.clip((80 - toplevel) * 1.0e-6, 0, 50.0e-6))
-        total.flows[0].set_flow_rate(np.clip(Qinst / ((toplevel - Tr_GMTD) * total.flows[0].cp), 0, 50.0e-6))
-
         # mdots = np.clip((80 - toplevel) * 0.001, 0, 0.05)
         # mdotd = np.clip(Qinst / ((TBuffervessel0[i] - Tr_GMTD) * 4180), 0, 0.05)
+
+        # supply flow
+        total.flows[1].set_flow_rate(nta.flow.flow_rate)  # Flow object????
+        # demand flow
+        total.flows[0].set_flow_rate(radiator.flow.flow_rate)
 
         # combine F-matrices into matrix total.f_mat
         total.f_mat = np.zeros_like(total.flows[0].df_mat)
@@ -363,7 +389,7 @@ def main(show=False, xl=False):
 
         Tair[i + 1] = result.y[0, -1]
         Twall[i + 1] = result.y[1, -1]
-        Treturn[i] = Tr_GMTD
+        Treturn[i] = radiator.T_return
         Power[i] = Qinst
         TBuffervessel0[i + 1] = result.y[2, -1]
         TBuffervessel1[i + 1] = result.y[3, -1]

@@ -7,6 +7,7 @@ from scipy import interpolate
 from scipy.optimize import root
 
 from housemodel.basics.components import (FixedNode)
+from housemodel.basics.flows import Flow
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -125,16 +126,17 @@ class Radiator:
         # self.k_int_mat = None
         # self.k_ext_mat = None
 
-        self.q_vec = None  # np.zeros(self.num_nodes, 1)
+        # self.q_vec = None    # np.zeros(self.num_nodes, 1)
         # self.f_mat = None  # np.zeros(self.num_nodes, self.num_nodes)
 
-        self.rho = 1000      # [kg/m^3]
-        self.cp = 4190  # [J/(K kg)]
-        self.flow = None     # [m^3/s]
-        self.F_rad = None     # heat flow in [W/K] = flow * rho * c_w
+        # self.rho = 1000      # [kg/m^3]     replaced by self.flow.rho
+        # self.cp = 4190       # [J/(K kg)]   replaced by self.flow.cp
+        # self.flow = None     # [m^3/s]      replaced by self.flow.flow_rate
+        # self.F_rad = None    # heat flow in [W/K] = flow * rho * c_w  replaced by self.flow.heat_rate
         self.T_supply = None
         self.T_return = None
         self.T_amb = 20
+        self.flow = Flow()  # default Flow object
 
         # model radiator as in EN442: Q = Km * LMTD ** n
         self.Km = None
@@ -161,8 +163,8 @@ class Radiator:
     def calculate_radiator_properties(self):
         self.LMTD_0 = LMTD_radiator(self.T_sup_zero, self.T_ret_zero, self.T_amb_zero)
         print(f"LMTD_0 = {self.LMTD_0} \u00b0C")
-        self.m_zero = (self.q_zero) / (self.cp * (self.T_sup_zero - self.T_ret_zero))
-        print(f"mass_flow_zero: {self.m_zero:6f} [kg/s] ({self.m_zero * (1.0e6/self.rho):3f} ml/s)")
+        self.m_zero = (self.q_zero) / (self.flow.cp * (self.T_sup_zero - self.T_ret_zero))
+        print(f"mass_flow_zero: {self.m_zero:6f} [kg/s] ({self.m_zero * (1.0e6/self.flow.density):3f} ml/s)")
         self.Km = np.exp(np.log(self.q_zero) - (self.exp_rad*np.log(self.LMTD_0)))
         print(f"Km = {self.Km}")
 
@@ -198,14 +200,14 @@ class Radiator:
         self.__gmtd = GMTD_radiator(T_feed=self.T_supply, T_return=x[1], T_amb=self.T_amb)
         # set of nonlinear functions for root finding
         f = [x[0] - (self.Km * self.__gmtd ** self.exp_rad),
-             x[0] - self.F_rad * (self.T_supply - x[1])]
+             x[0] - self.flow.heat_rate * (self.T_supply - x[1])]
 
         DeltaT_feed = self.T_supply - self.T_amb
         dTdt = -1.0 * self.Km * 0.5*self.exp_rad * np.float_power(DeltaT_feed, (0.5*self.exp_rad))
         dTdt *= np.float_power(x[1] - self.T_amb, (0.5*self.exp_rad) - 1)
 
         df = np.array([[1.0, dTdt],
-                       [1.0, self.F_rad]])
+                       [1.0, self.flow.heat_rate]])
         return f, df
 
     def func_rad_lmtd(self, x):
@@ -221,7 +223,7 @@ class Radiator:
         self.__lmtd = LMTD_radiator(T_feed=self.T_supply, T_return=x[1], T_amb=20.0)
         # set of nonlinear functions for root finding
         f = [x[0] - (self.Km * self.__lmtd ** self.exp_rad),
-             x[0] - self.F_rad * (self.T_supply - x[1])]
+             x[0] - self.flow.heat_rate * (self.T_supply - x[1])]
 
         h1 = self.Km * self.exp_rad
         h1 *= self.__lmtd ** (self.exp_rad - 1.0)
@@ -233,7 +235,7 @@ class Radiator:
         dTdt = -(h1 * h2) / (denominator * denominator)
 
         df = np.array([[1.0, dTdt],
-                       [1.0, self.F_rad]])
+                       [1.0, self.flow.heat_rate]])
         return f, df
 
     def update(self, func):
@@ -261,18 +263,17 @@ if __name__ == "__main__":
     radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
 
     radiator.Km = 12.5
-    radiator.flow = 0.010e-3  # kg/s    # 0.03 l/s
-    radiator.F_rad = radiator.flow * radiator.rho * radiator.cp
-    print(f"Frad: {radiator.F_rad} [W/K]")
+    radiator.flow.set_flow_rate(0.010e-3)  # m^3/s use SETTER to include update of heat-rate!!!!
+    print(f"Heat rate: {radiator.flow.heat_rate} [W/K]")
 
     radiator.update(radiator.func_rad_lmtd)
     print(f"Q_dot: {radiator.q_dot}, T_return: {radiator.T_return}")
     print(f"LMTD {radiator.get_lmtd()}")
     print(f"GMTD {radiator.get_gmtd()}")
-    print(f"radiator to room: {radiator.F_rad * (radiator.T_supply - radiator.T_return)} [W]")
+    print(f"radiator to room: {radiator.flow.heat_rate * (radiator.T_supply - radiator.T_return)} [W]")
     print(f"radiator to room: {radiator.Km * np.power(radiator.get_lmtd(), radiator.exp_rad)} [W] with Delta t = {radiator.get_lmtd()}")
-    print(f"top-bottom: {radiator.F_rad * (radiator.T_supply - T_bottom)} [W]")
-    print(f"back-to-bottom: {radiator.F_rad * (radiator.T_return - T_bottom)} [W]")
+    print(f"top-bottom: {radiator.flow.heat_rate * (radiator.T_supply - T_bottom)} [W]")
+    print(f"back-to-bottom: {radiator.flow.heat_rate * (radiator.T_return - T_bottom)} [W]")
 
     # plot_corr_fact()
 

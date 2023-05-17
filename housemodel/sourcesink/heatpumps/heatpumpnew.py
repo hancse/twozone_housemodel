@@ -17,7 +17,7 @@ from housemodel.basics.flows import Flow
 matplotlib.use('Qt5Agg')
 
 
-class HeatpumpNTANew():
+class HeatpumpNTANew:
     """class for modelling PID-controlled heatpump."""
     def __init__(self, name="NTA"):
         self.name = name
@@ -32,7 +32,7 @@ class HeatpumpNTANew():
         self.COP_A2W35 = None
         self.Pmax_A2W35 = None
         self.Pmax = None
-        self.flow = None
+        self.flow = Flow()  # Flow object!
 
     @classmethod
     def from_dict(cls, d):

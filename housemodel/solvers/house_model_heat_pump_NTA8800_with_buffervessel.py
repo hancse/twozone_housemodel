@@ -218,9 +218,11 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         result = solve_ivp(model_radiator_m, ts, y0,
                         method='RK45', args=inputs,
                         first_step=control_interval)
+
         toplevel = TBuffervessel1[i]
         mdots = np.clip((80 - toplevel)*0.001, 0, 0.05)
         mdotd = np.clip(Qinst / ((TBuffervessel1[i]-Tr_GMTD)*4180), 0, 0.05)
+
         inputs_buffervessel = (0.12, 0.196, 0.196, 10, 80, Tr_GMTD, 4190, 0.644, mdots, mdotd, 150 / 8, 1 / 8)
         result_buffervessel = solve_ivp(model_stratified_buffervessel, ts, y0buffervessel, method='RK45', args=inputs_buffervessel,
                         first_step=control_interval)
