@@ -18,13 +18,13 @@
 
 # n     : [-]  Emprical radiator constant
 
-from housemodel.tools import TemperatureDifference as TD
+import housemodel.tools.Old_TemperatureDifference as TD
 import math
 
 def Tr_AMTD(q,Ts,Ti,q_o,Ts_o,Tr_o,Ti_o,n):
 # Calculates the return temperature from the radiator unit - based on AMTD
 
-    AMTD_o=TD.AMTD(Ts_o,Tr_o,Ti_o)
+    AMTD_o = TD.AMTD(Ts_o,Tr_o,Ti_o)
 
     Tr=2*(Ti+(AMTD_o*(q/q_o)**(1/n)))-Ts
 

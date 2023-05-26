@@ -1,4 +1,4 @@
-from Heatpump_HM import Heatpump_NTA
+from housemodel.sourcesink.heatpumps.Heatpump_HM import Heatpump_NTA
 from housemodel.sourcesink.boilers.boilers_without_PID import GasBoiler
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
 

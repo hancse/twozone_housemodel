@@ -26,18 +26,20 @@
 #dependencies    : matplotlib, numpy, scipy
 #==============================================================================
 
-import PID
+from housemodel.controls.ivPID import PID
 import time
 import matplotlib.pyplot as plt
 import numpy as np
 #from scipy.interpolate import spline
 from scipy.interpolate import BSpline, make_interp_spline #  Switched to BSpline
 
-def test_pid(P = 0.2,  I = 0.0, D= 0.0, L=100):
-    """Self-test PID class
 
-    .. note::
-        ...
+def test_pid(P = 0.2,  I = 0.0, D= 0.0, L=100):
+    """Self-test PID class.
+
+    .. code-block:: python
+
+        ---
         for i in range(1, END):
             pid.update(feedback)
             output = pid.output
@@ -47,6 +49,7 @@ def test_pid(P = 0.2,  I = 0.0, D= 0.0, L=100):
                 pid.SetPoint = 1
             time.sleep(0.02)
         ---
+
     """
     pid = PID.PID(P, I, D)
 

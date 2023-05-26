@@ -101,15 +101,18 @@ def get_hourly_knmi_weather_from_api(stations: str = '260', vars_to_get: str = '
     Note: for each date, the weather data is given for the hourly interval given (01-24)
 
     Returns:
-        (pandas Dataframe):  data columns:  # STN  YYYYMMDD     HH      T   T10N     TD.
-                                            # STN  YYYYMMDD     HH      SQ  Q
-        list (str):          explanatory header lines from api call
+        tuple containing
+
+        - (pandas Dataframe):  data columns:  # STN  YYYYMMDD     HH      T   T10N     TD.
+                                              # STN  YYYYMMDD     HH      SQ  Q
+        - list (str):          explanatory header lines from api call
 
     Refs:
         - https://www.knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script
         - https://daggegevens.knmi.nl/klimatologie/uurgegevens
         - https://stackoverflow.com/questions/2018026/what-are-the-differences-between-the-urllib-urllib2-urllib3-and-requests-modul
         - https://www.geeksforgeeks.org/get-post-requests-using-python/
+
     """
 
     # url knmi hourly data
@@ -274,7 +277,7 @@ def calculate_degree_days(mode, temperature_base, weather_range):
     and then converts these to degree days. This is done for either the NEN 5060 standard year with nen_weather_range
     as argument or for the KNMI weather data with knmi_weather_range.
 
-    Parameters:
+    Args:
         mode              (str):    Mode for which degree days are calculated, either "heating" or "cooling".
         temperature_base  (float):  Base temperature to which the cooling or heating is compared (°C).
         weather_range     (str):    Selection of either NEN data with nen_weather_range or KNMI with knmi_weather_range.
@@ -342,27 +345,32 @@ def KNMIdatehour2datetime(knmi_data):
 
 
 def NENdatehour2datetime(nen_df: pd.DataFrame):
-    """Convert the NEN date and hour columns to a single datetime column.
+    """
+    Convert the NEN date and hour columns to a single datetime column.
 
     The NEN datetime information is expressed in the first four columns of the NEN5060-2018 spreadsheet,
-    with names: 'jaar', 'MONTH(datum)', 'DAY(datum)', 'HOUR(uur)'.
+    with names: 'jaar', 'MONTH(datum)', 'DAY(datum)', 'HOUR(uur)'
     The hour numbering follows the KNMI convention, running from 1-24 rather than from 0-23.
     KNMI uses NAIVE UTC timestamps. See: https://www.knmidata.nl/data-services/knmi-producten-overzicht
+
     Remedy:
-    - construct a NAIVE UTC Pandas DateTimeIndex from the first four columns in the spreadsheet
-       Thereby:
-       - subtracting one hour to convert from KNMI convention (backward average)
-         to forward average needed for modelling with ODE solver
-       Thus:
+      - construct a NAIVE UTC Pandas DateTimeIndex from the first four columns in the spreadsheet
+
+    Thereby:
+      - subtracting one hour to convert from KNMI convention (backward average)
+        to forward average needed for modelling with ODE solver
+
+    Thus:
        2001 1 1 1 -> 2001-01-01 01:00:00 (NAIVE UTC, backward)
        2001-01-01 01:00:00 -> 2001-01-01 00:00:00 (NAIVE UTC, forward)
        In the KNMI tables, using the UTC timestamp at the END of the interval,
        this occurs at YYYYMMDD=20001231 and H=24, averageing the weather from
        2000-12-31 23:00:00 to 2001-01-01 00:00:00
        a "forward looking" UTC timestamp thus becomes 2000-12-31 23:00:00
-    - add timezone-awareness to the forward looking NAIVE UTC timestamp
+       - add timezone-awareness to the forward looking NAIVE UTC timestamp
        2000-12-31 23:00:00 -> 2000-12-31 23:00:00 +00:00 (AWARE UTC)
-    - convert to local time in timezone "Europe/Amsterdam"
+       - convert to local time in timezone "Europe/Amsterdam"
+
        2000-12-31 23:00:00 +00:00 -> 2001-01-01 00:00:00 +01:00 (AWARE CET)
        The last step also covers conversion to DST (CEST, +02:00) in the summer period for the AWARE local time.
 
@@ -371,6 +379,7 @@ def NENdatehour2datetime(nen_df: pd.DataFrame):
 
     Returns:
         (Pandas df):  NEN5060 weather dataframe.
+
     """
     # define timezones
     utz = timezone('UTC')

@@ -1,23 +1,23 @@
 """
-A certain Python style gives the modules (*.py files) names of a profession:
+A certain Python style gives the modules (.py files) names of a profession:
 in this style, the module that encapsulates the parameter configuration can be called
 configurator.py
 the module performs the following tasks:
+
 1. read the input parameters for the model simulation from a configuration file
-   "Pythonic" configuration file types are *.ini, *.yml, *.toml and *.json
-   The *.yml can cope with array parameters. This makes it more useful than the *.ini format
-   The *.json format can also represent arrays. It is used when the input data comes from a database.
+   "Pythonic" configuration file types are .ini, .yml, .toml and .json
+   The .yml can cope with array parameters. This makes it more useful than the .ini format
+   The .json format can also represent arrays. It is used when the input data comes from a database.
 2. convert the input parameters to a dict
 3. optionally, convert the dict to a dataclass object
 4. get additional parameters from NEN5060
 5. perform calculations to prepare for ODE integration
 """
-
 import yaml
 
 """
 The predefined variables are now defined in a configuration file
-All parameters read from configuration (*.yml) file 
+All parameters read from configuration (.yml) file 
 """
 
 def load_config(config_name: str):

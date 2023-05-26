@@ -216,7 +216,7 @@ class TotalSystem:
         self.tag_list = [t for tag in [p.tag_list for p in self.parts] for t in tag]
 
     def merge_edge_lists(self, lol):
-        """merge internal edge lists from parts and edge list read from config *.yaml file.
+        """merge internal edge lists from parts and edge list read from config .yaml file.
         since the parts are already sorted on parts.tag_list[0]
         See: https://www.geeksforgeeks.org/python-ways-to-concatenate-two-lists
         See: https://stackoverflow.com/questions/18114415/how-do-i-concatenate-3-lists-using-a-list-comprehension

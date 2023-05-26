@@ -1,5 +1,5 @@
 """
-house model base on 2R2C model with a buffervessel and a radiator
+house model base on 2R2C model with a buffervessel and a radiator.
 """
 
 from scipy.integrate import solve_ivp       # ODE solver
@@ -9,8 +9,8 @@ from housemodel.controls.ivPID.PID import PID
 from housemodel.sourcesink.heatpumps.Heating_system import HeatingSystem
 from housemodel.sourcesink.boilers.boilers_without_PID import GasBoiler
 
-def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
-                     control_interval):
+
+def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector, control_interval):
     """model function for scipy.integrate.odeint.
 
     Args:
@@ -44,6 +44,7 @@ def model_radiator_m(t, x, cap_mat_inv, cond_mat, q_vector,
     dTdt = np.dot(cap_mat_inv, dTdt)
 
     return dTdt.flatten().tolist()
+
 
 def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
                      SP_T, time_sim, control_interval, control_parameters):
@@ -95,9 +96,6 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
 
     hs = HeatingSystem(myboiler, pid)
 
-
-
-
     inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
     # Note: the algorithm can take an initial step
     # larger than the time between two elements of the "t" array
@@ -128,7 +126,6 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         hs.controller.update(Tair[i], t[i])
         q_vector[2, i] = hs.controller.output
 
-
         ts = [t[i], t[i+1]]
         result = solve_ivp(model_radiator_m, ts, y0,
                         method='RK45', args=inputs,
@@ -139,7 +136,6 @@ def house_radiator_m(cap_mat_inv, cond_mat, q_vector,
         Tradiator[i+1] = result.y[2, -1]
 
         y0 = result.y[:, -1]
-
 
     return t, Tair, Twall, Tradiator, q_vector[2,:]/1000
 

@@ -3,9 +3,9 @@ import numpy as np
 
 def LMTD(T_hot_in, T_hot_out, T_cold_in, T_cold_out, flowpattern='parallel', corrfact=1.0):
     """calculates log mean temperature difference
-
     representative value in case of varying temperature difference along heat exchanger
-    https://checalc.com/solved/LMTD_Chart.html
+    https://checalc.com/solved/LMTD_Chart.html.
+
     Args:
         T_hot_in:     entry temperature hot fluid or gas
         T_hot_out:    exit temperature hot fluid or gas
@@ -18,6 +18,7 @@ def LMTD(T_hot_in, T_hot_out, T_cold_in, T_cold_out, flowpattern='parallel', cor
                               http://fchart.com/ees/heat_transfer_library/heat_exchangers/hs2000.htm
                               https://yjresources.files.wordpress.com/2009/05/4-3-lmtd-with-tutorial.pdf
                               https://www.engineeringtoolbox.com/arithmetic-logarithmic-mean-temperature-d_436.html
+
     Returns:
         LMTD temperature
         ( Delta T 1 - Delta T 2 ) / ln (Delta t 1 / Delta T 2)
@@ -46,7 +47,7 @@ def LMTD(T_hot_in, T_hot_out, T_cold_in, T_cold_out, flowpattern='parallel', cor
 
 
 def calc_log_mean_diff_rad(Tinlet, Treturn, Tamb):
-    """ application of gneral heat exchanger formula to hydronic radiator
+    """ application of gneral heat exchanger formula to hydronic radiator.
 
     Args:
         Tinlet:  inlet temperature of radiator

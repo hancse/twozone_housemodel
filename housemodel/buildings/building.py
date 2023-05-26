@@ -63,12 +63,11 @@ class Building:
             logging.error(f" Error: cap_list empty")
 
     def boundaries_from_dict(self, lod):
-        """generate Fixed Node objects from configuration file.
-
-        choose "outdoor" node as ambient for Building class
+        """generate Fixed Node objects from configuration file
+        choose "outdoor" node as ambient for Building class.
 
         Args:
-            lod: list-of dicts read from "boundaries" section in *.yaml configuration file
+            lod: list-of dicts read from "boundaries" section in .yaml configuration file
 
         """
         for n in range(len(lod)):

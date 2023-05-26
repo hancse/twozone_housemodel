@@ -21,9 +21,9 @@ logging.basicConfig(level="INFO")
 
 def LMTD_radiator(T_feed, T_return, T_amb):
     """calculates log mean temperature difference
-
     representative value in case of varying temperature difference along heat exchanger
-    https://checalc.com/solved/LMTD_Chart.html
+    https://checalc.com/solved/LMTD_Chart.html.
+
     Args:
         T_feed:     entry temperature hot fluid or gas
         T_return:   exit temperature hot fluid or gas
@@ -47,7 +47,7 @@ def LMTD_radiator(T_feed, T_return, T_amb):
 
 
 def GMTD_radiator(T_feed, T_return, T_amb):
-    """calculates geometric mean temperature difference
+    """calculates geometric mean temperature difference.
 
     Args:
         T_feed:     entry temperature hot fluid or gas
