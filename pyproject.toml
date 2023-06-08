@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "housemodel"
+version = "0.0.1"
+authors = [
+  { name="Paul J.M. van Kan", email="paul.vankan@han.nl" },
+]
+description = "HAN Open Source House Model"
+readme = "README.rst"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+	"License :: OSI Approved :: MIT License",
+	"Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/hancse/twozone_housemodel"
+"Bug Tracker" = "https://github.com/hancse/twozone_housemodel"
+

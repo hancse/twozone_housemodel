@@ -1,0 +1,30 @@
+name: housemodel
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pvlib::pvlib
+  - matplotlib
+  - scipy
+  - pandas
+  - openpyxl
+  - pyyaml
+  - holidays
+  - scikit-learn-intelex
+  - pytorch::pytorch
+  - pytest
+  - colored-traceback
+  - networkx
+  - requests
+  - tqdm
+  - simple-pid
+  - jupyter
+  - sphinx
+  - build
+  - twine
+  - myst-parser
+  - pip
+  - pip:
+    - solarenergy
+    - sphinx-rtd-theme
