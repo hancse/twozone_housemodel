@@ -1,3 +1,4 @@
+==========
 housemodel
 ==========
 
@@ -6,69 +7,88 @@ housemodel
 A Python package for modelling the thermal behaviour of a building with HVAC installations.
 The code is being developed in the Research Group Balanced Energy Systems (BES) at HAN University of Applied Sciences,
 The ``housemodel`` package can be used under the conditions of the GPLv3 license.
-|vspace| |br|
+
+Features
+--------
+
+* Basic classes for thermal network representation of buildings.
+* Additional classes for HVAC installations.
+* Conductive and convective heat transfer.
+* Matrix formalism for dynamic evaluation of temperature distributions.
+* Heat rate balance equations including solar irradiance and human presence.
+* ODE solver evaluating building dynamics and HVAC control.
+
 
 Installation
 ------------
 
-This package can be installed using ``pip install housemodel``. This should
+To use the package `edumud`, install it in a Python environment:
+
+.. code-block:: console
+
+    (env) pip install housemodel
+
+or
+
+.. code-block:: console
+
+    (env) conda install housemodel
+
+This should
 automatically install the dependency packages ``matplotlib`` , ``scipy``
 and ``pandas``, if they haven't been installed already. If you are
 installing by hand, ensure that these packages are installed as well.
-|vspace| |br|
 
 Example use
 -----------
 
 .. code:: python
 
-   """Example Python script using the EduMUD module."""
+   """Example Python script using the housemodel package."""
 
-   import numpy as np
+   from housemodel.buildings.building import Building
 
-   from edumud.constants import *
-   from edumud.electrolytes import Electrolyte
-   from edumud.particles import Particle
-   from edumud.file_utils import load_config
+    # create Building object
+    h = Building("MyHouse")
+    section = param["Building"]
+    # read nodes attribute from dictionary and create capacity matrix
+    h.nodes_from_dict(section["nodes"])
+    h.fill_c_inv()
+    h.edges_from_dict(section["edges"])
+    # read FixedNode objects (external nodes);
+    h.boundaries_from_dict(param["boundaries"])  # function selects "outdoor" as ambient
+    h.make_k_ext_and_add_ambient()  # initialize k_ext_mat and add diagonal elements
 
-   import matplotlib
-   import matplotlib.pyplot as plt
-   from pathlib import Path
+    b = StratifiedBufferNew.from_dict(param["Buffer"])
+    b.generate_nodes()
+    b.fill_c_inv()
+    b.generate_edges()
+    b.generate_ambient()
+    b.make_k_ext_and_add_ambient()
 
-   matplotlib.use("Qt5Agg")
-   DATADIR = Path(__file__).parent
+    total = TotalSystem("HouseWithBuffervessel", [h, b])
+    total.sort_parts()
+    # compose c-1-matrix from parts and merge tag_lists
+    total.merge_c_inv()
+    total.merge_tag_lists()
+    ...
 
-   el = Electrolyte(str(DATADIR / "cegm.yaml"))
-   el.calc_kappa()
 
-   param = load_config(str(DATADIR / "cegm.yaml"))
-   part = Particle.from_dict(param["particles"][0])
+housemodel pages
+----------------
 
-   zeta_zero = BOLTZ_T / (el.z_plus * E_CHARGE)
-   print(f"zeta_zero: {1000 * zeta_zero} mV")
-   psi_zero = 0.5 * zeta_zero
-
-|vspace| |br|
-
-EduMUD pages
-------------
-
--  `Pypi <https://pypi.org/project/edumud/>`__: EduMUD Python package
--  `BitBucket <https://bitbucket.org/deltares/edumud/>`__: EduMUD source
+-  `PyPi <https://pypi.org/project/housemodel/>`__: housemodel Python package
+-  `Github <https://github.com/hancse/twozone_housemodel>`__: housemodel source
    code
--  `ReadTheDocs <https://edumud.readthedocs.io/>`__: EduMUD
+-  `ReadTheDocs <https://housemodel.readthedocs.io/>`__: housemodel
    documentation
-   
-|vspace| |br|
 
 Author and license
 ------------------
 
 -  Author: Paul J.M. van Kan
--  Contact: http://vankanscientific.nl
+-  Contact: paul.vankan@han.nl
 -  License: `GPLv3 <https://www.gnu.org/licenses/gpl.html>`__
-
-|vspace| |br|
 
 References
 ----------
@@ -76,16 +96,21 @@ References
 -  Data, API key and API documentation can be obtained from
    `Meteoserver.nl <https://meteoserver.nl/>`__
 
-.. |PyPI| image:: https://img.shields.io/pypi/v/edumud?
-.. |PyPI - Downloads| image:: https://img.shields.io/pypi/dm/edumud
-.. |Documentation Status| image:: https://readthedocs.org/projects/edumud/badge/?version=latest
+.. math::
+
+  W^{3\beta}_{\delta_1 \rho_1 \sigma_2} \approx U^{3\beta}_{\delta_1 \rho_1}
+
+.. |PyPi| image:: https://img.shields.io/pypi/v/housemodel
+   :alt: PyPI
+
+.. |PyPI - Downloads| image:: https://img.shields.io/pypi/dm/housemodel
+   :alt: PyPI - Downloads
+
+.. |PyPi Status| image:: https://img.shields.io/pypi/status/housemodel
+   :alt: PyPI - Status
+
+.. |Documentation Status| image:: https://readthedocs.org/projects/housemodel/badge/?version=latest
    :target: https://edumud.readthedocs.io/en/latest/?badge=latest
-.. |PyPI - License| image:: https://img.shields.io/pypi/l/edumud?
 
-.. |vspace| raw:: latex
-
-   \vspace{5mm}
-
-.. |br| raw:: html
-
-   <br />
+.. |PyPI - License| image:: https://img.shields.io/pypi/l/housemodel
+   :alt: PyPI - License

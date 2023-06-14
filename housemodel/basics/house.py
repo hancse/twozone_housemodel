@@ -17,6 +17,8 @@ logging.basicConfig(level="INFO")
 
 
 class House:
+    """ class for abstract representation of building topology with nodes and edges.
+    """
     def __init__(self, name=""):
         self.name = name
         self.num_nodes = 0
@@ -41,7 +43,8 @@ class House:
         logging.info(f" House object {self.name} created")
 
     def nodes_from_dict(self, lod: list):
-        """initializes "nodes" attribute with data from yaml file
+        """initializes "nodes" attribute with data from yaml file.
+
            makes a list from tags belonging to the House object
 
         Args:
