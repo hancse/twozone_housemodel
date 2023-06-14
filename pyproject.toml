@@ -1,10 +1,13 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["housemodel"]
 
 [project]
 name = "housemodel"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Paul J.M. van Kan", email="paul.vankan@han.nl" },
 ]
@@ -14,7 +17,7 @@ readme = "README.rst"
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
-	"License :: OSI Approved :: MIT License",
+	"License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
 	"Operating System :: OS Independent",
 ]
 

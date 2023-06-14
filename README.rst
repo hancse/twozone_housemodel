@@ -2,7 +2,7 @@
 housemodel
 ==========
 
-|PyPI| |PyPI - Downloads| |Documentation Status| |PyPI - License|
+|PyPI| |Documentation Status| |PyPI - License|
 
 A Python package for modelling the thermal behaviour of a building with HVAC installations.
 The code is being developed in the Research Group Balanced Energy Systems (BES) at HAN University of Applied Sciences,
@@ -22,7 +22,7 @@ Features
 Installation
 ------------
 
-To use the package `edumud`, install it in a Python environment:
+To use the package `housemodel`, install it in a Python environment:
 
 .. code-block:: console
 
@@ -93,12 +93,7 @@ Author and license
 References
 ----------
 
--  Data, API key and API documentation can be obtained from
-   `Meteoserver.nl <https://meteoserver.nl/>`__
-
-.. math::
-
-  W^{3\beta}_{\delta_1 \rho_1 \sigma_2} \approx U^{3\beta}_{\delta_1 \rho_1}
+- ...
 
 .. |PyPi| image:: https://img.shields.io/pypi/v/housemodel
    :alt: PyPI
