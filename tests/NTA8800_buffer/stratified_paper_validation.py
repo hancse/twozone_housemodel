@@ -13,11 +13,11 @@ import matplotlib.pyplot as plt
 import logging
 logging.basicConfig(level="INFO")
 
-from stratified import model, StratifiedBufferNew
+from housemodel.sourcesink.buffervessels.stratified import model, StratifiedBufferNew
 
 from pathlib import Path
 
-CONFIGDIR = Path(__file__).parent.parent.parent.parent.absolute()
+CONFIGDIR = Path(__file__).parent.absolute()
 param = load_config(str(CONFIGDIR / "for_heat_pump_NTA8800_with_buffervessel_nodes_edges.yaml"))
 
 b = StratifiedBufferNew(name="MyBuffer", volume=200,
