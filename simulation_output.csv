@@ -1,6 +1,0 @@
-Description;Resultaten HAN Dynamic Model Heat Built Environment
-Chain number;1
-Designation;2R-2C-1-zone2R-2C-1-zone
-Node number;0;1;2
-Designation;Outside Temperature;Internals;Load bearing construction
-TIMESTEP;TEMPERATURE (GRADEN C);TEMPERATURE (GRADEN C);SOLAR (J);SOURCES (J);HEATING (J);TEMPERATURE;SOLAR;SOURCES;HEATING
