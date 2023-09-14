@@ -152,9 +152,11 @@ class TotalSystem:
     def make_empty_q_vec(self):
         self.q_vec = np.zeros((self.num_nodes, 1))
         # logging.info(f" empty q-vector created of rank {self.num_nodes}")
-    def make_empty_f_mat(self):
-        self.f_mat = np.zeros((self.num_nodes, 1))
-        # logging.info(f" empty q-vector created of rank {self.num_nodes}")
+
+    # def make_empty_f_mat(self):
+    #    self.f_mat = np.zeros((self.num_nodes, 1))
+    #    # logging.info(f" empty q-vector created of rank {self.num_nodes}")
+
     def add_fixed_to_q(self):
         """add terms from ALL boundary conditions (external nodes) like T_outdoor and T_indoor.
 
