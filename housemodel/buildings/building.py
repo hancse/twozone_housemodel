@@ -214,7 +214,7 @@ if __name__ == "__main__":
     h.make_k_ext_and_add_ambient()  # initialize k_ext_mat and add diagonal elements
     logging.info(f" \n\n C^-1: \n {h.c_inv_mat} \n K_ext: \n {h.k_ext_mat}, \n q_vec: \n {h.q_vec} \n")
     print()
-    
+
     # create Building object and read nodes, internal edges and boundaries
     h2 = Building.from_yaml(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
     # make C_inv matrix and K_ext matrix, print result

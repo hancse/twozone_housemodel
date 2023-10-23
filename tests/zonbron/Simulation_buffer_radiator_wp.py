@@ -98,7 +98,16 @@ def main(show=False, xl=False):
                 f"K_ext: \n {h.k_ext_mat}, \n\n "
                 f"q_vec: \n {h.q_vec} \n")
 
-    b = StratifiedBufferNew.from_dict(param["Buffer"])
+    b = StratifiedBufferNew.from_yaml(str(CONFIGDIR / "for_buffer_radiator_wp.yaml"))
+    b.fill_c_inv()
+    b.make_k_ext_and_add_ambient()
+
+    total = TotalSystem("HouseBufferRadWP", [h, b])
+    total.sort_parts()
+    # compose c-1-matrix from parts and merge tag_lists
+    total.merge_c_inv()
+    total.merge_tag_lists()
+
 
 
     print()

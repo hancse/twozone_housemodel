@@ -78,6 +78,29 @@ class StratifiedBufferNew:
                    volume=d["volume"], height=d["height"],
                    U_wall=d["U_wall"], T_amb=d["T_amb"], T_ini=d["T_ini"])
 
+    @classmethod
+    def from_yaml(cls, config_yaml: str):
+        """ classmethod to enable constructing an instance from configuration file.
+        """
+        buf = cls()
+        d = load_config(config_yaml)
+        bufdict = d.get("Buffer")
+        buf.name = bufdict.get("name")
+        buf.begin_tag = bufdict.get("begin_tag")
+        buf.num = bufdict.get("begin_tag")
+        buf.begin_tag = bufdict.get("begin_tag")
+        buf.num_nodes = bufdict.get("num_layers")
+        buf.volume = bufdict.get("volume")
+        buf.U_wall = bufdict.get("U_wall")
+        buf.T_amb = bufdict.get("T_amb")
+        buf.T_ini = bufdict.get("T_ini")
+        buf.calculate_buffer_properties()
+        logging.info(f" Building '{buf.name}' created \n")
+        buf.generate_nodes()
+        buf.generate_edges()
+        buf.generate_ambient()
+        return buf
+
     def calculate_buffer_properties(self):
         self.A_base = self.volume / self.height
         self.radius = np.sqrt(self.A_base / np.pi)
