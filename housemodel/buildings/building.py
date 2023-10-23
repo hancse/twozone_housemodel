@@ -30,7 +30,28 @@ class Building:
         self.edge_list = []
         # self.cap_list = []
 
-        logging.info(f" Building object {self.name} created")
+    @classmethod
+    def from_dict(cls, d):
+        """ classmethod to enable constructing an instance from configuration file.
+        """
+        return cls(name=d["name"])
+
+    @classmethod
+    def from_yaml(cls, config_yaml: str):
+        """ classmethod to enable constructing an instance from configuration file.
+        """
+        b = cls()
+        d = load_config(config_yaml)
+        bd = d.get("Building")
+        b.name = bd.get("name")
+        logging.info(f" Building '{b.name}' created \n")
+        # nds = bd.get("nodes")
+        b.nodes_from_dict(bd.get("nodes"))
+        # edgs = bd.get("edges")
+        b.edges_from_dict(bd.get("edges"))
+        # bndrs = d.get("boundaries")
+        b.boundaries_from_dict(d.get("boundaries"))
+        return b
 
     def nodes_from_dict(self, lod: list):
         """initializes "nodes" attribute with data from yaml file
@@ -49,7 +70,7 @@ class Building:
             self.nodes.append(node)
             logging.info(f" node '{node.label}' with tag {node.tag} appended to {self.name}")
         self.tag_list = [n.tag for n in self.nodes]
-        logging.info(f" tag_list {self.tag_list}")
+        logging.info(f" tag_list {self.tag_list} \n")
 
     def fill_c_inv(self):
         """generate cap_list and fill c_inv_matrix.
@@ -79,7 +100,7 @@ class Building:
             logging.info(f" boundary '{node.label}' appended to {self.name}")
 
         self.ambient = [fn for fn in self.boundaries if fn.label == "outdoor"][0]
-        logging.info(f" ambient is '{self.ambient.label}' for {self.name}")
+        logging.info(f" ambient is '{self.ambient.label}' for {self.name} \n")
 
     def make_k_ext_and_add_ambient(self):
         """make external "k_ext" matrix and selectively add conductivity to boundary condition "ambient"
@@ -113,6 +134,7 @@ class Building:
             self.edges.append(edge)
             self.edge_list.append(lol[n])
             logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
+        logging.info(f" internal edges ready\n")
 
     """
     def fill_k(self, lol):
@@ -179,7 +201,7 @@ class Building:
 
 if __name__ == "__main__":
     from pathlib import Path
-    CONFIGDIR = Path(__file__).parent.parent.parent.absolute()
+    CONFIGDIR = Path(__file__).parent.parent.parent.absolute() / "tests"
     param = load_config(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
 
     h = Building("TestBuilding")
@@ -192,3 +214,14 @@ if __name__ == "__main__":
     h.make_k_ext_and_add_ambient()  # initialize k_ext_mat and add diagonal elements
     logging.info(f" \n\n C^-1: \n {h.c_inv_mat} \n K_ext: \n {h.k_ext_mat}, \n q_vec: \n {h.q_vec} \n")
     print()
+    
+    # create Building object and read nodes, internal edges and boundaries
+    h2 = Building.from_yaml(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
+    # make C_inv matrix and K_ext matrix, print result
+    h2.fill_c_inv()
+    h2.make_k_ext_and_add_ambient()
+    logging.info(f" \n\n C^-1: \n {h.c_inv_mat} \n\n "
+                f"K_ext: \n {h.k_ext_mat}, \n\n "
+                f"q_vec: \n {h.q_vec} \n")
+    print()
+
