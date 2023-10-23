@@ -24,7 +24,7 @@ class Flow:
 
     @classmethod
     def from_dict(cls, d):
-        """ classmethod to enable constructing an instance from configuration file.
+        """ classmethod to enable constructing an instance from dict.
         """
         return cls(label=d["label"],flow_rate=d["flow_rate"], density=d["density"],
                    cp=d["cp"], node_list=d["pass_by"])

@@ -12,6 +12,7 @@ from housemodel.basics.components import (FixedNode,
                                           CondEdge)
 
 from housemodel.buildings.building import Building
+from housemodel.basics.flows import Flow
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
 
 import logging
@@ -83,8 +84,7 @@ class TotalSystem:
             logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
 
     def edges_between_from_dict(self, lol):
-        """reads ONLY edges BETWEEN parts from parameter dict
-
+        """reads ONLY edges BETWEEN parts from parameter dict.
         """
         if self.edge_list_between_parts or self.edges:
             self.edges = []
@@ -101,6 +101,37 @@ class TotalSystem:
             self.edges.append(edge)
             self.edge_list_between_parts.append(lol[n])
             logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
+
+    def edges_between_from_yaml(self, config_yaml: str):
+        """reads ONLY edges BETWEEN parts from config yaml file.
+        """
+        lol = load_config(config_yaml).get("edges")
+        if self.edge_list_between_parts or self.edges:
+            self.edges = []
+            self.edge_list_between_parts = []
+        if not lol or len(lol) <= 0:
+            logging.info(f" no edges found between parts")
+            return
+
+        self.num_edges = len(lol)
+        for n in range(self.num_edges):
+            edge = CondEdge(label="",
+                            conn_nodes=[lol[n][0], lol[n][1]],
+                            cond=lol[n][2])
+            self.edges.append(edge)
+            self.edge_list_between_parts.append(lol[n])
+            logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
+
+    def flows_from_yaml(self, config_yaml: str):
+        """ method to enable constructing an instance from yaml file.
+        """
+        if self.flows:
+            self.flows = []
+        d = load_config(config_yaml)
+        fd = d.get("flows")
+        for n in range(len(fd)):
+            self.flows.append(Flow.from_dict(fd[n]))
+            self.flows[n].make_df_matrix(rank=self.k_mat.shape[0])
 
     def fill_k(self, lol):
         """select global edges belonging to total system and make k-matrix.

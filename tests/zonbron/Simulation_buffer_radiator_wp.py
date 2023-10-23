@@ -108,7 +108,19 @@ def main(show=False, xl=False):
     total.merge_c_inv()
     total.merge_tag_lists()
 
+    # compose k-matrix from edges
+    total.edges_between_from_yaml(str(CONFIGDIR / "for_buffer_radiator_wp.yaml"))
+    total.merge_edge_lists_from_parts_and_between()
 
+    total.fill_k(total.edge_list)
+    total.merge_k_ext()
+    total.k_mat += total.k_ext_mat
+    total.merge_ambients()  # assignment by reference, no copy!
+    total.make_empty_q_vec()
+    logger.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
+
+    # calculate flow matrices
+    total.flows_from_yaml(str(CONFIGDIR / "for_buffer_radiator_wp.yaml"))
 
     print()
 
