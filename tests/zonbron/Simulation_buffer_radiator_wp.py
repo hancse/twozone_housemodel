@@ -122,6 +122,121 @@ def main(show=False, xl=False):
     # calculate flow matrices
     total.flows_from_yaml(str(CONFIGDIR / "for_buffer_radiator_wp.yaml"))
 
+    # read NEN5060 data from spreadsheet NEN5060-2018.xlsx into pandas DataFrame
+    df_nen = read_nen_weather_from_xl()
+    # generate and insert timezone-aware UTC and local timestamps (with DST)
+    df_nen = NENdatehour2datetime(df_nen)
+
+    df_irr = run_qsun(df_nen)
+    print(df_irr.head())
+
+    time_sim = df_irr.iloc[0:days_sim * 24, 0].values
+
+    # Interval in seconds the control algorithm
+    # Timestep is in minutes
+    control_interval = param["timing"]["Timestep"] * 60
+
+    # skip additional source terms from solar irradiation and human presence
+    Toutdoor = PowerSource("T_outdoor")
+    Toutdoor.values = df_nen.loc[:, 'temperatuur'].values
+    Toutdoor.values = Toutdoor.values.flatten()
+    Toutdoor.values = Toutdoor.values[0:days_sim * 24]
+
+    SP = PowerSource("SetPoint")
+    SP.values = simple_thermostat(8, 23, 20, 17)
+    SP.values = SP.values[0:days_sim * 24].flatten()
+
+    # interpolate time_sim itself (after all arrays are interpolated)
+    time_sim = np.arange(0, time_sim[-1] + (6 * 600), control_interval)
+    # time_sim = np.linspace(0, time_sim[-1], (8760-1)*6, endpoint=False)
+
+    # Input PID values in to control
+    controllers = []
+    for n in range(len(param['controllers'])):
+        c = param['controllers'][n]
+        controllers.append(c)
+
+    # solve ODE
+    # initial values for solve_ivp
+    # make a list of all nodes in total_system
+    yn = [n for node in [p.nodes for p in total.parts] for n in node]
+    # make a list of the (initial) temperatures of all nodes
+    y0 = [cn.temp for cn in yn]
+    # in one statement
+    # y0 = [cn.temp for cn in [n for node in [p.nodes for p in tot_sys.parts] for n in node]]
+
+    t = time_sim  # Define Simulation time with sampling time
+    Tair = np.ones(len(t)) * y0[0]
+    Twall = np.ones(len(t)) * y0[1]
+    Treturn = np.ones(len(t)) * y0[1]
+    Power = np.ones(len(t)) * y0[1]
+
+    TBuffervessel0 = np.ones(len(t)) * y0[2]
+    TBuffervessel1 = np.ones(len(t)) * y0[3]
+    TBuffervessel2 = np.ones(len(t)) * y0[4]
+    TBuffervessel3 = np.ones(len(t)) * y0[5]
+    TBuffervessel4 = np.ones(len(t)) * y0[6]
+    TBuffervessel5 = np.ones(len(t)) * y0[7]
+    TBuffervessel6 = np.ones(len(t)) * y0[8]
+    TBuffervessel7 = np.ones(len(t)) * y0[9]
+
+    pid = PID(controllers[0]['kp'],
+              controllers[0]['ki'],
+              controllers[0]['kd'],
+              t[0])
+
+    pid.SetPoint = 17.0
+    pid.setSampleTime(0)
+    pid.setBounds(0, controllers[0]["maximum"])
+    pid.setWindup(controllers[0]["maximum"] / control_interval)
+
+    # Heat pump initialization
+    nta = HeatpumpNTANew()
+    nta.Pmax = 8           # kW
+    nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
+
+    nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
+                                  nta.cal_COP_val, order=1)
+
+    nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
+                                  nta.cal_Pmax_val, order=1)
+    water_temp = np.zeros(len(t))
+    cop_hp = np.zeros(len(t))
+
+    # define hysteresis object for heat pump
+    # hp_hyst = hyst(dead_band=0.5, state=True)
+
+    # Radiator object
+    deg = u"\u00b0"     # degree sign
+    radiator = Radiator(name="Rad", exp_rad=1.3)
+    radiator.T_supply = TBuffervessel0[0]
+
+    radiator.T_amb = Tair[0]
+    radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
+
+    radiator.Km = 12.5
+    radiator.flow.set_flow_rate(0.040e-3)  # m^3/s
+    print(f"Heat rate: {radiator.flow.heat_rate} [W/K] \n")
+
+    radiator.update(radiator.func_rad_lmtd)
+    print(f"Q_dot: {radiator.q_dot}, T_return: {radiator.T_return}")
+    print(f"radiator to room: {radiator.flow.heat_rate * (TBuffervessel0[0] - radiator.T_return)} [W]")
+    print(f"radiator to room: {radiator.Km * np.power(radiator.get_lmtd(), radiator.exp_rad)} [W] with Delta T_LMTD = {radiator.get_lmtd()}")
+    print(f"top-bottom: {radiator.flow.heat_rate * (TBuffervessel0[0] - TBuffervessel7[0])} [W]")
+    print(f"back-to-bottom: {radiator.flow.heat_rate * (radiator.T_return - TBuffervessel7[0])} [W]")
+
+    # inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
+    #inputs = (total, Q_vectors, control_interval)
+    inputs = (total, control_interval)
+
+    # Note: the algorithm can take an initial step
+    # larger than the time between two elements of the "t" array
+    # this leads to an "index-out-of-range" error in the last evaluation
+    # of the model function, where e.g SP_T[8760] is called.
+    # Therefore, set "first_step" equal or smaller than the spacing of "t".
+    # https://github.com/scipy/scipy/issues/9198
+
+
     print()
 
 

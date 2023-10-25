@@ -133,6 +133,20 @@ class TotalSystem:
             self.flows.append(Flow.from_dict(fd[n]))
             self.flows[n].make_df_matrix(rank=self.k_mat.shape[0])
 
+    def combine_flows(self):
+        # combine F-matrices into matrix total.f_mat
+        self.f_mat = np.zeros_like(self.flows[0].df_mat)
+        for n in range(len(self.flows)):
+            self.f_mat += np.multiply(self.flows[n].df_mat,
+                                      self.flows[n].heat_rate)
+
+        # remove matrix elements > 0 from Fall
+        self.f_mat = np.where(self.f_mat <= 0, self.f_mat, 0)
+
+        # create diagonal elements in Fall, so that som over each row is zero
+        row_sums = np.sum(self.f_mat, axis=1).tolist()
+        self.f_mat = self.f_mat - np.diag(np.array(row_sums), k=0)
+
     def fill_k(self, lol):
         """select global edges belonging to total system and make k-matrix.
 
