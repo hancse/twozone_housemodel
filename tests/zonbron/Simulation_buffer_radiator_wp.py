@@ -52,31 +52,23 @@ CONFIGDIR = Path(__file__).parent.absolute()
 matplotlib.use('Qt5Agg')
 
 
-def model_radiator_ne(t, x,
-                      tot_sys, Q_vectors, control_interval):
+def model_radiator_ne(t, x, tot_sys, control_interval):
     """model function for scipy.integrate.solve_ivp.
 
     Args:
         t:                (array):   time
         x:                (float):   row vector with temperature nodes
-        tot_sys:          (object):  model system
-        Q_vectors:        (ndarray): set of Q_vectors for all input times
+        tot_sys:          (object):  model system, including q_vec
         control_interval: (int)    : in seconds
 
     Returns:
         (list): vector elements of dx/dt
     """
-    index = int(t / control_interval)
-    local_q_vector = Q_vectors[:, [index]]
-
-    # tot_sys.add_ambient_to_q()
-    # tot_sys.add_source_to_q(Q_solar, index)
-
     # Conversion of 1D array to a 2D array
     # https://stackoverflow.com/questions/5954603/transposing-a-1d-numpy-array
     x = np.array(x)[np.newaxis]
 
-    dTdt = (-tot_sys.k_mat @ x.T) - (tot_sys.f_mat @ x.T) + local_q_vector
+    dTdt = (-tot_sys.k_mat @ x.T) - (tot_sys.f_mat @ x.T) + tot_sys.q_vec
     dTdt = np.dot(tot_sys.c_inv_mat, dTdt)
 
     return dTdt.flatten().tolist()
@@ -241,9 +233,168 @@ def main(show=False, xl=False):
     # Therefore, set "first_step" equal or smaller than the spacing of "t".
     # https://github.com/scipy/scipy/issues/9198
 
+    source_list = []
+    for i in tqdm(range(len(t) - 1)):
 
-    print()
+        # first reset and update total.q_vec
+        total.make_empty_q_vec()    # reset q_vec
+        total.parts[0].ambient.update(Toutdoor.values[i])  # assuming Building is parts[0]
+        total.add_ambient_to_q()
+        if source_list:
+            for s in source_list:
+                total.add_source_to_q(s, i)
+            # logging.info(f" q_vector: \n {total.q_vec}")
+
+        # here comes the "arduino style" controller
+        pid.SetPoint = SP.values[i]
+        pid.update(Tair[i], t[i])
+        Qinst = pid.output
+
+        # Heat pump NTA800
+        # p_hp = 0
+        # determine new setting for COP and heat pump power
+        water_temp[i] = outdoor_reset(Toutdoor.values[i], 0.7, 20)  # stooklijn klopt niet helemaal!
+        cop_hp[i], p_hp = nta.update(Toutdoor.values[i], water_temp[i])
+
+        radiator.T_supply = TBuffervessel0[i]
+        radiator.T_amb = Tair[i]
+        radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
+        radiator.update(radiator.func_rad_lmtd)
+
+        # update q_vector: add heat source for Building
+        air_node = total.find_tag_from_node_label("air")
+        # total.q_vec[air_node] += Qinst          # GasBoiler via PID controller
+        total.q_vec[air_node] += radiator.q_dot   # via radiator
+
+        # supply flow
+        total.flows[1].set_flow_rate(nta.flow.flow_rate)  # Flow object????
+        # demand flow
+        total.flows[0].set_flow_rate(radiator.flow.flow_rate)
+
+        total.combine_flows()
+
+        ts = [t[i], t[i + 1]]
+        result = solve_ivp(model_radiator_ne, ts, y0,
+                           method='RK45', args=inputs,
+                           first_step=control_interval)
+
+        Tair[i + 1] = result.y[0, -1]
+        Twall[i + 1] = result.y[1, -1]
+        Treturn[i] = radiator.T_return
+        Power[i] = Qinst
+        TBuffervessel0[i + 1] = result.y[2, -1]
+        TBuffervessel1[i + 1] = result.y[3, -1]
+        TBuffervessel2[i + 1] = result.y[4, -1]
+        TBuffervessel3[i + 1] = result.y[5, -1]
+        TBuffervessel4[i + 1] = result.y[6, -1]
+        TBuffervessel5[i + 1] = result.y[7, -1]
+        TBuffervessel6[i + 1] = result.y[8, -1]
+        TBuffervessel7[i + 1] = result.y[9, -1]
+
+        y0 = result.y[:, -1]
+        # y0buffervessel = result_buffervessel.y[:, -1]  # remove
+
+        # return t, Tair, Twall, Treturn, Power, water_temp, cop_hp, TBuffervessel1, TBuffervessel2, TBuffervessel3, TBuffervessel4, TBuffervessel5, TBuffervessel6, TBuffervessel7, TBuffervessel8
+        data = (t, Tair, Twall, Treturn, Power, water_temp, cop_hp,
+                TBuffervessel0, TBuffervessel1, TBuffervessel2, TBuffervessel3,
+                TBuffervessel4, TBuffervessel5, TBuffervessel6, TBuffervessel7)
+
+    # if show=True, plot the results
+    if show:
+        """
+        plt.figure(figsize=(15, 5))         # key-value pair: no spaces
+        plt.plot(data[0],data[1], label='Tair')
+        plt.plot(data[0],data[2], label='Twall')
+        plt.plot(data[0],data[3], label='Tradiator')
+        plt.plot(time_sim, SP_sim, label='SP_Temperature')
+        plt.plot(time_sim,T_outdoor_sim,label='Toutdoor')
+        plt.plot(data[0], data[4], label='Qinst')
+        #plt.plot(data[0], data[5], label='Water temp')
+        #plt.plot(data[0], data[6], label='COP')
+        plt.legend(loc='best')
+        plt.title(Path(__file__).stem)
+        plt.show()
+        """
+        time_d = data[0] / (3600 * 24)
+        fig, ax = plt.subplots(3, 2, sharex='all')
+        ax[0, 0].plot(time_d, data[1], label='Tair')
+        ax[0, 0].plot(time_d, data[2], label='Twall')
+        ax[0, 0].plot(time_sim / (3600 * 24), SP.values, label='SP_Temperature')
+        ax[0, 0].plot(time_sim / (3600 * 24), Toutdoor.values, label='Toutdoor')
+        ax[0, 0].legend(loc='upper right')
+        ax[0, 0].set_title('Nodal Temperatures')
+        ax[0, 0].set_xlabel(('Time (s)'))
+        ax[0, 0].set_ylabel(('Temperature (°C)'))
+
+        ax[0, 1].plot(time_d, data[6], label='COP', color='r')
+        ax[0, 1].legend(loc='upper right')
+        ax[0, 1].set_title('COP')
+        ax[0, 1].set_xlabel(('Time (s)'))
+        ax[0, 1].set_ylabel(('COP'))
+
+        ax[1, 0].plot(time_d, data[4], label='Power', color='c')
+        ax[1, 0].legend(loc='upper right')
+        ax[1, 0].set_title('Power')
+        ax[1, 0].set_xlabel(('Time (s)'))
+        ax[1, 0].set_ylabel(('Power (kW)'))
+
+        ax[1, 1].plot(time_d, data[3], label='Return temp', color='b')
+        ax[1, 1].legend(loc='upper right')
+        ax[1, 1].set_title('Return Temperature')
+        ax[1, 1].set_xlabel(('Time (s)'))
+        ax[1, 1].set_ylabel(('Temperature (°C)'))
+
+        ax[2, 1].plot(time_d, data[7], label='Top')
+        # ax[2, 1].plot(time_d, data[8], label='T1')
+        ax[2, 1].plot(time_d, data[9], label='T2')
+        # ax[2, 1].plot(time_d, data[10], label='T3')
+        ax[2, 1].plot(time_d, data[11], label='T4')
+        # ax[2, 1].plot(time_d, data[12], label='T5')
+        # ax[2, 1].plot(time_d, data[13], label='T6')
+        ax[2, 1].plot(time_d, data[14], label='Bottom')
+        ax[2, 1].legend(loc='upper right')
+        ax[2, 1].set_title('Buffervessel')
+        ax[2, 1].set_xlabel(('Time (s)'))
+        ax[2, 1].set_ylabel(('Temperature (°C)'))
+
+        plt.tight_layout()
+        plt.suptitle(Path(__file__).stem)
+        plt.show()
+
+    if xl:
+        xlname = 'tst_8800_buffer.xlsx'
+        logger.info(f"writing Excel file {xlname}...")
+        # df_out = pd.DataFrame(data[0], columns=['Timestep'])
+        df_out = pd.DataFrame({'Timestep': data[0]})
+        df_out['Outdoor temperature'] = Toutdoor.values
+
+        for n in total.tag_list:
+            lbl = total.find_node_label_from_tag(n)
+            df_out["T_{}".format(lbl)] = data[n + 1].tolist()
+            # df_out["Solar_{}".format(n)] = Qsolar_sim[n, :]
+            if lbl == 'air':
+                df_out["Internal_{}".format(lbl)] = Qint.values
+
+        df_out['Tradiator'] = data[3].tolist()
+        df_out["Heating"] = data[4].tolist()
+
+        wb = Workbook()
+        ws = wb.active
+        # ws.append(['DESCRIPTION',
+        #           'Resultaten HAN Dynamic Model Heat Built Environment'])
+        # ws.append(['Chain number', 0])
+        # ws.append(['Designation', None, '2R-2C-1-zone',
+        #           None, None, None, '2R-2C-1-zone'])
+        # ws.append(['Node number', None, 0, None, None, None, 1])
+        # ws.append(['Designation', None,
+        #           param['chains'][0]['links'][0]['Name'], None, None, None,
+        #           param['chains'][0]['links'][1]['Name']])
+        for r in dataframe_to_rows(df_out, index=False):
+            ws.append(r)
+        # df_out.to_excel('tst.xlsx', index=False, startrow=10)
+        wb.save(xlname)
+        logger.info(f"Excel file {xlname} written")
 
 
 if __name__ == "__main__":
-    main(show=True, xl=True)  # temporary solution, recommended syntax
+    main(show=True, xl=False)  # temporary solution, recommended syntax
