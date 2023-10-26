@@ -146,6 +146,10 @@ def main(show=False, xl=False):
     SP.values = simple_thermostat(8, 23, 20, 17)
     SP.values = SP.values[0:days_sim * 24].flatten()
 
+    # Interpolation of data
+    Toutdoor.interpolate_power(time_sim, control_interval)
+    SP.interpolate_power(time_sim, control_interval)
+
     # interpolate time_sim itself (after all arrays are interpolated)
     time_sim = np.arange(0, time_sim[-1] + (6 * 600), control_interval)
     # time_sim = np.linspace(0, time_sim[-1], (8760-1)*6, endpoint=False)
@@ -168,6 +172,7 @@ def main(show=False, xl=False):
     t = time_sim  # Define Simulation time with sampling time
     Tair = np.ones(len(t)) * y0[0]
     Twall = np.ones(len(t)) * y0[1]
+
     Treturn = np.ones(len(t)) * y0[1]
     Power = np.ones(len(t)) * y0[1]
 

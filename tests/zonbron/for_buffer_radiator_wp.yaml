@@ -104,6 +104,7 @@ internal:
 controllers:
   -
     label: GasBoiler
+    type: PID
     kp: 4999.0   # [W/K]
     ki: 99.0     # [W/Ks]
     kd: 0.0      # [Ws/K]

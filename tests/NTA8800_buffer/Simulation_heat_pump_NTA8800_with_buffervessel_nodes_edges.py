@@ -213,6 +213,9 @@ def main(show=False, xl=False):
     interp_func = interp1d(time_sim, Q_vectors, fill_value='extrapolate')
     Q_vectors = interp_func(np.arange(0, time_sim[-1] + (6 * 600), control_interval))
 
+    # alternative: first interpolate Qsolar and Q_int, then make Q_vectors
+    # 2nd alternative: do not construct Q_vectors at all.
+
     # Interpolation of data
     Qint.interpolate_power(time_sim, control_interval)
     Toutdoor.interpolate_power(time_sim, control_interval)
