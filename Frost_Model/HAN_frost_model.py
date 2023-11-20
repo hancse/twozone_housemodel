@@ -1,9 +1,12 @@
+
 import numpy as np
 import CoolProp.CoolProp as CP
 from scipy.optimize import minimize
-CP.set_config_bool(CP.DONT_CHECK_PROPERTY_LIMITS, True)
 from housemodel.tools.radiator_performance.TemperatureDifference import LMTD
 import math
+
+CP.set_config_bool(CP.DONT_CHECK_PROPERTY_LIMITS, True)
+
 
 class FrostModel:
     def __init__(self, K, A_u, fin_separation):
@@ -51,7 +54,7 @@ class FrostModel:
         # Calculate the enthalpy of the air-vapor mixture
         # Using HAPropsSI function with inputs: "H" for enthalpy, "T" for temperature,
         # "P" for pressure, "W" for humidity ratio
-        h = 0.001* CP.HAPropsSI("H", "T", T, "P", P, "W", x)
+        h = 0.001 * CP.HAPropsSI("H", "T", T, "P", P, "W", x)
         return h
 
     def calculate_enthalpy_change(self, Q_r, mdot_a):
@@ -117,9 +120,6 @@ class FrostModel:
                 self.T_0 = self.T_0 + 0.001
         return self.T_0, Q_estimated
 
-
-
-
         initial_guess = self.T_0
         result = minimize(objective_function, initial_guess, method='Nelder-Mead')
 
@@ -136,13 +136,13 @@ if __name__ == "__main__":
     P = 101325    # Pa
     T_outside = 5 + 273.15  # in K
     RV = 0.8
-    K = 44
-    A_u = 16.0
-    fin_separation = 4
+    # K = 44
+    # A_u = 16.0
+    # fin_separation = 4
     evaporator_power = 3.7
     massflow_air = 1928/3600
 
-    FM = FrostModel(K, A_u, fin_separation)
+    FM = FrostModel(K=44, A_u=16.0, fin_separation=4)
     humidity_ratio = FM.calculate_moisture_content(T_outside, RV, P)
     print(f'Humidity Ratio: {humidity_ratio} kg_water/kg_dry_air')
 
