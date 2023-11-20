@@ -7,6 +7,7 @@ from scipy import interpolate
 from scipy.optimize import root
 
 from housemodel.basics.components import (FixedNode)
+from housemodel.tools.new_configurator import load_config
 from housemodel.basics.flows import Flow
 
 import matplotlib
@@ -136,7 +137,8 @@ class Radiator:
         self.T_supply = None
         self.T_return = None
         self.T_amb = 20
-        self.flow = Flow()  # default Flow object
+        # self.flow = Flow()  # default Flow object
+        self.flow_rate = None
 
         # model radiator as in EN442: Q = Km * LMTD ** n
         self.Km = None
@@ -159,6 +161,15 @@ class Radiator:
         """ classmethod to enable constructing an instance from configuration file.
         """
         return cls(name=d["name"], exp_rad=d["exp_rad"])
+
+    @classmethod
+    def from_yaml(cls, config_yaml: str):
+        r = cls()
+        d = load_config(config_yaml)
+        rd = d.get("Radiator")
+        r.name = rd.get("name")
+        logging.info(f" Radiator '{r.name}' created \n")
+        return r
 
     def calculate_radiator_properties(self):
         self.LMTD_0 = LMTD_radiator(self.T_sup_zero, self.T_ret_zero, self.T_amb_zero)

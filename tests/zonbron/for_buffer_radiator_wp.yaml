@@ -31,6 +31,7 @@ Buffer:
   T_ini: 40     # C
 
 Radiator:
+  name: MainRadiator
   nodes:
     -
       label: rad

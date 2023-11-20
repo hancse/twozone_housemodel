@@ -269,7 +269,8 @@ def main(show=False, xl=False):
         # supply flow
         total.flows[1].set_flow_rate(nta.flow.flow_rate)  # Flow object????
         # demand flow
-        total.flows[0].set_flow_rate(radiator.flow.flow_rate)
+        # total.flows[0].set_flow_rate(radiator.flow.flow_rate)
+        total.flows[0].set_flow_rate(radiator.flow_rate)
 
         total.combine_flows()
 
