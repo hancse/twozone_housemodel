@@ -28,6 +28,7 @@ conda install networkx
 conda install requests
 conda install tqdm
 conda install simple-pid
+conda install coolprop
 
 pip install solarenergy
 

@@ -130,10 +130,11 @@ class FrostModel:
 
         return self.T_0
 
+
 if __name__ == "__main__":
     # Example usage
-    P = 101325
-    T_outside = 5 + 273.15
+    P = 101325    # Pa
+    T_outside = 5 + 273.15  # in K
     RV = 0.8
     K = 44
     A_u = 16.0

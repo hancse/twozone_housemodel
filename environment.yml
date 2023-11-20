@@ -25,6 +25,7 @@ dependencies:
   - twine
   - myst-parser
   - pip
+  - coolprop
   - pip:
     - solarenergy
     - sphinx-rtd-theme
