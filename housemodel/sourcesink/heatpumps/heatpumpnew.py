@@ -2,9 +2,9 @@
 import numpy as np
 import matplotlib
 
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
+# import matplotlib.pyplot as plt
+# from matplotlib import cm
+# from mpl_toolkits.mplot3d import Axes3D
 
 from housemodel.sourcesink.heatpumps.NTA8800_Q.defrost8800 import frost_factor_8800
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import (calc_WP_general,
@@ -12,13 +12,17 @@ from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import (calc_WP_general,
 
 from housemodel.sourcesink.boilers.boilers_without_PID import GasBoiler
 from housemodel.basics.flows import Flow
+import logging
 
 # matplotlib.use('TkAgg')
 matplotlib.use('Qt5Agg')
 
 
 class HeatpumpNTANew:
-    """class for modelling PID-controlled heatpump."""
+    """class for modelling PID-controlled heatpump.
+
+    internally, this class expresses power in kW!
+    """
     def __init__(self, name="NTA"):
         self.name = name
         self.T_evap = 20
@@ -29,10 +33,15 @@ class HeatpumpNTANew:
         self.cal_Pmax_val = np.zeros_like(self.cal_T_cond)
         self.c_coeff = np.zeros_like(self.cal_T_cond)
         self.p_coeff = np.zeros_like(self.cal_T_cond)
-        self.COP_A2W35 = None
-        self.Pmax_A2W35 = None
-        self.Pmax = None
-        self.flow = Flow()  # Flow object!
+        self.COP_A2W35 = None     # for frost COP reduction
+        self.Pmax_A2W35 = None    # for frost P reduction
+        self.Pmax_kW = None       # for clipping
+        self.P_HP_kW = None
+        self.P_HP_W = None
+        self.COP = None
+
+        self.flow = None  # Flow object, initialized as None
+        logging.info(f" HeatPumpNew object {self.name} created")
 
     @classmethod
     def from_dict(cls, d):
@@ -43,6 +52,10 @@ class HeatpumpNTANew:
     def calculate_heatpump_properties(self):
         pass
 
+    def set_flow(self, new_flow: Flow):
+        self.flow = new_flow
+        self.calculate_heatpump_properties()
+
     def set_cal_val(self, cop_val: list, pmax_val: list):
         self.cal_COP_val = np.array(cop_val)
         self.cal_Pmax_val = np.array(pmax_val)
@@ -51,26 +64,24 @@ class HeatpumpNTANew:
         self.COP_A2W35 = np.array(cop_val)
         self.Pmax_A2W35 = np.array(pmax_val)
 
-    def update(self, Te, Tc):
-        """
-
-        Args:
-            Te:    evaporator temperature (outdoor)
-            Tc:    condensor temperature
+    def update(self):
+        """Update COP and Power as function of (T_cond, T_evap) according to NTA8800
 
         Returns:
-
         """
-        cop = self.c_coeff[0] + self.c_coeff[1] * Te + self.c_coeff[2] * Tc
-        p_max = self.p_coeff[0] + self.p_coeff[1] * Te + self.p_coeff[2] * Tc
+        self.COP = self.c_coeff[0] + \
+                   self.c_coeff[1] * self.T_evap + \
+                   self.c_coeff[2] * self.T_cond
+        self.P_HP_kW = self.p_coeff[0] + \
+                       self.p_coeff[1] * self.T_evap + \
+                       self.p_coeff[2] * self.T_cond        # in kW
 
         # COP defrost correction
-        frost_factor = frost_factor_8800([Te])  # input = list or 1-dim array
-        cop *= frost_factor
-        p_max *= frost_factor
-        p_max = np.clip(p_max, 0, self.Pmax)
-
-        return cop, p_max
+        frost_factor = frost_factor_8800([self.T_evap])  # input = list or 1-dim array
+        self.COP *= frost_factor
+        self.P_HP_kW *= frost_factor
+        self.P_HP_kW = np.clip(self.P_HP_kW, 0, self.Pmax_kW)
+        self.P_HP_W = 1000.0 * self.P_HP_kW.item()
 
 
 class HybridHPNew:
@@ -102,12 +113,20 @@ if __name__ == "__main__":
     plot_plane(nta.cal_T_evap, nta.cal_T_cond,
                nta.cal_COP_val, nta.c_coeff, 'Power', 0.0, 10.0)
 
-    c, p = nta.update(7, 35)
-    print(f"COP: {c}, Pmax: {p}")
-    c, p = nta.update(7, 55)
-    print(f"COP: {c}, Pmax: {p}")
-    c, p = nta.update(-7, 35)
-    print(f"COP: {c}, Pmax: {p}")
+    nta.T_evap = 7.0
+    nta.T_cond = 35.0
+    nta.update()
+    print(f"COP: {nta.COP}, P_HP_kW {nta.P_HP_kW}")
+
+    nta.T_evap = 7.0
+    nta.T_cond = 55.0
+    nta.update()
+    print(f"COP: {nta.COP}, P_HP_kW {nta.P_HP_kW}")
+
+    nta.T_evap = -7.0
+    nta.T_cond = 35.0
+    nta.update()
+    print(f"COP: {nta.COP}, P_HP_kW {nta.P_HP_kW}")
 
     Tin_space = np.linspace(-20, 20, 41, endpoint=True)
     COP_35 = nta.c_coeff[0] + nta.c_coeff[1]*Tin_space + nta.c_coeff[2]*35.0
@@ -142,7 +161,9 @@ if __name__ == "__main__":
                                   nta.cal_Pmax_val, order=1)
 
     g = GasBoiler(P_max=10000, P_min=1500)
-    c, p = nta.update(7, 35)
+    nta.T_evap = 7.0
+    nta.T_cond = 35.0
+    nta.update()
     myhybridHP = HybridHPNew(g, nta)
     hp_power, boilerpower, cop = myhybridHP.update(7500, 7, 35)
     print(f"hp_power: {hp_power}, boilerpower: {boilerpower}, COP: {cop}")

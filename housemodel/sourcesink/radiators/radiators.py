@@ -6,7 +6,6 @@ import numpy as np
 from scipy import interpolate
 from scipy.optimize import root
 
-from housemodel.basics.components import (FixedNode)
 from housemodel.tools.new_configurator import load_config
 from housemodel.basics.flows import Flow
 
@@ -105,40 +104,16 @@ class Radiator:
     """ class for general Radiator object."""
     def __init__(self, name="DefaultRadiator", exp_rad=1.3):
         self.name = name
-        # self.begin_tag = begin_tag
-        # self.num_nodes = 1
         self.exp_rad = exp_rad
-
-        # self.end_node = self.begin_tag  # anchor point of cold water return from house model
-        self.nodes = []
-        # self.edges = []
-        # self.num_edges = 0
-        self.boundaries = []
-        self.return_node = FixedNode
+        # self.return_node = FixedNode
         self.q_dot = 0.0
-        # self.ambient = None
 
-        # self.tag_list = []
-        # self.cap_list = []
-        # self.edge_list = []
-        # self.cond_list = []
-
-        # self.c_inv_mat = None
-        # self.k_int_mat = None
-        # self.k_ext_mat = None
-
-        # self.q_vec = None    # np.zeros(self.num_nodes, 1)
-        # self.f_mat = None  # np.zeros(self.num_nodes, self.num_nodes)
-
-        # self.rho = 1000      # [kg/m^3]     replaced by self.flow.rho
-        # self.cp = 4190       # [J/(K kg)]   replaced by self.flow.cp
-        # self.flow = None     # [m^3/s]      replaced by self.flow.flow_rate
-        # self.F_rad = None    # heat flow in [W/K] = flow * rho * c_w  replaced by self.flow.heat_rate
         self.T_supply = None
         self.T_return = None
         self.T_amb = 20
-        # self.flow = Flow()  # default Flow object
-        self.flow_rate = None
+        self.flow = None  # Flow()  # default Flow object
+        # self.flow_rate = None
+        # self.F_rad = None    # heat flow in [W/K] = flow * rho * c_w  replaced by self.flow.heat_rate
 
         # model radiator as in EN442: Q = Km * LMTD ** n
         self.Km = None
@@ -174,23 +149,19 @@ class Radiator:
     def calculate_radiator_properties(self):
         self.LMTD_0 = LMTD_radiator(self.T_sup_zero, self.T_ret_zero, self.T_amb_zero)
         print(f"LMTD_0 = {self.LMTD_0} \u00b0C")
-        self.m_zero = (self.q_zero) / (self.flow.cp * (self.T_sup_zero - self.T_ret_zero))
-        print(f"mass_flow_zero: {self.m_zero:6f} [kg/s] ({self.m_zero * (1.0e6/self.flow.density):3f} ml/s)")
         self.Km = np.exp(np.log(self.q_zero) - (self.exp_rad*np.log(self.LMTD_0)))
         print(f"Km = {self.Km}")
+        if self.flow:
+            self.m_zero = (self.q_zero) / (self.flow.cp * (self.T_sup_zero - self.T_ret_zero))
+            print(f"mass_flow_zero: {self.m_zero:6f} [kg/s] ({self.m_zero * (1.0e6/self.flow.density):3f} ml/s)")
+
+    def set_flow(self, new_flow: Flow):
+        self.flow = new_flow
+        self.calculate_radiator_properties()
 
     def set_exponent(self, e):
         self.exp_rad = e
         self.calculate_radiator_properties()
-
-    def boundaries_from_dict(self, lod):
-        for n in range(len(lod)):
-            node = FixedNode(label=lod[n]["label"],
-                             temp=lod[n]["T_ini"],
-                             connected_to=lod[n]["connected_to"])
-            # append by reference, therefore new node object in each iteration
-            self.boundaries.append(node)
-        self.return_node = [fn for fn in self.boundaries if fn.label == "return"][0]
 
     def get_gmtd(self):
         return self.__gmtd
@@ -287,4 +258,3 @@ if __name__ == "__main__":
     print(f"back-to-bottom: {radiator.flow.heat_rate * (radiator.T_return - T_bottom)} [W]")
 
     # plot_corr_fact()
-

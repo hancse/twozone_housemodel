@@ -159,14 +159,15 @@ def main(show=False, xl=False):
     # make a list of the (initial) temperatures of all nodes
     y0 = [cn.temp for cn in yn]
     # in one statement
-    # y0 = [cn.temp for cn in [n for node in [p.nodes for p in tot_sys.parts] for n in node]]
+    # y0 = [cn.temp for cn in [n for node in [p.nodes for p in total.parts] for n in node]]
 
     t = time_sim  # Define Simulation time with sampling time
     Tair = np.ones(len(t)) * y0[0]
     Twall = np.ones(len(t)) * y0[1]
 
     Treturn = np.ones(len(t)) * y0[1]
-    Power = np.ones(len(t)) * y0[1]
+    Power_gb = np.zeros(len(t))
+    Power_hp = np.zeros(len(t))
 
     TBuffervessel0 = np.ones(len(t)) * y0[2]
     TBuffervessel1 = np.ones(len(t)) * y0[3]
@@ -189,7 +190,7 @@ def main(show=False, xl=False):
 
     # Heat pump initialization
     nta = HeatpumpNTANew()
-    nta.Pmax = 8           # kW
+    nta.Pmax_kW = 8.0         # in kW
     nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
 
     nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
@@ -200,6 +201,9 @@ def main(show=False, xl=False):
     water_temp = np.zeros(len(t))
     cop_hp = np.zeros(len(t))
 
+    nta.set_flow(total.flows[1])
+    print(f"Heat rate: {nta.flow.heat_rate} [W/K] \n")
+
     # define hysteresis object for heat pump
     # hp_hyst = hyst(dead_band=0.5, state=True)
 
@@ -207,12 +211,10 @@ def main(show=False, xl=False):
     deg = u"\u00b0"     # degree sign
     radiator = Radiator(name="Rad", exp_rad=1.3)
     radiator.T_supply = TBuffervessel0[0]
-
     radiator.T_amb = Tair[0]
     radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
 
-    radiator.Km = 12.5
-    radiator.flow.set_flow_rate(0.040e-3)  # m^3/s
+    radiator.set_flow(total.flows[0])
     print(f"Heat rate: {radiator.flow.heat_rate} [W/K] \n")
 
     radiator.update(radiator.func_rad_lmtd)
@@ -237,7 +239,7 @@ def main(show=False, xl=False):
     for i in tqdm(range(len(t) - 1)):
 
         # first reset and update total.q_vec
-        total.make_empty_q_vec()    # reset q_vec
+        total.make_empty_q_vec()    # reset q_vec!!!!!
         total.parts[0].ambient.update(Toutdoor.values[i])  # assuming Building is parts[0]
         total.add_ambient_to_q()
         if source_list:
@@ -253,8 +255,15 @@ def main(show=False, xl=False):
         # Heat pump NTA800
         # p_hp = 0
         # determine new setting for COP and heat pump power
-        water_temp[i] = outdoor_reset(Toutdoor.values[i], 0.7, 20)  # stooklijn klopt niet helemaal!
-        cop_hp[i], p_hp = nta.update(Toutdoor.values[i], water_temp[i])
+        nta.T_cond = outdoor_reset(Toutdoor.values[i], 1.2, 20)  # stooklijn klopt niet helemaal!
+        water_temp[i] = nta.T_cond
+        nta.T_evap = Toutdoor.values[i]
+        nta.update()
+        cop_hp[i] = nta.COP
+
+        # update q_vector: add heat source for Buffer vessel
+        upper_layer = total.find_tag_from_node_label("DictBuffer0")
+        total.q_vec[upper_layer] += nta.P_HP_W
 
         radiator.T_supply = TBuffervessel0[i]
         radiator.T_amb = Tair[i]
@@ -267,10 +276,10 @@ def main(show=False, xl=False):
         total.q_vec[air_node] += radiator.q_dot   # via radiator
 
         # supply flow
-        total.flows[1].set_flow_rate(nta.flow.flow_rate)  # Flow object????
+        # total.flows[1].set_flow_rate(nta.flow.flow_rate)  # Flow object????
         # demand flow
         # total.flows[0].set_flow_rate(radiator.flow.flow_rate)
-        total.flows[0].set_flow_rate(radiator.flow_rate)
+        # total.flows[0].set_flow_rate(radiator.flow_rate)
 
         total.combine_flows()
 
@@ -282,7 +291,9 @@ def main(show=False, xl=False):
         Tair[i + 1] = result.y[0, -1]
         Twall[i + 1] = result.y[1, -1]
         Treturn[i] = radiator.T_return
-        Power[i] = Qinst
+        Power_gb[i] = Qinst
+        Power_hp[i] = nta.P_HP_W
+
         TBuffervessel0[i + 1] = result.y[2, -1]
         TBuffervessel1[i + 1] = result.y[3, -1]
         TBuffervessel2[i + 1] = result.y[4, -1]
@@ -296,7 +307,7 @@ def main(show=False, xl=False):
         # y0buffervessel = result_buffervessel.y[:, -1]  # remove
 
         # return t, Tair, Twall, Treturn, Power, water_temp, cop_hp, TBuffervessel1, TBuffervessel2, TBuffervessel3, TBuffervessel4, TBuffervessel5, TBuffervessel6, TBuffervessel7, TBuffervessel8
-        data = (t, Tair, Twall, Treturn, Power, water_temp, cop_hp,
+        data = (t, Tair, Twall, Treturn, Power_gb, Power_hp, water_temp, cop_hp,
                 TBuffervessel0, TBuffervessel1, TBuffervessel2, TBuffervessel3,
                 TBuffervessel4, TBuffervessel5, TBuffervessel6, TBuffervessel7)
 
@@ -327,17 +338,17 @@ def main(show=False, xl=False):
         ax[0, 0].set_xlabel(('Time (s)'))
         ax[0, 0].set_ylabel(('Temperature (°C)'))
 
-        ax[0, 1].plot(time_d, data[6], label='COP', color='r')
+        ax[0, 1].plot(time_d, data[7], label='COP', color='r')
         ax[0, 1].legend(loc='upper right')
         ax[0, 1].set_title('COP')
         ax[0, 1].set_xlabel(('Time (s)'))
         ax[0, 1].set_ylabel(('COP'))
 
-        ax[1, 0].plot(time_d, data[4], label='Power', color='c')
+        ax[1, 0].plot(time_d, data[4], label='Power_gb', color='c')
         ax[1, 0].legend(loc='upper right')
-        ax[1, 0].set_title('Power')
+        ax[1, 0].set_title('Power_gb')
         ax[1, 0].set_xlabel(('Time (s)'))
-        ax[1, 0].set_ylabel(('Power (kW)'))
+        ax[1, 0].set_ylabel(('Power (W)'))
 
         ax[1, 1].plot(time_d, data[3], label='Return temp', color='b')
         ax[1, 1].legend(loc='upper right')
@@ -345,14 +356,20 @@ def main(show=False, xl=False):
         ax[1, 1].set_xlabel(('Time (s)'))
         ax[1, 1].set_ylabel(('Temperature (°C)'))
 
-        ax[2, 1].plot(time_d, data[7], label='Top')
+        ax[2, 0].plot(time_d, data[5], label='Power HP', color = 'r')
+        ax[2, 0].legend(loc='upper right')
+        ax[2, 0].set_title('Power_hp')
+        ax[2, 0].set_xlabel(('Time (s)'))
+        ax[2, 0].set_ylabel(('Power (W)'))
+
+        ax[2, 1].plot(time_d, data[8], label='Top')
         # ax[2, 1].plot(time_d, data[8], label='T1')
-        ax[2, 1].plot(time_d, data[9], label='T2')
+        ax[2, 1].plot(time_d, data[10], label='T2')
         # ax[2, 1].plot(time_d, data[10], label='T3')
-        ax[2, 1].plot(time_d, data[11], label='T4')
+        ax[2, 1].plot(time_d, data[12], label='T4')
         # ax[2, 1].plot(time_d, data[12], label='T5')
         # ax[2, 1].plot(time_d, data[13], label='T6')
-        ax[2, 1].plot(time_d, data[14], label='Bottom')
+        ax[2, 1].plot(time_d, data[15], label='Bottom')
         ax[2, 1].legend(loc='upper right')
         ax[2, 1].set_title('Buffervessel')
         ax[2, 1].set_xlabel(('Time (s)'))
