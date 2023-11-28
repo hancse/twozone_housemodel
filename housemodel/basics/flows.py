@@ -17,9 +17,7 @@ class Flow:
         else:
             self.node_list = node_list
         self.heat_rate = None
-        # self.edges = []
         self.df_mat = None
-
         self.update_heat_rate()
 
     @classmethod

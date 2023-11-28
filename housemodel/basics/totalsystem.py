@@ -140,10 +140,10 @@ class TotalSystem:
             self.f_mat += np.multiply(self.flows[n].df_mat,
                                       self.flows[n].heat_rate)
 
-        # remove matrix elements > 0 from Fall
+        # remove matrix elements > 0 from self.f_mat
         self.f_mat = np.where(self.f_mat <= 0, self.f_mat, 0)
 
-        # create diagonal elements in Fall, so that som over each row is zero
+        # create diagonal elements in self.f_mat, so that som over each row is zero
         row_sums = np.sum(self.f_mat, axis=1).tolist()
         self.f_mat = self.f_mat - np.diag(np.array(row_sums), k=0)
 
