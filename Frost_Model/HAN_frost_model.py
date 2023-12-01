@@ -84,7 +84,7 @@ class FrostModel:
     def calculate_power(self, delta_h_ln, average_cp):
         return (self.K * self.A_u * delta_h_ln) / average_cp
 
-    def find_evaporator_temperature(self, Q_r, m_a, T_a, h_ai, x_ai):
+    def find_evaporator_temperature(self, Q_r, h_ai, h_ao):
         def objective_function(T_0):
             self.T_0 = T_0
             delta_h_a = self.calculate_enthalpy_change(Q_r, m_a)
@@ -129,37 +129,43 @@ class FrostModel:
                 self.T_0 = self.T_0 + 0.001
         return self.T_0, Q_estimated
 
-    def calculate_x_air_leaving(self, P, enthalpy_air_leaving, enthalpy_at_surface, x_now, enthalpy_air_now, RV, T_outside):
+    def calculate_x_air_leaving(self, P, enthalpy_air_leaving,  RV, T_outside):
         x_at_surface = FM.calculate_moisture_content(self.T_0, 1, P)
         x_now = self.calculate_moisture_content(T_outside, RV, P)
         P_sat = CP.PropsSI('P', 'T', self.T_0, 'Q', 0, 'Water')
         enthalpy_at_surface = 0.001 * CP.HAPropsSI("H", "T", self.T_0, "P", P_sat, "W", x_at_surface)
         enthalpy_air_now = self.calculate_enthalpy_moist_air(T_outside, P, x_now)
-
-
         return x_at_surface + (enthalpy_air_leaving - enthalpy_at_surface) * (
                     (x_now - x_at_surface) / (enthalpy_air_now - enthalpy_at_surface))
 
-    def calculate_mdotrijp(self, x_now, x_air_leaving, mdotair, timeinterval):
-        return ((x_now - x_air_leaving) * mdotair * timeinterval) / 1000
+    def calculate_mrijp(self, x_now, x_air_leaving, mdotair, timeinterval):
+        return ((x_now - x_air_leaving) * mdotair * timeinterval)
 
     def calculate_t_dew_quick(self, t, RV, t0):
         return t - ((100 - RV) / 5)
 
-    def calculate_rhorijp(self, t_dew_quick, t0):
-        return 260 - (15 * (t_dew_quick - t0))
+    # Calculate dew point
+    def calculate_dew_point(self, T_outside, pressure, relative_humidity):
+       return  CP.HAPropsSI('D', 'T', T_outside, 'P', pressure, 'R', relative_humidity)
+
+    def calculate_dew_point_quick(self, T_outside, relative_humidity):
+       return  T_outside-((1-relative_humidity)*100/5)
+
+    def calculate_rho_rijp(self, T_dew):
+        return 260 - (15 * (T_dew - (self.T_0-273.15)))
 
 
 if __name__ == "__main__":
     # Example usage
     P = 101325
-    T_outside = 5 + 273.15
+    T_outside = 6 + 273.15
     RV = 0.8
     K = 44
     A_u = 16.0
     fin_separation = 4
     evaporator_power = 3.7
     massflow_air = 1928/3600
+    time_interval = 3600
 
     FM = FrostModel(K, A_u, fin_separation)
     humidity_ratio = FM.calculate_moisture_content(T_outside, RV, P)
@@ -188,13 +194,22 @@ if __name__ == "__main__":
     ln_enthalpy_difference = FM.calculate_log_mean_enthalpy_matlab(enthalpy_air, enthalpy_air_out, enthalpy_at_surface)
     print(f'LMED: {ln_enthalpy_difference} kJ/kg')
 
-
-
     [estimated_evaporator_temperature, estimated_power] = FM.find_evaporator_temperature_matlab(evaporator_power, enthalpy_air, enthalpy_air_out)
     print(f'Estimated Power: {estimated_power} kW')
     print(f'Estimated evaporator temperature: {estimated_evaporator_temperature} K')
 
     print(f'Estimated evaporator temperature: {estimated_evaporator_temperature-273.15} C')
 
+    x_air_leaving = FM.calculate_x_air_leaving(P, enthalpy_air_out, RV, T_outside)
+    print(f'Humidity ratio air out: {x_air_leaving} kg/s')
+
+    mass_rijp = FM.calculate_mrijp(humidity_ratio, x_air_leaving, massflow_air, time_interval)
+    print(f'Kg rijp: {mass_rijp} kg')
+
+    dewpoint = FM.calculate_dew_point_quick(T_outside - 273.15, RV)
+    print(f'Dewpoint: {dewpoint} K')
+
+    rho_rijp = FM.calculate_rho_rijp(dewpoint)
+    print(f'Rho rijp: {rho_rijp} Kg/m^3')
 
 
