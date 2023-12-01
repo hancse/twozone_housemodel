@@ -97,6 +97,15 @@ class FrostModel:
             asdf = abs(Q_calculated - Q_r)*1000
             return asdf
 
+        initial_guess = self.T_0
+        result = minimize(objective_function, initial_guess, method='Nelder-Mead')
+
+        if result.success:
+            self.T_0 = result.x[0]
+        else:
+            raise ValueError("Optimization did not converge")
+        return self.T_0
+
     def find_evaporator_temperature_matlab(self, Q_r, h_ai, h_ao):
         while True:
             enthalpy_air = h_ai
@@ -120,29 +129,39 @@ class FrostModel:
                 self.T_0 = self.T_0 + 0.001
         return self.T_0, Q_estimated
 
-        initial_guess = self.T_0
-        result = minimize(objective_function, initial_guess, method='Nelder-Mead')
+    def calculate_x_air_leaving(self, P, enthalpy_air_leaving, enthalpy_at_surface, x_now, enthalpy_air_now, RV, T_outside):
+        x_at_surface = FM.calculate_moisture_content(self.T_0, 1, P)
+        x_now = self.calculate_moisture_content(T_outside, RV, P)
+        P_sat = CP.PropsSI('P', 'T', self.T_0, 'Q', 0, 'Water')
+        enthalpy_at_surface = 0.001 * CP.HAPropsSI("H", "T", self.T_0, "P", P_sat, "W", x_at_surface)
+        enthalpy_air_now = self.calculate_enthalpy_moist_air(T_outside, P, x_now)
 
-        if result.success:
-            self.T_0 = result.x[0]
-        else:
-            raise ValueError("Optimization did not converge")
 
-        return self.T_0
+        return x_at_surface + (enthalpy_air_leaving - enthalpy_at_surface) * (
+                    (x_now - x_at_surface) / (enthalpy_air_now - enthalpy_at_surface))
+
+    def calculate_mdotrijp(self, x_now, x_air_leaving, mdotair, timeinterval):
+        return ((x_now - x_air_leaving) * mdotair * timeinterval) / 1000
+
+    def calculate_t_dew_quick(self, t, RV, t0):
+        return t - ((100 - RV) / 5)
+
+    def calculate_rhorijp(self, t_dew_quick, t0):
+        return 260 - (15 * (t_dew_quick - t0))
 
 
 if __name__ == "__main__":
     # Example usage
-    P = 101325    # Pa
-    T_outside = 5 + 273.15  # in K
+    P = 101325
+    T_outside = 5 + 273.15
     RV = 0.8
-    # K = 44
-    # A_u = 16.0
-    # fin_separation = 4
+    K = 44
+    A_u = 16.0
+    fin_separation = 4
     evaporator_power = 3.7
     massflow_air = 1928/3600
 
-    FM = FrostModel(K=44, A_u=16.0, fin_separation=4)
+    FM = FrostModel(K, A_u, fin_separation)
     humidity_ratio = FM.calculate_moisture_content(T_outside, RV, P)
     print(f'Humidity Ratio: {humidity_ratio} kg_water/kg_dry_air')
 
