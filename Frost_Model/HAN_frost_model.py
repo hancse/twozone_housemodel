@@ -69,8 +69,18 @@ class FrostModel:
         """
         return Q_r / mdot_a
 
-    def calculate_average_cp(self, h_ai, h_0, T_a, T_0):
-        return (h_ai - h_0) / (T_a - T_0)
+    def calculate_average_cp(self, h_ai, h_0, T_a):
+        """
+
+        Args:
+            h_ai: Enthalpy of outside air in kJ/kg.
+            T_a:  Ambient temperature in K
+            T_0:  Ambient temperature in K
+
+        Returns:
+
+        """
+        return (h_ai - h_0) / (T_a - self.T_0)
 
     def calculate_log_mean_enthalpy_matlab(self, h_ai, h_ao, h_0):
         delta_h1 = h_ai - h_0
@@ -114,7 +124,7 @@ class FrostModel:
             P_sat = CP.PropsSI('P', 'T', self.T_0, 'Q', 0, 'Water')
             enthalpy_at_surface = 0.001 * CP.HAPropsSI("H", "T", self.T_0, "P", P_sat, "W",
                                                        humidity_ratio_at_surface)
-            average_cp = FM.calculate_average_cp(enthalpy_air, enthalpy_at_surface, T_outside, self.T_0)
+            average_cp = FM.calculate_average_cp(enthalpy_air, enthalpy_at_surface, T_outside)
 
             ln_enthalpy_difference = FM.calculate_log_mean_enthalpy_matlab(enthalpy_air, enthalpy_air_out,
                                                                            enthalpy_at_surface)
@@ -188,7 +198,7 @@ if __name__ == "__main__":
     enthalpy_at_surface = 0.001 * CP.HAPropsSI("H", "T", FM.T_0, "P", P_sat, "W", humidity_ratio_at_surface)
     print(f'Enthalpy at surface: {enthalpy_at_surface} kJ/kg')
 
-    average_cp = FM.calculate_average_cp(enthalpy_air, enthalpy_at_surface, T_outside, T_outside-5)
+    average_cp = FM.calculate_average_cp(enthalpy_air, enthalpy_at_surface, T_outside)
     print(f'Avergae Cp: {average_cp} kJ/kgK')
 
     ln_enthalpy_difference = FM.calculate_log_mean_enthalpy_matlab(enthalpy_air, enthalpy_air_out, enthalpy_at_surface)
