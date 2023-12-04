@@ -51,7 +51,7 @@ logging.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n
 Tsupply = 80
 Treturn = 40
 supply_flow_rate = 0  # m^3/s
-demand_flow_rate = 0.010  # m^3/s
+demand_flow_rate = 1.0e-3  # m^3/s
 
 # calculate flow matrices and combine into f_mat_all
 if total.flows:
@@ -69,7 +69,7 @@ initial_condition = []
 control_interval = 600
 t = np.arange(0, 3600*25, control_interval)
 output = np.zeros((b.num_nodes, len(t)))
-output[:, 0] = np.ones(b.num_nodes) * b.T_ini
+output[:, 0] = np.ones(b.num_nodes) * b.T_ini  # approximation
 
 # Radiator object
 deg = u"\u00b0"     # degree sign
@@ -81,6 +81,8 @@ r.set_flow(total.flows[1])        # demand flow
 print(f"Heat rate: {r.flow.heat_rate} [W/K] \n")
 
 r.update(r.func_rad_lmtd)
+T_ret = np.ones(len(t)) * r.T_return
+
 print(f"Q_dot: {r.q_dot} [W], T_return: {r.T_return} {deg}C")
 print(f"radiator to room: {r.flow.heat_rate * (output[0, 0] - r.T_return)} [W]")
 print(f"radiator to room: {r.Km * np.power(r.get_lmtd(), r.exp_rad)} [W] with Delta T_LMTD = {r.get_lmtd()}")
@@ -93,61 +95,102 @@ for i in range(len(t) - 1):
     if t[i] < 3600*11:
         total.make_empty_q_vec()
         total.add_ambient_to_q()
-
         total.combine_flows()
 
-        total.q_vec[9] += total.flows[1].heat_rate * Treturn
-        total.f_mat[9, 9] += total.flows[1].heat_rate
+        # MvdB
+        # total.q_vec[9] += total.flows[1].heat_rate * Treturn
+        # total.f_mat[9, 9] += total.flows[1].heat_rate
 
-        # total.q_vec[0] += r.flow.heat_rate * r.
+        # new
+        r.T_supply = output[0, i]
+        r.update(r.func_rad_lmtd)
+        total.q_vec[9] += r.flow.heat_rate * r.T_return
+        total.f_mat[9, 9] += r.flow.heat_rate
+
+    elif t[i] < 3600*15:
+        # MvdB
+        # electric heater 2.4 MW; heat transfer controlled by flow
+        # flow becomes VERY large if bottom layer approaches 80 C!
+        # unstable system
+        # supply_flow_rate = 2.4e3/((80 - output[9, i])*4190)
+        # demand_flow_rate = 0
+
+        # new
+        supply_flow_rate = 10.0e-3  # m^3/s
+        demand_flow_rate = 0
+
+        total.flows[0].set_flow_rate(supply_flow_rate)
+        total.flows[1].set_flow_rate(demand_flow_rate)
+
+        total.make_empty_q_vec()
+        total.add_ambient_to_q()
+        total.combine_flows()
+
+        # MvdB
+        # total.q_vec[0] += total.flows[0].heat_rate * Tsupply
+        # total.f_mat[0, 0] += total.flows[0].heat_rate
+
+        # new
+        r.T_supply = output[0, i]
+        r.update(r.func_rad_lmtd)
+        total.q_vec[0] += total.flows[0].heat_rate * Tsupply
+        total.f_mat[0, 0] += total.flows[0].heat_rate
         # total.q_vec[9] += r.flow.heat_rate * r.T_return
         # total.f_mat[9, 9] += r.flow.heat_rate
 
-    elif t[i] < 3600*15:
-        total.make_empty_q_vec()
-        total.add_ambient_to_q()
-
-        supply_flow = 2.4e3/((80 - output[9, i])*4190)
-        demand_flow = 0
-        total.flows[0].set_flow_rate(supply_flow)
-        total.flows[1].set_flow_rate(demand_flow)
-
-        total.combine_flows()
-
-        total.q_vec[0] += total.flows[0].heat_rate * Tsupply
-        total.f_mat[0, 0] += total.flows[0].heat_rate
-
     elif t[i] < 3600 * 17.5:
+        # MvdB
+        supply_flow_rate = 0
+        demand_flow_rate = 1.0e-3 # m^3/s
+        total.flows[0].set_flow_rate(supply_flow_rate)
+        total.flows[1].set_flow_rate(demand_flow_rate)
+
         total.make_empty_q_vec()
         total.add_ambient_to_q()
-
-        supply_flow = 0
-        demand_flow = 0.01
-        total.flows[0].set_flow_rate(supply_flow)
-        total.flows[1].set_flow_rate(demand_flow)
-
         total.combine_flows()
 
+        # MvdB
+        # total.q_vec[0] += total.flows[0].heat_rate * Tsupply
+        # total.f_mat[0, 0] += total.flows[0].heat_rate
+        # total.q_vec[9] += total.flows[1].heat_rate * Treturn
+        # total.f_mat[9, 9] += total.flows[1].heat_rate
+
+        # new
+        r.T_supply = output[0, i]
+        r.update(r.func_rad_lmtd)
         total.q_vec[0] += total.flows[0].heat_rate * Tsupply
         total.f_mat[0, 0] += total.flows[0].heat_rate
-        total.q_vec[9] += total.flows[1].heat_rate * Treturn
-        total.f_mat[9, 9] += total.flows[1].heat_rate
+        total.q_vec[9] += r.flow.heat_rate * r.T_return
+        total.f_mat[9, 9] += r.flow.heat_rate
 
     elif t[i] < (3600 * 25):
+        # MvdB
+        # supply_flow = 2.4e3/((80 - output[9, i])*4190)
+        # demand_flow = 0.01
+
+        # new
+        supply_flow_rate = 0.5e-3  # m^3/s
+        demand_flow_rate = 1.0e-3
+        total.flows[0].set_flow_rate(supply_flow_rate)
+        total.flows[1].set_flow_rate(demand_flow_rate)
+
         total.make_empty_q_vec()
         total.add_ambient_to_q()
-
-        supply_flow = 2.4e3/((80 - output[9, i])*4190)
-        demand_flow = 0.01
-        total.flows[0].set_flow_rate(supply_flow)
-        total.flows[1].set_flow_rate(demand_flow)
-
         total.combine_flows()
 
+        # MvdB
+        # total.q_vec[0] += total.flows[0].heat_rate * Tsupply
+        # total.f_mat[0, 0] += total.flows[0].heat_rate
+        # total.q_vec[9] += total.flows[1].heat_rate * Treturn
+        # total.f_mat[9, 9] += total.flows[1].heat_rate
+
+        # new
+        r.T_supply = output[0, i]
+        r.update(r.func_rad_lmtd)
         total.q_vec[0] += total.flows[0].heat_rate * Tsupply
         total.f_mat[0, 0] += total.flows[0].heat_rate
-        total.q_vec[9] += total.flows[1].heat_rate * Treturn
-        total.f_mat[9, 9] += total.flows[1].heat_rate
+        total.q_vec[9] += r.flow.heat_rate * r.T_return
+        total.f_mat[9, 9] += r.flow.heat_rate
 
     if np.any(initial_condition):
         initial_condition = output[:, i]
@@ -161,10 +204,13 @@ for i in range(len(t) - 1):
                        first_step=control_interval)
 
     output[:, i + 1] = np.transpose(result.y[:, -1])
+    T_ret[i+1] = r.T_return
 
 plt.figure(figsize=(10, 5))
 for i in range(len(output)):
     plt.plot(t/3600, output[i, :], label=f'$T_{i}$')
+plt.plot(t/3600, T_ret, label='r.T_return', color='r')
+# plt.ylim(20, 90)
 plt.legend(loc='best')
 # plt.xlim(0, 24)
 # plt.ylim(40, 100)

@@ -234,7 +234,7 @@ def model(t, x, tot_sys):
 if __name__ == "__main__":
     from pathlib import Path
     CONFIGDIR = Path(__file__).parent.parent.parent.parent.absolute()
-    param = load_config(str(CONFIGDIR / "for_heat_pump_NTA8800_with_buffervessel_nodes_edges.yaml"))
+    param = load_config(str(CONFIGDIR / "tests" / "NTA8800_buffer" / "for_heat_pump_NTA8800_with_buffervessel_nodes_edges.yaml"))
     # param = load_config(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
 
     b0 = StratifiedBufferNew()
@@ -281,9 +281,9 @@ if __name__ == "__main__":
     if total.flows:
         total.flows = []
     total.flows.append(Flow("Supply", flow_rate=0.0,
-                            node_list=[0, 1, 2, 3, 4, 5, 6, 7, 0]))
+                            node_list=[0, 1, 2, 3, 4, 5, 6, 7]))
     total.flows.append(Flow("Demand", flow_rate=0.001,
-                            node_list=[7, 6, 5, 4, 3, 2, 1, 0, 7]))
+                            node_list=[7, 6, 5, 4, 3, 2, 1, 0]))
     for f in total.flows:
         f.make_df_matrix(rank=total.k_mat.shape[0])
         print(f"{f.flow_rate*f.density*f.cp}")

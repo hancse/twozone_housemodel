@@ -32,12 +32,12 @@ Buffer:
 
 Radiator:
   name: MainRadiator
-  nodes:
-    -
-      label: rad
-      tag: 10
-      capacity: 209000.0  # J/K = Crad
-      T_ini: 40.0
+  # nodes:
+   # -
+      # label: rad
+      # tag: 10
+      # capacity: 209000.0  # J/K = Crad
+      # T_ini: 40.0
 
 edges:
   # - [0, 1, 2024.0]        # W/K : 1/R1
