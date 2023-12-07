@@ -17,8 +17,8 @@ matplotlib.use('Qt5Agg')
 # CONFIGDIR = Path(__file__).parent.absolute()
 
 b = StratifiedBufferNew(name="MyBuffer", num_layers=10,
-                        volume=200, height=4,
-                        T_amb=10, T_ini=50)
+                        volume=0.15, height=0.765,
+                        T_amb=15.0, T_ini=55)
 print(f"{b.radius}")
 leak_to_amb_top = b.U_wall * (b.A_base + b.A_wall_layer)
 leak_to_amb_mid = b.U_wall * b.A_wall_layer
@@ -48,18 +48,11 @@ total.make_empty_q_vec()
 total.add_ambient_to_q()
 logging.info(f" \n\n {total.c_inv_mat} \n\n {total.k_mat}, \n\n {total.q_vec} \n")
 
-Tsupply = 80
-Treturn = 40
-supply_flow_rate = 0  # m^3/s
-demand_flow_rate = 1.0e-3  # m^3/s
-
 # calculate flow matrices and combine into f_mat_all
 if total.flows:
     total.flows = []
-total.flows.append(Flow("Supply", flow_rate=supply_flow_rate,
-                        node_list=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))
-total.flows.append(Flow("Demand", flow_rate=demand_flow_rate,
-                        node_list=[9, 8, 7, 6, 5, 4, 3, 2, 1, 0]))
+total.flows.append(Flow("Supply", node_list=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]))
+total.flows.append(Flow("Demand", node_list=[9, 8, 7, 6, 5, 4, 3, 2, 1, 0]))
 for f in total.flows:
     f.make_df_matrix(rank=total.k_mat.shape[0])
     # print(f"{f.flow_rate * f.density * f.cp}")
@@ -74,7 +67,7 @@ output[:, 0] = np.ones(b.num_nodes) * b.T_ini  # approximation
 # Radiator object
 deg = u"\u00b0"  # degree sign
 r = Radiator(name="Rad", exp_rad=1.3)
-r.q_zero = 100000  # W
+r.q_zero = 1000  # W
 r.T_supply = output[0, 0]
 r.T_amb = 20
 r.T_return = (r.T_supply + r.T_amb) / 2.0
@@ -88,12 +81,13 @@ print(f"Q_dot: {r.q_dot} [W], T_return: {r.T_return} {deg}C")
 print(f"radiator to room: {r.flow.heat_rate * (output[0, 0] - r.T_return)} [W]")
 print(f"radiator to room: {r.Km * np.power(r.get_lmtd(), r.exp_rad)} [W] with Delta T_LMTD = {r.get_lmtd()}")
 print(f"top-bottom: {r.flow.heat_rate * (output[0, 0] - output[9, 0])} [W]")
-print(f"back-to-bottom: {r.flow.heat_rate * (r.T_return - output[9, 0])} [W]")
+print(f"back-to-bottom: {r.flow.heat_rate * (r.T_return - output[9, 0])} [W] \n")
 
 hp = HeatpumpNTANew(name="HP")
 hp.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])  # including regression coefficients
 hp.T_evap = 7.0  # fixed, becomes T_outdoor
-hp.T_cond = 60.0
+hp.T_cond_or = 55.0
+hp.T_cond_out = hp.T_cond_or
 hp.update()
 print(f"COP: {hp.COP}, P_HP_kW {hp.P_HP_kW}")
 hp.set_flow(total.flows[0])  # supply flow
@@ -103,34 +97,39 @@ inputs = (total,)
 
 for i in range(len(t) - 1):
     if t[i] < 3600 * 11:
-        total.make_empty_q_vec()
-        total.add_ambient_to_q()
-        total.combine_flows()
-
-        # new
-        r.T_supply = output[0, i]
-        r.update(r.func_rad_lmtd)
-        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond
-        total.f_mat[0, 0] += hp.flow.heat_rate
-        total.q_vec[9] += r.flow.heat_rate * r.T_return
-        total.f_mat[9, 9] += r.flow.heat_rate
-
-    elif t[i] < 3600 * 15:
-        # new
-        supply_flow_rate = 1.0e-3  # m^3/s
-        demand_flow_rate = 0
-
+        supply_flow_rate = 0       # m^3/s
+        demand_flow_rate = 50.0e-6  # m^3/s
         total.flows[0].set_flow_rate(supply_flow_rate)
         total.flows[1].set_flow_rate(demand_flow_rate)
 
         total.make_empty_q_vec()
         total.add_ambient_to_q()
         total.combine_flows()
-
         # new
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
-        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond
+        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond_out
+        total.f_mat[0, 0] += hp.flow.heat_rate
+        total.q_vec[9] += r.flow.heat_rate * r.T_return
+        total.f_mat[9, 9] += r.flow.heat_rate
+
+    elif t[i] < 3600 * 15:
+        # new
+        supply_flow_rate = 100.0e-6  # m^3/s
+        demand_flow_rate = 0
+        total.flows[0].set_flow_rate(supply_flow_rate)
+        total.flows[1].set_flow_rate(demand_flow_rate)
+
+        total.make_empty_q_vec()
+        total.add_ambient_to_q()
+        total.combine_flows()
+        # new
+        r.T_supply = output[0, i]
+        r.update(r.func_rad_lmtd)
+        hp.T_cond_in = output[9, i]
+        hp.adjust()
+        logging.info(f"T_cond_out {hp.T_cond_out}   T_cond_in {hp.T_cond_in}")
+        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond_out
         total.f_mat[0, 0] += hp.flow.heat_rate
         total.q_vec[9] += r.flow.heat_rate * r.T_return
         total.f_mat[9, 9] += r.flow.heat_rate
@@ -145,11 +144,10 @@ for i in range(len(t) - 1):
         total.make_empty_q_vec()
         total.add_ambient_to_q()
         total.combine_flows()
-
         # new
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
-        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond
+        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond_out
         total.f_mat[0, 0] += hp.flow.heat_rate
         total.q_vec[9] += r.flow.heat_rate * r.T_return
         total.f_mat[9, 9] += r.flow.heat_rate
@@ -164,11 +162,10 @@ for i in range(len(t) - 1):
         total.make_empty_q_vec()
         total.add_ambient_to_q()
         total.combine_flows()
-
         # new
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
-        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond
+        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond_out
         total.f_mat[0, 0] += hp.flow.heat_rate
         total.q_vec[9] += r.flow.heat_rate * r.T_return
         total.f_mat[9, 9] += r.flow.heat_rate
