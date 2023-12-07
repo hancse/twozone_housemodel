@@ -13,33 +13,46 @@ A schematic description of the buffer vessel is shown below.
 	\caption[Short title]{Buffer vessel representation}
 \end{figure}
 
-Due to the fact that the density of water decreases with temperature above 4 $\degC$, different temperature layers are created. In order to model this, the buffer vessel will be divided into $N$ different sections 
+Due to the fact that the density of water decreases with temperature above 4 $\degC$, different temperature layers are created. In order to model this, the buffer vessel will be divided into $N$ different elements (layers). The top element is labeled with index $0$, the bottom element with index $N-1$. Each element has \emph{conductive} thermal losses to the environment with temperature $T_{amb}$ and \emph{conductive} transfer to the adjacent water layers. Moreover, there is a \emph{convective} thermal flow passing through adjacent layers. Thermal demand is taken from the top layer, heat supply enters the top layer as well. Return flow from heat sinks and to heat sources occurs via the bottom layer. 
 
 \textbf{Mathematical description}
 
 \textbf{List of symbols:}
 
 \begin{itemize}
-	\item [$m$] {mass [kg]}
-	\item [$\dot{m}$] {mass flow [kg/s]}
-	\item [$C_w$] {Specific heat of water [J/kg]}
-	\item [$T$] {Temperature [C]}
-	\item [$U$] {Thermal transmittance [W/K]}
-	\item [$A$] {Area [\(m^2\)]}
-	\item [$\lambda$] {Heat conductivity [W/mK]}
+	\item [$m_i$] {mass of water layer $i$ [kg]}
+	\item [$\dot{m}_x$] {mass flow of flow $x$ [kg/s]}
+	\item [$c_w$] {(isobaric) specific heat $c_p$ of water: 4185-4200 [J/kg]} \href{https://www.engineeringtoolbox.com/specific-heat-capacity-water-d_660.html}{Toolbox}
+	\item [$T_i$] {temperature of water layer $i$ [\textdegree C]}
+	\item [$U$] {thermal transmittance of buffer vessel wall: 0.12-0.3 [$W/m^2K$]} \href{https://en.wikipedia.org/wiki/Thermal_transmittance}{Wiki}
+	\item [$A_x$] {Area of  surface $x$ [\(m^2\)]}
+	\item [$\lambda$] {thermal conductivity between water layers: 0.60-0.67 [$W/mK$]} \href{https://www.engineeringtoolbox.com/water-liquid-gas-thermal-conductivity-temperature-pressure-d_2012.html}{Toolbox}, \href{https://en.wikipedia.org/wiki/Thermal_conductivity_and_resistivity}{Wiki}
 \end{itemize}
 
 \begin{equation}
 	\begin{aligned}
 		\label{eq:Buffer vessel layers}
-	    mC_w \dfrac{dT_1}{dt} &=
-	    \dot{m_s}C_w(T_s - T_1) + \dot{m_e}C_w(T_1 - T_2)*sgn(\dot{-m_e}) - UA_s(T_1 - T_a) - \frac{A_q\lambda_w}{z}(T_1-T_2) \\
-	    mC_w \dfrac{dT_i}{dt} &= \\
-	    & \dot{m_e}C_w(T_{i-1} - T_{i})*sgn(\dot{m_e}) + \dot{m_e}C_w(T_{i} - T_{i+1})*sgn(\dot{-m_e}) - UA_s(T_i - T_a) + \frac{A_q\lambda_w}{z}(T_{i-1} + T_{i+1} - 2T_i) \\
-   	    mC_w \dfrac{dT_n}{dt} &= 
-   	    \dot{m_d}C_w(T_r - T_n) + \dot{m_e}C_w(T_{n-1} - T_n)*sgn(\dot{m_e}) - UA_s(T_n + T_a) + \frac{A_q\lambda_w}{z}(T_{n-1}-T_n)		
+	    mc_w \dfrac{dT_1}{dt} &=
+	    \dot{m_s}c_w(T_s - T_1) + \dot{m_e}c_w(T_1 - T_2)*sgn(\dot{-m_e}) - UA_s(T_1 - T_a) - \frac{A_q\lambda_w}{z}(T_1-T_2) \\
+	    mc_w \dfrac{dT_i}{dt} &= \\
+	    & \dot{m_e}c_w(T_{i-1} - T_{i})*sgn(\dot{m_e}) + \dot{m_e}c_w(T_{i} - T_{i+1})*sgn(\dot{-m_e}) - UA_s(T_i - T_a) + \frac{A_q\lambda_w}{z}(T_{i-1} + T_{i+1} - 2T_i) \\
+   	    mc_w \dfrac{dT_n}{dt} &= 
+   	    \dot{m_d}c_w(T_r - T_n) + \dot{m_e}c_w(T_{n-1} - T_n)*sgn(\dot{m_e}) - UA_s(T_n + T_a) + \frac{A_q\lambda_w}{z}(T_{n-1}-T_n)		
 	\end{aligned}
 \end{equation}
+
+Abbreviations and legend:
+	\begin{equation}
+		\begin{aligned}
+			C_i &= m_i \cdot c_{w} \qquad \text{for} \quad x =  0 \cdots N-1 \\
+			\frac{1}{R_{amb}} &= U \cdot A_s \\
+			\frac{1}{R} = \frac{1}{R_{int}} &= \frac{Aq \cdot \lambda}{z} \\
+			F_{supply} &= F_s = \dot{m}_{supply} \cdot c_{w} \\
+			F_{demand} &= F_d = \dot{m}_{demand} \cdot c_{w} \\
+			\dot{m}_e &= \dot{m}_{supply} - \dot{m}_{demand} \\
+			F_e &= \dot{m}_{e} \cdot c_{w} 
+		\end{aligned}
+	\end{equation}
 
 \textbf{Validation}
 

@@ -148,12 +148,15 @@ class Radiator:
 
     def calculate_radiator_properties(self):
         self.LMTD_0 = LMTD_radiator(self.T_sup_zero, self.T_ret_zero, self.T_amb_zero)
-        print(f"LMTD_0 = {self.LMTD_0} \u00b0C")
         self.Km = np.exp(np.log(self.q_zero) - (self.exp_rad*np.log(self.LMTD_0)))
-        print(f"Km = {self.Km}")
+        print(f"LMTD_0 = {self.LMTD_0} \u00b0C     Km = {self.Km}")
         if self.flow:
             self.m_zero = (self.q_zero) / (self.flow.cp * (self.T_sup_zero - self.T_ret_zero))
             print(f"mass_flow_zero: {self.m_zero:6f} [kg/s] ({self.m_zero * (1.0e6/self.flow.density):3f} ml/s)")
+
+    def set_qzero(self, new_qzero: float):
+        self.q_zero = new_qzero
+        self.calculate_radiator_properties()
 
     def set_flow(self, new_flow: Flow):
         self.flow = new_flow
