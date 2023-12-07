@@ -222,9 +222,9 @@ if __name__ == "__main__":
     K = 44
     A_u = 16.0
     fin_separation = 4
-    evaporator_power = 3.7
+    evaporator_power = 4.2
     massflow_air = 1928/3600
-    time_interval = 3600
+    time_interval = 600
 
     FM = FrostModel(K, A_u, fin_separation)
 
@@ -259,15 +259,11 @@ if __name__ == "__main__":
     print(f'Estimated Power with optimize function: {estimated_power_optimize} kW')
     print(f'Estimated evaporator temperature with optimize: {estimated_evaporator_temperature_optimze-273.15} C')
 
+    # NOw that the evaporator temperature is known, the amount of moisture taken from the air can be calculated
     x_air_leaving = FM.calculate_x_air_leaving(P, enthalpy_air_leaving, RV, T_outside)
-    print(f'Humidity ratio air out: {x_air_leaving} kg/s')
-
     mass_rijp = FM.calculate_mrijp(humidity_ratio_outside, x_air_leaving, massflow_air, time_interval)
     print(f'Kg rijp: {mass_rijp} kg')
-
     dewpoint = FM.calculate_dew_point_quick(T_outside - 273.15, RV)
-    print(f'Dewpoint: {dewpoint} K')
-
     rho_rijp = FM.calculate_rho_rijp(dewpoint)
     print(f'Rho rijp: {rho_rijp} Kg/m^3')
 
