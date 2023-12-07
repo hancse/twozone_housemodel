@@ -39,6 +39,9 @@ Radiator:
       # capacity: 209000.0  # J/K = Crad
       # T_ini: 40.0
 
+Heatpump:
+  name: "HPNTA"
+
 edges:
   # - [0, 1, 2024.0]        # W/K : 1/R1
   #- [3, 4, 201.9611831 ]  # W/K : 1/R1

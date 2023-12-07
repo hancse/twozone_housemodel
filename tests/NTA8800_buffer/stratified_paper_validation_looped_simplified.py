@@ -5,6 +5,7 @@ from housemodel.basics.totalsystem import TotalSystem
 from housemodel.basics.flows import Flow
 from housemodel.sourcesink.radiators.radiators import Radiator
 from housemodel.sourcesink.buffervessels.stratified import model, StratifiedBufferNew
+from housemodel.sourcesink.heatpumps.heatpumpnew import HeatpumpNTANew
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -17,7 +18,7 @@ matplotlib.use('Qt5Agg')
 
 b = StratifiedBufferNew(name="MyBuffer", num_layers=10,
                         volume=200, height=4,
-                        T_amb=10, T_ini=80)
+                        T_amb=10, T_ini=50)
 print(f"{b.radius}")
 leak_to_amb_top = b.U_wall * (b.A_base + b.A_wall_layer)
 leak_to_amb_mid = b.U_wall * b.A_wall_layer
@@ -89,6 +90,15 @@ print(f"radiator to room: {r.Km * np.power(r.get_lmtd(), r.exp_rad)} [W] with De
 print(f"top-bottom: {r.flow.heat_rate * (output[0, 0] - output[9, 0])} [W]")
 print(f"back-to-bottom: {r.flow.heat_rate * (r.T_return - output[9, 0])} [W]")
 
+hp = HeatpumpNTANew(name="HP")
+hp.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])  # including regression coefficients
+hp.T_evap = 7.0  # fixed, becomes T_outdoor
+hp.T_cond = 60.0
+hp.update()
+print(f"COP: {hp.COP}, P_HP_kW {hp.P_HP_kW}")
+hp.set_flow(total.flows[0])  # supply flow
+print(f"Heat rate: {hp.flow.heat_rate} [W/K] \n")
+
 inputs = (total,)
 
 for i in range(len(t) - 1):
@@ -97,24 +107,15 @@ for i in range(len(t) - 1):
         total.add_ambient_to_q()
         total.combine_flows()
 
-        # MvdB
-        # total.q_vec[9] += total.flows[1].heat_rate * Treturn
-        # total.f_mat[9, 9] += total.flows[1].heat_rate
-
         # new
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
+        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond
+        total.f_mat[0, 0] += hp.flow.heat_rate
         total.q_vec[9] += r.flow.heat_rate * r.T_return
         total.f_mat[9, 9] += r.flow.heat_rate
 
     elif t[i] < 3600 * 15:
-        # MvdB
-        # electric heater 2.4 MW; heat transfer controlled by flow
-        # flow becomes VERY large if bottom layer approaches 80 C!
-        # unstable system
-        # supply_flow_rate = 2.4e3/((80 - output[9, i])*4190)
-        # demand_flow_rate = 0
-
         # new
         supply_flow_rate = 1.0e-3  # m^3/s
         demand_flow_rate = 0
@@ -126,17 +127,13 @@ for i in range(len(t) - 1):
         total.add_ambient_to_q()
         total.combine_flows()
 
-        # MvdB
-        # total.q_vec[0] += total.flows[0].heat_rate * Tsupply
-        # total.f_mat[0, 0] += total.flows[0].heat_rate
-
         # new
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
-        total.q_vec[0] += total.flows[0].heat_rate * Tsupply
-        total.f_mat[0, 0] += total.flows[0].heat_rate
-        # total.q_vec[9] += r.flow.heat_rate * r.T_return
-        # total.f_mat[9, 9] += r.flow.heat_rate
+        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond
+        total.f_mat[0, 0] += hp.flow.heat_rate
+        total.q_vec[9] += r.flow.heat_rate * r.T_return
+        total.f_mat[9, 9] += r.flow.heat_rate
 
     elif t[i] < 3600 * 17.5:
         # MvdB
@@ -149,27 +146,17 @@ for i in range(len(t) - 1):
         total.add_ambient_to_q()
         total.combine_flows()
 
-        # MvdB
-        # total.q_vec[0] += total.flows[0].heat_rate * Tsupply
-        # total.f_mat[0, 0] += total.flows[0].heat_rate
-        # total.q_vec[9] += total.flows[1].heat_rate * Treturn
-        # total.f_mat[9, 9] += total.flows[1].heat_rate
-
         # new
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
-        total.q_vec[0] += total.flows[0].heat_rate * Tsupply
-        total.f_mat[0, 0] += total.flows[0].heat_rate
+        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond
+        total.f_mat[0, 0] += hp.flow.heat_rate
         total.q_vec[9] += r.flow.heat_rate * r.T_return
         total.f_mat[9, 9] += r.flow.heat_rate
 
     elif t[i] < (3600 * 25):
-        # MvdB
-        # supply_flow = 2.4e3/((80 - output[9, i])*4190)
-        # demand_flow = 0.01
-
         # new
-        supply_flow_rate = 0.50e-3  # m^3/s
+        supply_flow_rate = 1.0e-3  # m^3/s
         demand_flow_rate = 1.0e-3
         total.flows[0].set_flow_rate(supply_flow_rate)
         total.flows[1].set_flow_rate(demand_flow_rate)
@@ -178,17 +165,11 @@ for i in range(len(t) - 1):
         total.add_ambient_to_q()
         total.combine_flows()
 
-        # MvdB
-        # total.q_vec[0] += total.flows[0].heat_rate * Tsupply
-        # total.f_mat[0, 0] += total.flows[0].heat_rate
-        # total.q_vec[9] += total.flows[1].heat_rate * Treturn
-        # total.f_mat[9, 9] += total.flows[1].heat_rate
-
         # new
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
-        total.q_vec[0] += total.flows[0].heat_rate * Tsupply
-        total.f_mat[0, 0] += total.flows[0].heat_rate
+        total.q_vec[0] += hp.flow.heat_rate * hp.T_cond
+        total.f_mat[0, 0] += hp.flow.heat_rate
         total.q_vec[9] += r.flow.heat_rate * r.T_return
         total.f_mat[9, 9] += r.flow.heat_rate
 

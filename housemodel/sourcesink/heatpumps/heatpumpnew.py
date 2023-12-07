@@ -11,6 +11,7 @@ from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import (calc_WP_general,
                                                             plot_plane, plot_lines)
 
 from housemodel.sourcesink.boilers.boilers_without_PID import GasBoiler
+from housemodel.tools.new_configurator import load_config
 from housemodel.basics.flows import Flow
 import logging
 
@@ -49,6 +50,15 @@ class HeatpumpNTANew:
         """
         return cls(name=d["name"])
 
+    @classmethod
+    def from_yaml(cls, config_yaml: str):
+        hp = cls()
+        d = load_config(config_yaml)
+        hpd = d.get("Heatpump")
+        hp.name = hpd.get("name")
+        logging.info(f" Heatpump '{hp.name}' created \n")
+        return hp
+
     def calculate_heatpump_properties(self):
         pass
 
@@ -59,6 +69,10 @@ class HeatpumpNTANew:
     def set_cal_val(self, cop_val: list, pmax_val: list):
         self.cal_COP_val = np.array(cop_val)
         self.cal_Pmax_val = np.array(pmax_val)
+        self.c_coeff = calc_WP_general(self.cal_T_evap, self.cal_T_cond,
+                                     self.cal_COP_val, order=1)
+        self.p_coeff = calc_WP_general(self.cal_T_evap, self.cal_T_cond,
+                                     self.cal_Pmax_val, order=1)
 
     def set_A2W35(self, cop_val: float, pmax_val: float):
         self.COP_A2W35 = np.array(cop_val)
@@ -103,13 +117,8 @@ if __name__ == "__main__":
     nta = HeatpumpNTANew()
     nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
 
-    nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
-                                  nta.cal_COP_val, order=1)
     plot_plane(nta.cal_T_evap, nta.cal_T_cond,
                nta.cal_COP_val, nta.c_coeff, 'COP', 1.0, 5.0)
-
-    nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
-                                  nta.cal_Pmax_val, order=1)
     plot_plane(nta.cal_T_evap, nta.cal_T_cond,
                nta.cal_COP_val, nta.c_coeff, 'Power', 0.0, 10.0)
 
