@@ -98,7 +98,7 @@ Kramer et al. \cite{SHC2020PVT} provide an overview of various models for determ
 For modeling the electrical yield of a PVT-panel we can refer to the model of the PV-panel. The panel efficiency can be approximated by equation (\ref{eq:efficiency_pv}). However, the panel temperature is now largely influenced by the solar collector, and Equation (\ref{eq:temp_panel}) does not hold. The most basic approximation for the PV-cell temperature is $T_{\text{cell}} = T_{\text{fl,out}}$, where $T_{\text{fl,out}} $ is the temperature of the collector fluid at the outlet, cf. \cite{SHC2020PVT} page 22. The temperature at the outlet should follow from the thermal analysis of the PVT.
 
 \subsubsection{thermal output}
-Section 2.1 of the report Status Quo of PVT Characterization \cite{SHC2020PVT} gives an overview of various modelling approaches for obtaining the thermal yield of a thermal solar collector.
+Section 2.1 of the report Status Quo of PVT Characterization \cite{SHC2020PVT} gives an overview of various modeling approaches for obtaining the thermal yield of a thermal solar collector.
 Here we briefly address the various approaches.
 
 The first approach is based on the \textbf{Standard ISO 9806}. Under steady-state test conditions the thermal power $\dot{Q}_{th}$ is given by:
@@ -106,7 +106,8 @@ The first approach is based on the \textbf{Standard ISO 9806}. Under steady-stat
 \dot{Q}_th = A_G\cdot G\cdot \left[\eta_{0,hem} - a_1 \cdot \frac{\theta_m - \theta_a}{G} - a_2 \cdot G \cdot \left(\frac{\theta_m - \theta_a}{G}\right)^2 \right] ,
 \label{eq:thermal_ISO}
 \end{equation} 
-here $A_G$ is the gross area of the collector,  $G$ is the hemispherical solar irradiance (Global solar irradiance), $\theta_m$ is the mean temperature of the heat transfer fluid and $\theta_a$ is the measured ambient temperature. $a_1$ and $a_2$ are two coefficients that are specify the collector's temperature dependent heat loss. These coefficients are not directly available, and should be determined by fitting the model to experimental data. (Possibly a manufacturer could provide these parameters?). An additional down side of this model is that it needs the mean temperature of the collector fluid as input. This is largely dependent on the operational conditions. Under the norm's  the steady-state test conditions these might be well defined and controlled, in practice these conditions will vary and are not controllable. $\theta_m$ will be in general not available as a basic input. This makes the model not directly practically applicable.  
+here $A_G$ is the gross area of the collector,  $G$ is the hemispherical solar irradiance (Global solar irradiance), $\eta_{0,hem}$ is the peak collector efficiency, $\theta_m$ is the mean temperature of the heat transfer fluid and $\theta_a$ is the measured ambient temperature. $a_1$ and $a_2$ are two coefficients that are specify the collector's temperature dependent heat loss. These coefficients are not directly available, and could be determined by fitting the model to experimental data. The Solar Rating and Certification Corporation website \cite{srcc} provides parameters for various collectors (parameters for the updated norm of 2017 are also available).
+An additional down side of this model is that it needs the mean temperature of the collector fluid as input. This is largely dependent on the operational conditions. Under the norm's  the steady-state test conditions these might be well defined and controlled, in practice these conditions will vary and are not controllable. $\theta_m$ will be in general not available as a basic input. This makes the model not directly practically applicable. (A method equivalent to the radiator-equations might be suitable).   
 The equation \ref{eq:thermal_ISO} is the most basic version of a series. This model has been further extended to add wind speed dependencies and radiation losses. However, the limitation in usability remains. 
 
 
@@ -114,6 +115,7 @@ The second model is a one dimensional energy balance model. The description in \
 
  
 \subsubsection{energy balance}
+
 
 
 
