@@ -1,7 +1,7 @@
 
 import numpy as np
 import CoolProp.CoolProp as CP
-from scipy.optimize import minimize
+from scipy import optimize
 from housemodel.tools.radiator_performance.TemperatureDifference import LMTD
 import math
 
@@ -93,10 +93,14 @@ class FrostModel:
         Returns:
             The log mean temperature difference in K
         """
-        delta_h1 = h_ai - h_0
-        delta_h2 = h_ao - h_0
-        # Calculate the logarithmic mean enthalpy difference
-        lnH = (delta_h1 - delta_h2) / math.log(delta_h1/ delta_h2)
+        try:
+            delta_h1 = h_ai - h_0
+            delta_h2 = h_ao - h_0
+            # Calculate the logarithmic mean enthalpy difference
+            lnH = (delta_h1 - delta_h2) / math.log(delta_h1/ delta_h2)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            raise
         return lnH
 
     def calculate_power(self, delta_h_ln, average_cp):
@@ -111,27 +115,33 @@ class FrostModel:
         """
         return (self.K * self.A_u * delta_h_ln) / average_cp
 
-    # def find_evaporator_temperature(self, Q_r, h_ai, h_ao):
-    #     def objective_function(T_0):
-    #         self.T_0 = T_0
-    #         delta_h_a = self.calculate_enthalpy_change(Q_r, m_a)
-    #         h_ao = h_ai - delta_h_a
-    #         humidity_ratio_at_surface = FM.calculate_moisture_content(T_0, 1, P)
-    #         h_0 = self.calculate_enthalpy_moist_air(T_0, P, humidity_ratio_at_surface)
-    #         cp = self.calculate_average_cp(h_ai, h_0, T_a, T_0)
-    #         delta_h_ln = self.calculate_log_mean_enthalpy_matlab(h_ai, h_ao, h_0)
-    #         Q_calculated = self.calculate_power(delta_h_ln, cp)
-    #         asdf = abs(Q_calculated - Q_r)*1000
-    #         return asdf
-    #
-    #     initial_guess = self.T_0
-    #     result = minimize(objective_function, initial_guess, method='Nelder-Mead')
-    #
-    #     if result.success:
-    #         self.T_0 = result.x[0]
-    #     else:
-    #         raise ValueError("Optimization did not converge")
-    #     return self.T_0
+    def find_evaporator_temperature(self, Q_r, h_ai, h_ao):
+        def objective_function(T_0):
+            self.T_0 = float(T_0)
+            enthalpy_air = h_ai
+            enthalpy_air_out = h_ao
+            humidity_ratio_at_surface = FM.calculate_humidity_ratio(self.T_0, 1, P)
+            P_sat = CP.PropsSI('P', 'T', self.T_0, 'Q', 0, 'Water')
+            enthalpy_at_surface = 0.001 * CP.HAPropsSI("H", "T", self.T_0, "P", P_sat, "W",
+                                                       humidity_ratio_at_surface)
+            average_cp = FM.calculate_average_cp(enthalpy_air, enthalpy_at_surface, T_outside)
+
+            ln_enthalpy_difference = FM.calculate_log_mean_enthalpy_matlab(enthalpy_air, enthalpy_air_out,
+                                                                           enthalpy_at_surface)
+            Q_estimated = ((self.K * self.A_u * ln_enthalpy_difference) / average_cp) / 1000
+            estimate = Q_r - Q_estimated
+            return estimate
+
+        initial_guess = self.T_0
+        result = optimize.newton(objective_function, initial_guess)
+        humidity_ratio_at_surface = FM.calculate_humidity_ratio(self.T_0, 1, P)
+        P_sat = CP.PropsSI('P', 'T', self.T_0, 'Q', 0, 'Water')
+        enthalpy_at_surface = 0.001 * CP.HAPropsSI("H", "T", self.T_0, "P", P_sat, "W",
+                                                   humidity_ratio_at_surface)
+        ln_enthalpy_difference = FM.calculate_log_mean_enthalpy_matlab(h_ai, h_ao,
+                                                                       enthalpy_at_surface)
+        Q_estimated = ((self.K * self.A_u * ln_enthalpy_difference) / average_cp) / 1000
+        return result, Q_estimated
 
     def find_evaporator_temperature_matlab(self, Q_r, h_ai, h_ao):
         """
@@ -207,8 +217,8 @@ class FrostModel:
 if __name__ == "__main__":
     # Inputs to the frost model
     P = 101325
-    T_outside = 2 + 273.15
-    RV = 0.8
+    T_outside = 5 + 273.15
+    RV = 0.7
     K = 44
     A_u = 16.0
     fin_separation = 4
@@ -240,8 +250,14 @@ if __name__ == "__main__":
     # Since this first guess is too high, a loop is used to estimate the evaporator temperature
     [estimated_evaporator_temperature, estimated_power] = FM.find_evaporator_temperature_matlab(evaporator_power, enthalpy_air_outside, enthalpy_air_leaving)
     print(f'Estimated Power: {estimated_power} kW')
-    print(f'Estimated evaporator temperature: {estimated_evaporator_temperature} K')
     print(f'Estimated evaporator temperature: {estimated_evaporator_temperature-273.15} C')
+    #Comparing it to the Newton-Rhapson method
+    FM.T_0 = T_outside - 20
+    [estimated_evaporator_temperature_optimze, estimated_power_optimize] = FM.find_evaporator_temperature(evaporator_power,
+                                                                              enthalpy_air_outside,
+                                                                              enthalpy_air_leaving)
+    print(f'Estimated Power with optimize function: {estimated_power_optimize} kW')
+    print(f'Estimated evaporator temperature with optimize: {estimated_evaporator_temperature_optimze-273.15} C')
 
     x_air_leaving = FM.calculate_x_air_leaving(P, enthalpy_air_leaving, RV, T_outside)
     print(f'Humidity ratio air out: {x_air_leaving} kg/s')
