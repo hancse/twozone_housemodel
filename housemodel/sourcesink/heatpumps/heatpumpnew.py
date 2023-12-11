@@ -104,17 +104,17 @@ class HeatpumpNTANew:
         """adjust T_cond_out if P_HP is not sufficient to reach T_cond_or.
         """
         if self.flow:
-            P_req_W = self.flow.heat_rate * (self.T_cond_or - self.T_cond_in)
+            P_req_W = self.flow.heat_rate * (self.T_cond_out - self.T_cond_in)
             P_req_kW = P_req_W/1000
 
-            if P_req_W <= self.P_HP_W:
-                self.T_cond_out = self.T_cond_or
-            else:
-                self.T_cond_out = self.p_coeff[0] + self.p_coeff[1]*self.T_evap
+            if P_req_kW > self.P_HP_kW:
+                self.T_cond_out = (self.p_coeff[0] +
+                                   self.p_coeff[1]*self.T_evap +
+                                   self.flow.heat_rate/1000*self.T_cond_in)
                 self.T_cond_out /= ((self.flow.heat_rate/1000) - self.p_coeff[2])
 
             logging.info(f"P_req_W {P_req_W}   P_HP_W {self.P_HP_W}")
-            logging.info(f"T_cond_out {self.T_cond_out}   T_cond_in {self.T_cond_in}")
+            # logging.info(f"T_cond_out {self.T_cond_out}   T_cond_in {self.T_cond_in}")
 
 
 class HybridHPNew:
