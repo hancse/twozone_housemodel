@@ -112,8 +112,6 @@ class Radiator:
         self.T_return = None
         self.T_amb = 20
         self.flow = None  # Flow()  # default Flow object
-        # self.flow_rate = None
-        # self.F_rad = None    # heat flow in [W/K] = flow * rho * c_w  replaced by self.flow.heat_rate
 
         # model radiator as in EN442: Q = Km * LMTD ** n
         self.Km = None
@@ -125,7 +123,6 @@ class Radiator:
         self.q_zero = 2000        # [W]
         self.m_zero = None
 
-        # self.__denominator = None
         self.__gmtd = None
         self.__lmtd = None
         self.calculate_radiator_properties()
@@ -248,6 +245,7 @@ if __name__ == "__main__":
     radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
 
     radiator.Km = 12.5
+    radiator.set_flow(Flow())
     radiator.flow.set_flow_rate(0.010e-3)  # m^3/s use SETTER to include update of heat-rate!!!!
     print(f"Heat rate: {radiator.flow.heat_rate} [W/K]")
 

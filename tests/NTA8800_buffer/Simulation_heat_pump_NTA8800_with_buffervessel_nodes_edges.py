@@ -305,6 +305,7 @@ def main(show=False, xl=False):
     radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
 
     radiator.Km = 12.5
+    radiator.set_flow(Flow())
     radiator.flow.set_flow_rate(0.040e-3)  # m^3/s
     print(f"Heat rate: {radiator.flow.heat_rate} [W/K] \n")
 
@@ -347,7 +348,11 @@ def main(show=False, xl=False):
         # p_hp = 0
         # determine new setting for COP and heat pump power
         water_temp[i] = outdoor_reset(Toutdoor.values[i], 0.7, 20)
-        cop_hp[i], p_hp = nta.update(Toutdoor.values[i], water_temp[i])
+        nta.T_evap = Toutdoor.values[i]
+        nta.T_cond_out = water_temp[i]
+        nta.update()
+        cop_hp[i] = nta.COP
+        # p_hp = nta.P_HP_kW
 
         # incorporate hysteresis to control
         # p_hp = hp_hyst.update(Tair[i], SP.values[i], p_hp)

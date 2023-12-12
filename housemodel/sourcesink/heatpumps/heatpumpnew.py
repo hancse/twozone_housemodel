@@ -27,6 +27,9 @@ class HeatpumpNTANew:
     def __init__(self, name="NTA"):
         self.name = name
         self.T_evap = 20  # evaporator temperature (Toutdoor)
+        # self.T_evap_in = None
+        # self.T_evap_out = None
+
         self.T_cond_or = 20  # condenser temperature (outdoor reset)
         self.T_cond_out = 20  # condenser temperature (hot side)
         self.T_cond_in = 20  # condenser temperature (cold side)
