@@ -85,12 +85,15 @@ print(f"back-to-bottom: {r.flow.heat_rate * (r.T_return - output[9, 0])} [W] \n"
 
 hp = HeatpumpNTANew(name="HP")
 hp.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])  # including regression coefficients
-hp.T_evap = 7.0  # fixed, becomes T_outdoor
-hp.T_cond_or = 45.0
-hp.T_cond_out = hp.T_cond_or
+hp.Pmax_kW = 8.0                     # necessary for clipping in update() function
+hp.T_evap = 7.0                      # fixed, becomes T_outdoor
+hp.T_cond_or = 45.0                  # initial output reset setting
+
+hp.T_cond_out = hp.T_cond_or         # T_cond out is T_cond_or, unless power cannot be delivered
 hp.update()
+
 print(f"COP: {hp.COP}, P_HP_kW {hp.P_HP_kW}")
-hp.set_flow(total.flows[0])  # supply flow
+hp.set_flow(total.flows[0])          # supply flow
 print(f"Heat rate: {hp.flow.heat_rate} [W/K] \n")
 
 inputs = (total,)
@@ -105,16 +108,22 @@ for i in range(len(t) - 1):
         total.make_empty_q_vec()
         total.add_ambient_to_q()
         total.combine_flows()
-        # new
+
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
+        hp.T_cond_in = output[9, i]
+        hp.adjust()
+        P_supply = hp.flow.heat_rate * (hp.T_cond_out - hp.T_cond_in)
+        logging.info(f"T_cond_out {hp.T_cond_out}   "
+                     f"T_cond_in {hp.T_cond_in}   "
+                     f"P_supply {P_supply} \n")
+
         total.q_vec[0] += hp.flow.heat_rate * hp.T_cond_out
         total.f_mat[0, 0] += hp.flow.heat_rate
         total.q_vec[9] += r.flow.heat_rate * r.T_return
         total.f_mat[9, 9] += r.flow.heat_rate
 
     elif t[i] < 3600 * 15:
-        # new
         supply_flow_rate = 50.0e-6  # m^3/s
         demand_flow_rate = 0
         total.flows[0].set_flow_rate(supply_flow_rate)
@@ -123,12 +132,16 @@ for i in range(len(t) - 1):
         total.make_empty_q_vec()
         total.add_ambient_to_q()
         total.combine_flows()
-        # new
+
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
         hp.T_cond_in = output[9, i]
         hp.adjust()
-        logging.info(f"T_cond_out {hp.T_cond_out}   T_cond_in {hp.T_cond_in}")
+        P_supply = hp.flow.heat_rate * (hp.T_cond_out - hp.T_cond_in)
+        logging.info(f"T_cond_out {hp.T_cond_out}   "
+                     f"T_cond_in {hp.T_cond_in}   "
+                     f"P_supply {P_supply} \n")
+
         total.q_vec[0] += hp.flow.heat_rate * hp.T_cond_out
         total.f_mat[0, 0] += hp.flow.heat_rate
         total.q_vec[9] += r.flow.heat_rate * r.T_return
@@ -144,9 +157,15 @@ for i in range(len(t) - 1):
         total.make_empty_q_vec()
         total.add_ambient_to_q()
         total.combine_flows()
-        # new
+
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
+        hp.T_cond_in = output[9, i]
+        hp.adjust()
+        P_supply = hp.flow.heat_rate * (hp.T_cond_out - hp.T_cond_in)
+        logging.info(f"T_cond_out {hp.T_cond_out}   "
+                     f"T_cond_in {hp.T_cond_in}   "
+                     f"P_supply {P_supply} \n")
 
         total.q_vec[0] += hp.flow.heat_rate * hp.T_cond_out
         total.f_mat[0, 0] += hp.flow.heat_rate
@@ -163,12 +182,16 @@ for i in range(len(t) - 1):
         total.make_empty_q_vec()
         total.add_ambient_to_q()
         total.combine_flows()
-        # new
+
         r.T_supply = output[0, i]
         r.update(r.func_rad_lmtd)
         hp.T_cond_in = output[9, i]
         hp.adjust()
-        logging.info(f"T_cond_out {hp.T_cond_out}   T_cond_in {hp.T_cond_in}")
+        P_supply = hp.flow.heat_rate * (hp.T_cond_out - hp.T_cond_in)
+        logging.info(f"T_cond_out {hp.T_cond_out}   "
+                     f"T_cond_in {hp.T_cond_in}   "
+                     f"P_supply {P_supply} \n")
+
         total.q_vec[0] += hp.flow.heat_rate * hp.T_cond_out
         total.f_mat[0, 0] += hp.flow.heat_rate
         total.q_vec[9] += r.flow.heat_rate * r.T_return
