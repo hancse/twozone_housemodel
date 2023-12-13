@@ -155,8 +155,8 @@ for i in range(len(t) - 1):
 
     elif t[i] < (3600 * 25):
         # new
-        supply_flow_rate = 150e-6  # m^3/s
-        demand_flow_rate = 50e-6
+        supply_flow_rate = 50e-6  # m^3/s
+        demand_flow_rate = 150e-6
         total.flows[0].set_flow_rate(supply_flow_rate)
         total.flows[1].set_flow_rate(demand_flow_rate)
 
