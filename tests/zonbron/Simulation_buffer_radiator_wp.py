@@ -168,6 +168,7 @@ def main(show=False, xl=False):
     Treturn = np.ones(len(t)) * y0[1]
     Power_gb = np.zeros(len(t))
     Power_hp = np.zeros(len(t))
+    P_supply = np.zeros(len(t))
 
     TBuffervessel0 = np.ones(len(t)) * y0[2]
     TBuffervessel1 = np.ones(len(t)) * y0[3]
@@ -189,15 +190,14 @@ def main(show=False, xl=False):
     pid.setWindup(controllers[0]["maximum"] / control_interval)
 
     # Heat pump initialization
-    nta = HeatpumpNTANew()
-    nta.Pmax_kW = 8.0         # in kW
+    nta = HeatpumpNTANew(name="HP")
     nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
+    nta.Pmax_kW = 8.0  # in kW
+    nta.T_evap = Toutdoor.values[0]
+    nta.T_cond_or = 45.0    #initial value
+    nta.T_cond_out = nta.T_cond_or
+    nta.update()
 
-    nta.c_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
-                                  nta.cal_COP_val, order=1)
-
-    nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
-                                  nta.cal_Pmax_val, order=1)
     water_temp = np.zeros(len(t))
     cop_hp = np.zeros(len(t))
 
@@ -209,20 +209,20 @@ def main(show=False, xl=False):
 
     # Radiator object
     deg = u"\u00b0"     # degree sign
-    radiator = Radiator(name="Rad", exp_rad=1.3)
-    radiator.T_supply = TBuffervessel0[0]
-    radiator.T_amb = Tair[0]
-    radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
+    r = Radiator(name="Rad", exp_rad=1.3)
+    r.T_supply = TBuffervessel0[0]
+    r.T_amb = Tair[0]
+    r.T_return = (r.T_supply + r.T_amb) / 2.0  # crude quess
 
-    radiator.set_flow(total.flows[0])
-    print(f"Heat rate: {radiator.flow.heat_rate} [W/K] \n")
+    r.set_flow(total.flows[0])
+    print(f"Heat rate: {r.flow.heat_rate} [W/K] \n")
 
-    radiator.update(radiator.func_rad_lmtd)
-    print(f"Q_dot: {radiator.q_dot}, T_return: {radiator.T_return}")
-    print(f"radiator to room: {radiator.flow.heat_rate * (TBuffervessel0[0] - radiator.T_return)} [W]")
-    print(f"radiator to room: {radiator.Km * np.power(radiator.get_lmtd(), radiator.exp_rad)} [W] with Delta T_LMTD = {radiator.get_lmtd()}")
-    print(f"top-bottom: {radiator.flow.heat_rate * (TBuffervessel0[0] - TBuffervessel7[0])} [W]")
-    print(f"back-to-bottom: {radiator.flow.heat_rate * (radiator.T_return - TBuffervessel7[0])} [W]")
+    r.update(r.func_rad_lmtd)
+    print(f"Q_dot: {r.q_dot}, T_return: {r.T_return}")
+    print(f"radiator to room: {r.flow.heat_rate * (TBuffervessel0[0] - r.T_return)} [W]")
+    print(f"radiator to room: {r.Km * np.power(r.get_lmtd(), r.exp_rad)} [W] with Delta T_LMTD = {r.get_lmtd()}")
+    print(f"top-bottom: {r.flow.heat_rate * (TBuffervessel0[0] - TBuffervessel7[0])} [W]")
+    print(f"back-to-bottom: {r.flow.heat_rate * (r.T_return - TBuffervessel7[0])} [W]")
 
     # inputs = (cap_mat_inv, cond_mat, q_vector, control_interval)
     #inputs = (total, Q_vectors, control_interval)
@@ -247,33 +247,44 @@ def main(show=False, xl=False):
                 total.add_source_to_q(s, i)
             # logging.info(f" q_vector: \n {total.q_vec}")
 
+        total.combine_flows()
+
         # here comes the "arduino style" controller
         pid.SetPoint = SP.values[i]
         pid.update(Tair[i], t[i])
         Qinst = pid.output
 
+        bottom_layer = total.find_tag_from_node_label("DictBuffer7")
+        upper_layer = total.find_tag_from_node_label("DictBuffer0")
         # Heat pump NTA800
         # p_hp = 0
         # determine new setting for COP and heat pump power
-        nta.T_cond = outdoor_reset(Toutdoor.values[i], 1.2, 20)  # stooklijn klopt niet helemaal!
-        water_temp[i] = nta.T_cond
+
+        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 1.2, 20)  # stooklijn klopt niet helemaal!
+        water_temp[i] = nta.T_cond_out
         nta.T_evap = Toutdoor.values[i]
-        nta.update()
+        nta.T_cond_in = TBuffervessel7[i]
+        nta.adjust()
+        P_supply[i] = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)
         cop_hp[i] = nta.COP
 
         # update q_vector: add heat source for Buffer vessel
-        upper_layer = total.find_tag_from_node_label("DictBuffer0")
-        total.q_vec[upper_layer] += nta.P_HP_W
 
-        radiator.T_supply = TBuffervessel0[i]
-        radiator.T_amb = Tair[i]
-        radiator.T_return = (radiator.T_supply + radiator.T_amb) / 2.0  # crude quess
-        radiator.update(radiator.func_rad_lmtd)
+
+        r.T_supply = TBuffervessel0[i]
+        r.T_amb = Tair[i]
+        r.T_return = (r.T_supply + r.T_amb) / 2.0  # crude quess
+        r.update(r.func_rad_lmtd)
+
+        total.q_vec[upper_layer] += nta.flow.heat_rate * nta.T_cond_out
+        total.f_mat[upper_layer, upper_layer] += nta.flow.heat_rate
+        total.q_vec[bottom_layer] += r.flow.heat_rate * r.T_return
+        total.f_mat[bottom_layer, bottom_layer] += r.flow.heat_rate
 
         # update q_vector: add heat source for Building
         air_node = total.find_tag_from_node_label("air")
         # total.q_vec[air_node] += Qinst          # GasBoiler via PID controller
-        total.q_vec[air_node] += radiator.q_dot   # via radiator
+        total.q_vec[air_node] += r.q_dot   # via radiator
 
         # supply flow
         # total.flows[1].set_flow_rate(nta.flow.flow_rate)  # Flow object????
@@ -281,7 +292,7 @@ def main(show=False, xl=False):
         # total.flows[0].set_flow_rate(radiator.flow.flow_rate)
         # total.flows[0].set_flow_rate(radiator.flow_rate)
 
-        total.combine_flows()
+        #total.combine_flows()
 
         ts = [t[i], t[i + 1]]
         result = solve_ivp(model_radiator_ne, ts, y0,
@@ -290,7 +301,7 @@ def main(show=False, xl=False):
 
         Tair[i + 1] = result.y[0, -1]
         Twall[i + 1] = result.y[1, -1]
-        Treturn[i] = radiator.T_return
+        Treturn[i] = r.T_return
         Power_gb[i] = Qinst
         Power_hp[i] = nta.P_HP_W
 
@@ -356,7 +367,8 @@ def main(show=False, xl=False):
         ax[1, 1].set_xlabel(('Time (s)'))
         ax[1, 1].set_ylabel(('Temperature (°C)'))
 
-        ax[2, 0].plot(time_d, data[5], label='Power HP', color = 'r')
+        # ax[2, 0].plot(time_d, data[5], label='Power HP', color = 'r')
+        ax[2, 0].plot(time_d, P_supply, label='Power HP', color='r')
         ax[2, 0].legend(loc='upper right')
         ax[2, 0].set_title('Power_hp')
         ax[2, 0].set_xlabel(('Time (s)'))
