@@ -122,7 +122,7 @@ class HeatpumpNTANew:
             else:
                 self.T_cond_out = self.T_cond_or
             self.update()
-            logging.info(f"P_req_W {P_req_W}   P_HP_W {self.P_HP_W}")
+            # logging.info(f"P_req_W {P_req_W}   P_HP_W {self.P_HP_W}")
             # logging.info(f"T_cond_out {self.T_cond_out}   T_cond_in {self.T_cond_in} \n")
 
 
