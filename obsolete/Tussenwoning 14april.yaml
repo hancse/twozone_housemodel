@@ -1,0 +1,94 @@
+# General setting
+
+Identifier: Definition file created by HAN
+Date:       2/25/2021
+
+# Climatefile with description of temperatures humidity and solar irradiation
+Climatefile: ..\..\NEN5060.xls
+# Default simulation time in
+Timescale: hrs # default timescale used in yaml file
+Duration:  8760 # a year in the defined timescale
+Timestep:  1 # default timestep in time integration. Required.
+
+chains:
+  -
+    designation: "2R2C 1-node" # beter: 2R2C 1 zone
+    anchor: 1 # De warmte-overdrachtsketen start bij de buitentemperatuur
+    links:    # kan ook "nodes" heten, het is tenslotte een 1 zone model met 2 nodes
+      -
+        Name: Internals
+        Conductance: 90.73621351         # W/K : 1/R1
+        Capacity: 2.70E+06               # J/K: C1
+      -
+        Name: Load_bearing_construction
+        Conductance: 3000                # W/K: 1/R2
+        Capacity: 1.11E+08               # J/K: C2
+
+    Solar_irradiation:
+      -
+        Designation: Front_facade
+        Effective Area: 6.755 # m2 (glass surface x ZTA )
+        Node_partition: [0.8, 0.2]
+        Surfaces:
+        - {link: internals, factor: 0.8}  # Meeste zon komt direct in het interieur
+        - {link: Load_bearing_construction, factor: 0.2} # Klein deel warmte de dragende wanden op
+        Tilt:    90 # degrees
+        Azimuth: 0 # degrees N = 0
+      -
+        Designation: Back
+        Effective Area: 9.65 # m2 (glass surface x ZTA )
+        Node_partition: [0.8, 0.2]
+        Surfaces:
+          - [link: Internals, factor: 0.8]
+          - [link: Load_bearing_construction, factor: 0.2]
+        Tilt: 90 # degrees
+        Azimuth: 180 # degrees N = 0
+
+    Sources:
+      -
+        name: Internal_load
+        link: internals
+        factor: 1
+        Set_time: [0,   23]
+        Set_load: [634, 634]
+
+    Heating:
+      -
+        Description: Radiators
+        C: 1105.510603 # W
+        n: 1.3
+        Flow: 300  # W/K
+        Location:
+          - [link: internals, factor: 0.85] # Radiator warmte vooral de ruimte op
+          - [link: Load_bearing_construction, factor: 0.15] # Een klein aandeel warmte de draghende muren op
+
+    Control:
+      Type: PID
+      Param: [5000] # Parameters for control
+      Link: internals
+      Scale: hrs
+      Set_time: [7,  22]
+      Set_temp: [20, 17]
+
+    Heater:
+      Type: Condensing Boiler
+      Power: 26 # kW
+      Modulation: 0.15
+      Min_time: 180 # s
+
+radiator:
+    # Heat transfer coefficient of the radiator
+    Urad : 30
+    # Area of the radiator
+    Arad : 10
+    # Cp value of water
+    cpwater : 4180
+    #Volume of the radiator
+    volume_rad : 0.050
+    #density of the water
+    rhowater : 1000
+    #Volume of the buffervessel
+    volume_buffervessel : 0.150
+    #Waterflow through the radiator
+    mdot : 0.150
+

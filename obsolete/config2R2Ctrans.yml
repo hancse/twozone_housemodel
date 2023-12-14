@@ -1,0 +1,85 @@
+Identifier: Definition file created by HAN
+Date:       2/25/2021
+
+# Climatefile with description of temperatures humidity and solar irradiation
+
+Climatefile:  ..\..\NEN5060.xls
+
+timing:
+  days_sim:   365
+  timescale:  hour   # Default simulation time in
+  
+solar_irradiation:
+    E  : 9.5
+    SE : 0
+    S  : 0
+    SW : 0
+    W  : 9.5
+    NW : 0
+    N  : 0
+    NE : 0
+    g_value : 0.7
+# Windows size [m2]
+
+# timing:
+  #  days_sim : 20
+   # interval : NEN5060
+    # unit : ss
+
+chains:
+  -
+    Designation: 2R2C, 1-node
+    anchor:      1            # De warmte-overdrachtsketen start bij de buitentemperatuur
+    links:
+      -
+        name: internals
+        Conductance: 214.9718240562546253373451579691   # [W/K] = 1/Rth
+        Capacity: 7472373.6            # [J/K]
+      -
+        name: load_bearing_construction
+        Conductance: 1360.00000000000004352
+        Capacity: 7140000.0
+
+      -
+        name: radiator
+        Conductance: 300
+        Capacity: 209000.0
+        
+       # [ name, conductivity, capacity]
+       # [ internals , 147.30, 2.70E+06]
+      # - [ load bearing construction, 1160.00, 5.51E+07]
+
+
+ventilation:
+    #Ventilation, air changes per hour [#/h]
+    n : 0.55
+    #convection factor (solar radiation): 
+    #the convection factor is the part of the solar radiation 
+    #that enters the room and is released directly convectively into the room
+    CF : 0.8
+
+initial:
+    # density air in [kg/m3]
+    rho_air : 1.20
+
+internal:
+    # Internal heat difference between day and night [W]
+    delta_Q : 150
+    # Daytime internal heat generation [W]
+    Q_day : 400
+    # Presence from [hour]
+    t1 : 8
+    # Presence until [hour]
+    t2 : 23
+
+controller:
+    # proportional gain
+    kp : 7000
+    # intergal
+    ki : 0
+    # derivative
+    kd : 0    
+     
+    
+
+
