@@ -89,7 +89,7 @@ def main(show=False, xl=False):
     days_sim = math.ceil(param['timing']['Duration'] / 24)
     print(days_sim)
 
-    # create House object
+    # create Building object
     h = Building("MyHouse")
     section = param["Building"]
     # read nodes attribute from dictionary and create capacity matrix

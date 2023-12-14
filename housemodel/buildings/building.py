@@ -1,3 +1,4 @@
+
 import numpy as np
 
 from housemodel.basics.ckf_tools import make_c_inv_matrix
@@ -13,11 +14,27 @@ logging.basicConfig(level="INFO")
 
 
 class Building:
+    """ class for abstract representation of building topology with nodes and edges.
+
+    Attributes:
+        name (str): name of building.
+        num_nodes (int): number of CapacityNode objects.
+        num_edges (int): number of CondEdge objects.
+        nodes (list): list of CapacityNode objects.
+        edges (list): list of CondEdge objects.
+        boundaries (list): list of FixedNode objects.
+        ambient (FixedNode): FixedNode object with label "outdoor".
+        c_inv_mat (array): inverse of capacity matrix C^{-1} [K/J]
+        k_ext_mat (array): conductance of nodes to ambient [W/K].
+        q_vec (array): vector with external heat sources/sinks [W].
+        tag_list (list): list of tags of nodes.
+        edge_list (list): list of connected node pairs
+    """
     def __init__(self, name=""):
         self.name = name
         self.num_nodes = 0
-        self.nodes = []            # np.zeros(self.num_nodes, dtype=object)
         self.num_edges = 0
+        self.nodes = []            # np.zeros(self.num_nodes, dtype=object)
         self.edges = []
         self.boundaries = []
         self.ambient = None
@@ -54,8 +71,9 @@ class Building:
         return b
 
     def nodes_from_dict(self, lod: list):
-        """initializes "nodes" attribute with data from yaml file
-           makes a list from tags belonging to the House object
+        """initializes "nodes" attribute with data from yaml file.
+
+           makes a list from tags belonging to the Building object
 
         Args:
             lod: list of dicts read from yaml file
@@ -74,7 +92,6 @@ class Building:
 
     def fill_c_inv(self):
         """generate cap_list and fill c_inv_matrix.
-
         """
         self.cap_list = [n.cap for n in self.nodes]
         if len(self.cap_list) > 0:
@@ -88,8 +105,7 @@ class Building:
         choose "outdoor" node as ambient for Building class.
 
         Args:
-            lod: list-of dicts read from "boundaries" section in .yaml configuration file
-
+            lod: list-of dicts read from "boundaries" section in .yaml configuration file.
         """
         for n in range(len(lod)):
             node = FixedNode(label=lod[n]["label"],

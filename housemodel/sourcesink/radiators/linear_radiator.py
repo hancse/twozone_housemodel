@@ -43,7 +43,7 @@ class LinearRadiator:
 
     def nodes_from_dict(self, lod: list):
         """initializes "nodes" attribute with data from yaml file
-           makes a list from tags belonging to the House object
+           makes a list from tags belonging to the LinearRadiator object
 
         Args:
             lod: list of dicts read from yaml file

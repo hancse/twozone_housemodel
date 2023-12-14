@@ -1,12 +1,11 @@
+
 import numpy as np
 
 from housemodel.basics.ckf_tools import (make_c_inv_matrix,
                                          add_c_inv_block,
                                          make_edges)
 from housemodel.tools.new_configurator import load_config
-from housemodel.basics.components import (CapacityNode,
-                                          FixedNode,
-                                          CondEdge)
+from housemodel.basics.components import (CapacityNode, CondEdge, FixedNode)
 import logging
 
 # logging.basicConfig(level="DEBUG")
@@ -18,13 +17,17 @@ logging.basicConfig(level="INFO")
 
 class House:
     """ class for abstract representation of building topology with nodes and edges.
+
+    Attributes:
+        name (str): name of building.
+        num_nodes (int): number of CapacityNode objects.
     """
     def __init__(self, name=""):
         self.name = name
         self.num_nodes = 0
         self.num_edges = 0
         self.nodes = []            # np.zeros(self.num_nodes, dtype=object)
-        self.edges = []            # np.zeros(self.num_nodes - 1)
+        self.edges = []
         self.boundaries = []
         self.ambient = None
 
@@ -49,9 +52,6 @@ class House:
 
         Args:
             lod: list of dicts read from yaml file
-
-        Returns:
-            None
         """
         self.num_nodes = len(lod)
         for n in range(self.num_nodes):
@@ -66,12 +66,32 @@ class House:
         logging.debug(f" tag_list {self.tag_list}")
 
     def fill_c_inv(self):
+        """generate cap_list and fill c_inv_matrix.
+        """
         self.cap_list = [n.cap for n in self.nodes]
         if len(self.cap_list) > 0:
             self.c_inv_mat = make_c_inv_matrix(self.cap_list)
             logging.debug(f" c_inv_matrix: \n {self.c_inv_mat}")
         else:
             logging.error(f" Error: cap_list empty")
+
+    def boundaries_from_dict(self, lod):
+        """generate Fixed Node objects from configuration file
+        choose "outdoor" node as ambient for Building class.
+
+        Args:
+            lod: list-of dicts read from "boundaries" section in .yaml configuration file.
+        """
+        for n in range(len(lod)):
+            node = FixedNode(label=lod[n]["label"],
+                             temp=lod[n]["T_ini"],
+                             connected_to=lod[n]["connected_to"])
+            # append by reference, therefore new node object in each iteration
+            self.boundaries.append(node)
+            logging.debug(f" boundary '{node.label}' appended to {self.name}")
+
+        self.ambient = [fn for fn in self.boundaries if fn.label == "outdoor"][0]
+        logging.debug(f" ambient is '{self.ambient.label}' for {self.name}")
 
     def edges_from_dict(self, lol):
         self.num_edges = len(lol)
@@ -91,18 +111,6 @@ class House:
         el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
         self.k_mat = make_edges(el)
         logging.debug(f" k_matrix: \n {self.k_mat}")
-
-    def boundaries_from_dict(self, lod):
-        for n in range(len(lod)):
-            node = FixedNode(label=lod[n]["label"],
-                             temp=lod[n]["T_ini"],
-                             connected_to=lod[n]["connected_to"])
-            # append by reference, therefore new node object in each iteration
-            self.boundaries.append(node)
-            logging.debug(f" boundary '{node.label}' appended to {self.name}")
-
-        self.ambient = [fn for fn in self.boundaries if fn.label == "outdoor"][0]
-        logging.debug(f" ambient is '{self.ambient.label}' for {self.name}")
 
     """
     def add_fixed_to_k(self):
@@ -175,6 +183,6 @@ if __name__ == "__main__":
 
     from pathlib import Path
 
-    CONFIGDIR = Path(__file__).parent.absolute()
-    house_param = load_config(str(CONFIGDIR / "xl_for_2R2Chouse_buffer.yml"))
+    CONFIGDIR = Path(__file__).parent.parent.parent.absolute().joinpath("tests")
+    house_param = load_config(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
     print()

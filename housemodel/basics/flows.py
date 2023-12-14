@@ -1,19 +1,32 @@
-# import numpy as np
+
 import networkx as nx
-import numpy as np
 
 from housemodel.tools.new_configurator import load_config
 
 
 class Flow:
+    """class for a thermal flow or electrical current.
+
+    This class describes the convective flow of heat in a topological network.    .
+
+    Attributes:
+        label (str): label of Flow object e.g " supply", "demand".
+        flow_rate (float): volume flow rate of thermal medium in [m^3/s]`.
+        density (float): density of thermal medium e.g. 1000 [kg/m^3] for water.
+        cp (float): specific heat of thermal medium e.g. 4190 [J/kg K] for water.
+        node_list (list): ordered list of topological nodes passed by flow.
+        heat_rate (float): thermal heat rate in [W/K]
+        df_mat (array): adjacency matrix for nodes passed by flow.
+
+        """
     def __init__(self, label="", flow_rate=50.0e-6, density=1000,
-                       cp=4190, node_list=None):
+                 cp=4190, node_list=None):
         self.label = label
         self.flow_rate = flow_rate
         self.density = density
         self.cp = cp
         if node_list is None:
-            self.node_list = []         # empty list
+            self.node_list = []   # empty list
         else:
             self.node_list = node_list
         self.heat_rate = None
@@ -22,15 +35,28 @@ class Flow:
 
     @classmethod
     def from_dict(cls, d):
-        """ classmethod to enable constructing an instance from dict.
+        """ class method to enable constructing an instance from dictionary.
+
+        Args:
+            d (dict): dictionary with fields mapping constructor args.
+
+        Returns:
+             Flow class object.
         """
-        return cls(label=d["label"],flow_rate=d["flow_rate"], density=d["density"],
+        return cls(label=d["label"], flow_rate=d["flow_rate"], density=d["density"],
                    cp=d["cp"], node_list=d["pass_by"])
 
     def update_heat_rate(self):
+        """ (re)calculate heat_rate upon change in other attributes.
+        """
         self.heat_rate = self.flow_rate * self.density * self.cp  # [J/ Ks) = [W/K]
 
     def set_flow_rate(self, new_flow_rate):
+        """setter for flow_rate attribute, updates heat_rate.
+
+        Args:
+            new_flow_rate (float): new value for flow_rate.
+        """
         self.flow_rate = new_flow_rate
         self.update_heat_rate()
 
@@ -38,9 +64,7 @@ class Flow:
         """converts nodelist into edges and F-matrix.
 
         Args:
-            rank (int): order od total system matrix
-        Returns:
-            None
+            rank (int): order of total system matrix.
         """
         # check if attribute node_list exists
         if not self.node_list:
@@ -64,20 +88,6 @@ class Flow:
         # self.df_mat = np.multiply(self.df_mat, (self.cp * self.density * self.flow_rate))
 
     """
-    def flow_from_dict(self, d: dict):
-        # initializes "nodes" attribute with data from yaml file
-
-        Args:
-            d: dict read from yaml file
-
-        self.label = d["label"]
-        self.flow_rate = d["flow_rate"]
-        self.density = d["density"]
-        self.cp = d["cp"]
-        self.node_list = d["pass_by"]
-    """
-
-    """
     def nodelist_to_edges(self):
         # converts self.nodelist to edge pairs for networkx.
 
@@ -91,7 +101,7 @@ class Flow:
 
 if __name__ == "__main__":
     from pathlib import Path
-    CONFIGDIR = Path(__file__).parent.parent.parent.absolute()
+    CONFIGDIR = Path(__file__).parent.parent.parent.absolute().joinpath("tests")
     param = load_config(str(CONFIGDIR / "for_2R2Chouse_buffer.yaml"))
 
     flows = []

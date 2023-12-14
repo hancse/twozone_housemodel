@@ -55,7 +55,8 @@ class CondEdge:
         conn_nodes (list): list of tags of CapacityNode objects, connected by this CondEge.
         cond (float): conductance of node, in [W/K] or [A/V = S]
 
-    Note: if methods are defined this turns into a normal class object.
+    Note:
+        if methods are defined this turns into a normal class object.
     """
     label: str
     conn_nodes: []  # empty list (tuple, ndarray)
