@@ -191,8 +191,8 @@ def main(show=False, xl=False):
 
     # Heat pump initialization
     nta = HeatpumpNTANew(name="HP")
-    nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
-    nta.Pmax_kW = 8.0  # in kW
+    nta.set_cal_val([5.18, 3.8, 2.8], [11, 11, 8.4])
+    nta.Pmax_kW = 9.2  # in kW
     nta.T_evap = Toutdoor.values[0]
     nta.T_cond_or = 45.0    #initial value
     nta.T_cond_out = nta.T_cond_or
@@ -213,6 +213,7 @@ def main(show=False, xl=False):
     r.T_supply = TBuffervessel0[0]
     r.T_amb = Tair[0]
     r.T_return = (r.T_supply + r.T_amb) / 2.0  # crude quess
+    r.set_qzero(12000)
 
     r.set_flow(total.flows[0])
     print(f"Heat rate: {r.flow.heat_rate} [W/K] \n")
@@ -265,8 +266,16 @@ def main(show=False, xl=False):
         nta.T_evap = Toutdoor.values[i]
         nta.T_cond_in = TBuffervessel7[i]
         nta.adjust()
-        P_supply[i] = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)
-        cop_hp[i] = nta.COP
+        if nta.T_cond_out > nta.T_cond_in:
+            P_supply[i] = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)
+            cop_hp[i] = nta.COP
+            r.flow.set_flow_rate(150.0e-6)
+            nta.flow.set_flow_rate(150.0e-6)
+        else:
+            P_supply[i] = 0
+            cop_hp[i] = 0
+            r.flow.set_flow_rate(0)
+            nta.flow.set_flow_rate(0)
 
         # update q_vector: add heat source for Buffer vessel
 
@@ -355,11 +364,11 @@ def main(show=False, xl=False):
         ax[0, 1].set_xlabel(('Time (s)'))
         ax[0, 1].set_ylabel(('COP'))
 
-        ax[1, 0].plot(time_d, data[4], label='Power_gb', color='c')
+        ax[1, 0].plot(time_d, data[6], label='Condensor temp', color='c')
         ax[1, 0].legend(loc='upper right')
-        ax[1, 0].set_title('Power_gb')
+        ax[1, 0].set_title('Condensor Temperature')
         ax[1, 0].set_xlabel(('Time (s)'))
-        ax[1, 0].set_ylabel(('Power (W)'))
+        ax[1, 0].set_ylabel(('T (°C)'))
 
         ax[1, 1].plot(time_d, data[3], label='Return temp', color='b')
         ax[1, 1].legend(loc='upper right')
