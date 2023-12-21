@@ -1,3 +1,4 @@
+
 """
 See Also
     https://pypi.org/project/simple-pid/
@@ -17,23 +18,21 @@ import matplotlib.pyplot as plt
 class GasBoiler(PID):
     """class for modelling PID-controlled gas boiler.
 
-    """
+    Attributes:
+        kp (float):          proportional PID gain [W/C]
+        ki (float):          integral PID parameter
+        kd (float):          derivative PID parameter
+        T_setpoint (float):  setpoint (SP) temperature
+        T_node (float):      process value (PV) temperature
+        T_amb (float):       outdoor temperature used for outdoor
+        dead_band (float):   dead band in [C]
+        P_max (float):       maximum power of boiler [W]
+        P_min (float):       minimum power of boiler [W]
 
+    """
+    
     def __init__(self, kp, ki, kd, T_setpoint,
                  T_node, T_amb, dead_band, P_max, P_min):
-        """
-
-        Args:
-            kp (float):          proportional PID gain [W/C]
-            ki (float):          integral PID parameter
-            kd (float):          derivative PID parameter
-            T_setpoint (float):  setpoint (SP) temperature
-            T_node (float):      process value (PV) temperature
-            T_amb (float):       outdoor temperature used for outdoor
-            dead_band (float):   dead band in [C]
-            P_max (float):       maximum power of boiler [W]
-            P_min (float):       minimum power of boiler [W]
-        """
         super().__init__(kp, ki, kd, T_setpoint)
         self.P_max = P_max
         self.P_min = P_min
@@ -65,6 +64,9 @@ class GasBoiler(PID):
     """
 
     def update(self):
+        """update boiler PI controller heating power output.
+
+        """
         self.output = self.__call__(self.T_node, self.current_step)  # should happen always
 
         # If temperature is above dead band once, disable the PID boiler, zero power
