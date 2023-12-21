@@ -26,7 +26,7 @@ Buffer:
   num_layers: 8 # end-tag = 2 +8 -1 = 9
   volume: 0.15   # m^3
   height: 0.765   # m
-  U_wall: 0.12  # conductivity vessel wall to ambient in [W/K m^2]
+  U_wall: 0.72  # conductivity vessel wall to ambient in [W/K m^2]
   T_amb: 15.0
   T_ini: 40.0     # C
 

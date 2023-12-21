@@ -3,7 +3,7 @@ import matplotlib
 matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 
-def outdoor_reset(T_ambient, slope, intercept=20):
+def outdoor_reset(T_ambient, slope, intercept=20, min_feed_temp = 20, max_feed_temp = 80):
     """Compute outdoor reset temperature.
 
     Args:
@@ -17,6 +17,7 @@ def outdoor_reset(T_ambient, slope, intercept=20):
     """
     #https://www.familie-kleinman.nl/energie/elga-ace-stooklijnen/
     feed_temperature = intercept + slope*(intercept - T_ambient)
+    max(min_feed_temp, min(max_feed_temp, feed_temperature))
     return feed_temperature
 
 
