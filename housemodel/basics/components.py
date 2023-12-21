@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
 
+# dataclasses need "Args:" in docstring; "Attributes:" causes Sphinx warning.
+
 
 @dataclass
 class CapacityNode:
@@ -8,7 +10,7 @@ class CapacityNode:
     Basic node in a topological network (graph),
     with (heat) capacity and a calculated temperature (or voltage)
 
-    Attributes:
+    Args:
         label (str): node label e.g. "air", "wall".
         tag(int): numeric tag of node in total network system.
         cap (float): heat capacity or capacitance of node.
@@ -28,7 +30,7 @@ class FixedNode:
     this basic component has no capacity (infinite capacity)
     and a predefined temperature (or voltage) that may change e.g. outdoor temperature.
 
-    Attributes:
+    Args:
         label (str):   node label e.g. "outdoor", "indoor".
         connected_to (list): list of tags of CapacityNode objects, connected to this FixedNode.
         temp (float): predefined temperature or voltage of node.
@@ -50,7 +52,7 @@ class CondEdge:
     Basic connecting edge in a topological network (graph),
     this basic component has a (thermal) conductance.
 
-    Attributes:
+    Args:
         label (str):   node label e.g. "outdoor", "indoor".
         conn_nodes (list): list of tags of CapacityNode objects, connected by this CondEge.
         cond (float): conductance of node, in [W/K] or [A/V = S]

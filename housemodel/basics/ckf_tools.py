@@ -33,7 +33,7 @@ def stack_q(first, second):
 
 
 def make_edges(edge_list):
-    """
+    """calculate adjacency matrix with (thermal) conductances from edge list.
 
     Args:
         edge_list: list with edge info [source_node (int), target_node (int), weight (float)]
@@ -53,7 +53,9 @@ def make_edges(edge_list):
 
 
 if __name__ == "__main__":
-    lines = load_config(str("excel_for_companies_nodes_and_edges.yaml"))
+    from pathlib import Path
+    DATADIR = Path(__file__).parent.parent.parent.absolute().joinpath('tests/companies')
+    lines = load_config(str(DATADIR / "for_companies_nodes_edges.yaml"))
     Kmat = make_edges(lines['edges'])
     print(Kmat)
 

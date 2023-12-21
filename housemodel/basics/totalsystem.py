@@ -1,3 +1,4 @@
+
 import numpy as np
 from scipy.linalg import block_diag
 import itertools
@@ -14,6 +15,7 @@ from housemodel.basics.components import (FixedNode,
 from housemodel.buildings.building import Building
 from housemodel.basics.flows import Flow
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
+from housemodel.basics.source_term import SourceTerm
 
 import logging
 
@@ -33,6 +35,29 @@ logging.basicConfig(level="INFO")
 
 
 class TotalSystem:
+    """class for integration of housemodel parts.
+
+    Attributes:
+        name (str): system identifier.
+        parts (list): list of housemodel parts
+                      e.g. Building with Radiator, Heatpump and Buffer.
+        num_nodes (int):
+        num_edges (int):
+        nodes (list):
+        edges (list):
+        ambients (list):
+        flows (list):
+        c_inv_mat (array):
+        k_mat (array):
+        k_ext_mat (array):
+        q_vec (array):
+        f_mat (array):
+        q_solar (array):
+        q_int (array):
+        tag_list (list):
+        edge_list (list)
+        edge_list_between_parts (list):
+    """
     def __init__(self, name="", parts=None):   # immutable "list" = tuple
         self.name = name
         if parts is None:
@@ -65,8 +90,8 @@ class TotalSystem:
         logging.info(f" TotalSystem object {self.name} created")
 
     def edges_from_dict(self, lol):
-        """reads ALL edges from parameter dict
-
+        """reads ALL edges from parameter dictionary containing "edges:" key
+           into "edges" and "edge_list" attributes.
         """
         if self.edge_list or self.edges:
             self.edges = []
@@ -84,7 +109,8 @@ class TotalSystem:
             logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
 
     def edges_between_from_dict(self, lol):
-        """reads ONLY edges BETWEEN parts from parameter dict.
+        """reads ONLY edges BETWEEN parts from parameter dictionary containing "edges:" key
+           into "edges" and "edge_list_between_parts" attributes.
         """
         if self.edge_list_between_parts or self.edges:
             self.edges = []
@@ -103,7 +129,11 @@ class TotalSystem:
             logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
 
     def edges_between_from_yaml(self, config_yaml: str):
-        """reads ONLY edges BETWEEN parts from config yaml file.
+        """ reads ONLY edges BETWEEN parts from config yaml file
+            into "edges" and "edge_list_between_parts" attributes.
+
+        Args:
+            config_yaml (str): configuration file name.
         """
         lol = load_config(config_yaml).get("edges")
         if self.edge_list_between_parts or self.edges:
@@ -123,7 +153,10 @@ class TotalSystem:
             logging.info(f" edge from {edge.conn_nodes[0]} to {edge.conn_nodes[1] } appended to {self.name}")
 
     def flows_from_yaml(self, config_yaml: str):
-        """ method to enable constructing an instance from yaml file.
+        """ reads list of Flow objects from yaml file into "flows" attribute (list).
+
+        Args:
+            config_yaml (str): configuration file name.
         """
         if self.flows:
             self.flows = []
@@ -134,6 +167,8 @@ class TotalSystem:
             self.flows[n].make_df_matrix(rank=self.k_mat.shape[0])
 
     def combine_flows(self):
+        """combine list of Flow objects into f_mat attribute.
+        """
         # combine F-matrices into matrix total.f_mat
         self.f_mat = np.zeros_like(self.flows[0].df_mat)
         for n in range(len(self.flows)):
@@ -162,7 +197,7 @@ class TotalSystem:
         """add global edges BETWEEN subsystems to complete k-matrix.
 
         Args:
-            lol: list of edge lists [from, to, weight] read from config file
+            lol: list of edge lists [from, to, weight] read from config file.
         """
         # selection should not be necessary
         el = [e for e in lol if e[0] in self.tag_list and e[1] in self.tag_list]
@@ -183,7 +218,6 @@ class TotalSystem:
 
     def add_fixed_to_k(self):
         """add conductivities to boundary "ambient" to diagonal elements of k-matrix.
-
         """
         # fnl = [fn for fn in self.boundaries for index in fn.connected_to if index[0] in self.tag_list]
         # res = []
@@ -203,11 +237,12 @@ class TotalSystem:
     #    # logging.info(f" empty q-vector created of rank {self.num_nodes}")
 
     def add_fixed_to_q(self):
-        """add terms from ALL boundary conditions (external nodes) like T_outdoor and T_indoor.
+        """add terms from ALL boundary conditions (external nodes)
+           like T_outdoor and T_indoor.
 
-            - loops over ALL FixedNode object in self.boundaries
-            - for each FixedNode adds T/Rth to the corresponding element of self.q_vec
-            - the right element is found via the index of the tag in self.taglist
+            - loops over ALL FixedNode object in self.boundaries.
+            - for each FixedNode adds T/Rth to the corresponding element of self.q_vec.
+            - the right element is found via the index of the tag in self.taglist.
         """
         for b in self.boundaries:
             for c in b.connected_to:
@@ -265,8 +300,12 @@ class TotalSystem:
         self.tag_list = [t for tag in [p.tag_list for p in self.parts] for t in tag]
 
     def merge_edge_lists(self, lol):
-        """merge internal edge lists from parts and edge list read from config .yaml file.
-        since the parts are already sorted on parts.tag_list[0]
+        """ merge internal edge lists from parts and edge list read from config .yaml file
+            since the parts are already sorted on parts.tag_list[0].
+
+        Args:
+            lol (list of lists): edge_list object.
+
         See: https://www.geeksforgeeks.org/python-ways-to-concatenate-two-lists
         See: https://stackoverflow.com/questions/18114415/how-do-i-concatenate-3-lists-using-a-list-comprehension
         See Also: https://stackoverflow.com/questions/952914/how-do-i-make-a-flat-list-out-of-a-list-of-lists
@@ -275,6 +314,11 @@ class TotalSystem:
         self.edge_list = [item for sublist in lol for item in sublist]
 
     def merge_edge_lists1(self, lol):
+        """alternative for merge_edge_lists.
+
+        Args:
+            lol (list of lists): edge_list object.
+        """
         flat_list = []
         for sublist in lol:
             for item in sublist:
@@ -282,25 +326,40 @@ class TotalSystem:
         self.edge_list = flat_list
 
     def merge_edge_lists2(self, lol):
+        """second alternative for merge_edge_lists.
+
+        Args:
+            lol (list of lists): edge_list object.
+        """
         lol = [[1, 2, 3], [4, 5, 6], [7], [8, 9]]
         merged = list(itertools.chain.from_iterable(lol))
         self.edge_list = merged
 
     def merge_edge_lists_from_parts_and_between(self):
+        """merge ALL edges within parts and between.
+        """
         merged = [p.edge_list for p in self.parts]
         merged.append(self.edge_list_between_parts)
         self.merge_edge_lists(merged)
 
     def merge_k_ext(self):
-        """merge external conductivity matrices of parts by block diagonal addition
+        """merge external conductivity matrices of parts by block diagonal addition.
         """
         my_tup = (p.k_ext_mat for p in self.parts)
         self.k_ext_mat = block_diag(*my_tup)
 
     def merge_ambients(self):
+        """merge ALL ambient objects from parts in a list.
+        """
         self.ambients = [p.ambient for p in self.parts if p.ambient is not None]
 
-    def add_source_to_q(self, source, src_index: int):
+    def add_source_to_q(self, source: SourceTerm, src_index: int):
+        """add SourceTerm value array element to current q_dot-vector.
+
+        Args:
+            source (SourceTerm): SourceTerm object from housemodel.
+            src_index: index to i-th element in SourceTerm values attribute (array).
+        """
         for c in source.connected_to:
             idx = self.tag_list.index(c[0])
             fraction = c[1]
@@ -309,12 +368,28 @@ class TotalSystem:
             # logging.info(f" source {source.name}[{src_index}] ({new_power}) added to q-vector element {idx}")
 
     def find_node_label_from_tag(self, tag):
+        """convert node tag number to corresponding node label.
+
+        Args:
+            tag (int): input node tag number.
+
+        Returns:
+            (str): node label
+        """
         for p in self.parts:
             for n in p.nodes:
                 if n.tag == tag:
                     return n.label
 
     def find_tag_from_node_label(self, label):
+        """convert node label to corresponding tag number.
+
+        Args:
+            label (str): input node label.
+
+        Returns:
+            (int): tag number.
+        """
         for p in self.parts:
             for n in p.nodes:
                 if n.label == label:
@@ -339,8 +414,3 @@ if __name__ == "__main__":
     k1 = make_edges(k_list)
     print(k1, '\n')
 
-    from pathlib import Path
-
-    CONFIGDIR = Path(__file__).parent.absolute()
-    house_param = load_config(str(CONFIGDIR / "xl_for_2R2Chouse_buffer.yml"))
-    print()

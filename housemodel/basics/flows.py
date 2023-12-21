@@ -1,6 +1,5 @@
 
 import networkx as nx
-
 from housemodel.tools.new_configurator import load_config
 
 

@@ -4,13 +4,17 @@ from scipy.interpolate import interp1d
 
 
 class SourceTerm:
-    """class for storage of additive contributions to q-vector "source terms".
+    """class for storage of additive contributions to q_dot-vector "source terms".
 
     Contributions are stored
     - in thermal power values [W]
     - in temperature values [K], to be multiplied by thermal conductivity in [W/K]
-    """
 
+    Attributes:
+        name (str): source or sink identifier.
+        connected_to (list): list of network nodes that source or sink connects to
+        values (array): array of numerical values of source term at predefined time instants.
+    """
     def __init__(self, name=""):
         self.name = name
         self.connected_to = []
@@ -18,6 +22,15 @@ class SourceTerm:
 
     # TODO: 6 * 600 geldt alleen voor interval 600 sec vanuit uurdata!!!!!!!
     def interpolate_power(self, time_sim, control_interval):
+        """interpolate values of source term over range with new interval between samples.
+
+        Args:
+            time_sim (array): original range of discrete input time instants.
+            control_interval: new interval between output time instants
+
+        Returns:
+            (array): source term interpolated over input time range with new interval.
+        """
         interp_func = interp1d(time_sim, self.values, fill_value='extrapolate')
         self.values = interp_func(np.arange(0, time_sim[-1] + (6 * 600),
                                             control_interval))
