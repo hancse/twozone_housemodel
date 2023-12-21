@@ -197,6 +197,7 @@ def main(show=False, xl=False):
     nta.cal_T_cond = np.array([35, 35, 45])
     nta.set_cal_val([2.65, 5.21, 3.91], [7.23, 3.67, 3.35])
     nta.Pmax_kW = 10  # in kW
+    nta.Pmin_kW = 2
     nta.T_evap = Toutdoor.values[0]
     nta.T_cond_or = 45.0    #initial value
     nta.T_cond_out = nta.T_cond_or
@@ -265,22 +266,25 @@ def main(show=False, xl=False):
         # p_hp = 0
         # determine new setting for COP and heat pump power
 
-        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 1.4, 20)  # stooklijn klopt niet helemaal!
+        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 1.4, 19)  # stooklijn klopt niet helemaal!
         water_temp[i] = nta.T_cond_out
         nta.T_evap = Toutdoor.values[i]
         nta.T_cond_in = TBuffervessel7[i]
         nta.adjust()
-        if nta.T_cond_out > nta.T_cond_in:
-            P_supply[i] = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)
-            cop_hp[i] = nta.COP
+
+        # Calcuate the expected het flow if the heating is running
+        nta.flow.set_flow_rate(150.0e-6)
+        P_expected = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)/1000
+        if (P_expected > nta.Pmin_kW) & (SP.values[i]>16.5):
             r.flow.set_flow_rate(150.0e-6)
             nta.flow.set_flow_rate(150.0e-6)
+            P_supply[i] = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)
+            cop_hp[i] = nta.COP
         else:
-            P_supply[i] = 0
-            cop_hp[i] = 0
             r.flow.set_flow_rate(0)
             nta.flow.set_flow_rate(0)
-
+            P_supply[i] = 0
+            cop_hp[i] = 0
         # update q_vector: add heat source for Buffer vessel
 
 
