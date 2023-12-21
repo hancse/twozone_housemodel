@@ -7,7 +7,7 @@ packages = ["housemodel"]
 
 [project]
 name = "housemodel"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Paul J.M. van Kan", email="paul.vankan@han.nl" },
 ]
