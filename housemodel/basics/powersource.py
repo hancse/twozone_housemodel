@@ -1,12 +1,14 @@
+
 import numpy as np
 from scipy.interpolate import interp1d
 
 
 class PowerSource:
-    """class for storage of contributions to q-vector
-    contributions are stored
-    - in power values [W]
-    - in temperature values [K], to be multiplied by conductivity in [W/K]
+    """class for storage of additive contributions to q-vector "power source".
+
+    Contributions are stored
+    - in thermal power values [W]
+    - in temperature values [K], to be multiplied by thermal conductivity in [W/K]
     """
 
     def __init__(self, name=""):
@@ -25,7 +27,7 @@ if __name__ == "__main__":
     s = PowerSource("Test")
     days_sim = 2
     time_sim = np.arange(days_sim * 24) * 3600
-    s.powervalues = np.arange(days_sim * 24) * 0.1
+    s.values = np.arange(days_sim * 24) * 0.1
     control_interval = 600
     s.interpolate_power(time_sim, control_interval)
 

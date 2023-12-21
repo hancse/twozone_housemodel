@@ -4,8 +4,9 @@ from scipy.interpolate import interp1d
 
 
 class SourceTerm:
-    """class for storage of additive contributions to q-vector "source terms"
-    contributions are stored
+    """class for storage of additive contributions to q-vector "source terms".
+
+    Contributions are stored
     - in thermal power values [W]
     - in temperature values [K], to be multiplied by thermal conductivity in [W/K]
     """
