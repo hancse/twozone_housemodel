@@ -73,10 +73,10 @@ class Building:
     def nodes_from_dict(self, lod: list):
         """initializes "nodes" attribute with data from yaml file.
 
-           makes a list from tags belonging to the Building object
+           makes a list from tags belonging to the Building object.
 
         Args:
-            lod: list of dicts read from yaml file
+            lod: list of dictionaries read from yaml file.
         """
         self.num_nodes = len(lod)
         for n in range(self.num_nodes):
@@ -119,9 +119,8 @@ class Building:
         logging.info(f" ambient is '{self.ambient.label}' for {self.name} \n")
 
     def make_k_ext_and_add_ambient(self):
-        """make external "k_ext" matrix and selectively add conductivity to boundary condition "ambient"
-        to diagonal elements
-
+        """make external "k_ext" matrix and selectively add conductivity
+        to boundary condition "ambient" to diagonal elements.
         """
         if self.num_nodes > 0:                                            # c-1 matrix and rank has to be defined
             self.k_ext_mat = np.zeros((self.num_nodes, self.num_nodes))   # initialize with zeros
@@ -136,6 +135,11 @@ class Building:
     # and are not used in subsystem classes
 
     def edges_from_dict(self, lol):
+        """read attributes "edges" and "edge_list" from list of edges (dictionary).
+
+        Args:
+            lol (list of lists):
+        """
         if self.edge_list or self.edges:
             self.edges = []
             self.edge_list = []

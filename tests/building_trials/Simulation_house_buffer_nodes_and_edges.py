@@ -44,7 +44,7 @@ logger.setLevel(logging.INFO)
 
 from pathlib import Path
 
-CONFIGDIR = Path(__file__).parent.parent.parent.absolute()
+CONFIGDIR = Path(__file__).parent.parent.parent.absolute().joinpath("tests")
 
 
 # this script contains experimental calculations and can run with errors
