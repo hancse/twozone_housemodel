@@ -191,8 +191,12 @@ def main(show=False, xl=False):
 
     # Heat pump initialization
     nta = HeatpumpNTANew(name="HP")
-    nta.set_cal_val([5.18, 3.8, 2.8], [11, 11, 8.4])
-    nta.Pmax_kW = 9.2  # in kW
+    # Using the calibratoin values from the datasheet of a Nibe S2125-12 heat pump
+    # Location: Documentation\Literature\References_Zon_als_Bron\Nibe_warmtepomp_referentie
+    nta.cal_T_evap = np.array([-7, 7, 7])
+    nta.cal_T_cond = np.array([35, 35, 45])
+    nta.set_cal_val([2.65, 5.21, 3.91], [7.23, 3.67, 3.35])
+    nta.Pmax_kW = 10  # in kW
     nta.T_evap = Toutdoor.values[0]
     nta.T_cond_or = 45.0    #initial value
     nta.T_cond_out = nta.T_cond_or
@@ -213,7 +217,7 @@ def main(show=False, xl=False):
     r.T_supply = TBuffervessel0[0]
     r.T_amb = Tair[0]
     r.T_return = (r.T_supply + r.T_amb) / 2.0  # crude quess
-    r.set_qzero(12000)
+    r.set_qzero(10000)
 
     r.set_flow(total.flows[0])
     print(f"Heat rate: {r.flow.heat_rate} [W/K] \n")
@@ -261,7 +265,7 @@ def main(show=False, xl=False):
         # p_hp = 0
         # determine new setting for COP and heat pump power
 
-        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 1.2, 20)  # stooklijn klopt niet helemaal!
+        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 1.4, 20)  # stooklijn klopt niet helemaal!
         water_temp[i] = nta.T_cond_out
         nta.T_evap = Toutdoor.values[i]
         nta.T_cond_in = TBuffervessel7[i]
