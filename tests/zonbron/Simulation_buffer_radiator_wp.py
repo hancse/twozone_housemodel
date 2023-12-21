@@ -22,7 +22,7 @@ from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
 
 from housemodel.buildings.building import Building
 from housemodel.sourcesink.buffervessels.stratified import StratifiedBufferNew
-from housemodel.basics.powersource import PowerSource
+from housemodel.basics.source_term import SourceTerm
 from housemodel.basics.flows import Flow
 from housemodel.basics.totalsystem import TotalSystem
 
@@ -129,12 +129,12 @@ def main(show=False, xl=False):
     control_interval = param["timing"]["Timestep"] * 60
 
     # skip additional source terms from solar irradiation and human presence
-    Toutdoor = PowerSource("T_outdoor")
+    Toutdoor = SourceTerm("T_outdoor")
     Toutdoor.values = df_nen.loc[:, 'temperatuur'].values
     Toutdoor.values = Toutdoor.values.flatten()
     Toutdoor.values = Toutdoor.values[0:days_sim * 24]
 
-    SP = PowerSource("SetPoint")
+    SP = SourceTerm("SetPoint")
     SP.values = simple_thermostat(8, 23, 20, 17)
     SP.values = SP.values[0:days_sim * 24].flatten()
 

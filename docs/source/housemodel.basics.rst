@@ -28,14 +28,6 @@ housemodel.basics.flows module
    :undoc-members:
    :show-inheritance:
 
-housemodel.basics.powersource module
-------------------------------------
-
-.. automodule:: housemodel.basics.powersource
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 housemodel.basics.source\_term module
 -------------------------------------
 

@@ -61,25 +61,6 @@ class CondEdge:
     label: str
     conn_nodes: []  # empty list (tuple, ndarray)
     cond: float
+    # additions for making directed graphs
     # src: int
     # sink: int
-
-
-""" notinuse
-@dataclass
-class PowerSource():
-    label: str
-    connected_to: []
-    power: np.ndarray      # in [W]
-"""
-
-
-""" notinuse
-@dataclass
-class FlowEdge:
-    label: str
-    flow_rate: float  # [m^3/s]
-    density: float    # [kg/m^3]
-    cp: float         # J/(kg K)]
-    heat_rate: float  # [J/s = W]
-"""

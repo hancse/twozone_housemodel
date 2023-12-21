@@ -22,7 +22,7 @@ from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime)
 from housemodel.buildings.building import Building
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
-from housemodel.basics.powersource import PowerSource
+from housemodel.basics.source_term import SourceTerm
 from housemodel.basics.totalsystem import TotalSystem
 
 # import matplotlib
@@ -98,7 +98,7 @@ def main(show=False, xl=False):
     control_interval = param["timing"]["Timestep"] * 60
 
     # Add Solar irradiation as a power source and get the orientation of the windows from the config file
-    Qsolar = PowerSource("Solar")
+    Qsolar = SourceTerm("Solar")
     Qsolar.connected_to = param['solar_irradiation']['distribution']
 
     Qsolar.values = (df_irr.total_E * param['solar_irradiation']['E'] +
@@ -112,7 +112,7 @@ def main(show=False, xl=False):
     Qsolar.values *= param['solar_irradiation']['g_value']
     Qsolar.values = Qsolar.values[0:days_sim*24]
 
-    Qint = PowerSource("Q_internal")
+    Qint = SourceTerm("Q_internal")
     Qint.connected_to = param['internal']['distribution']
     Qint.values = internal_heat_gain(param['internal']['Q_day'],
                                      param['internal']['delta_Q'],
@@ -121,12 +121,12 @@ def main(show=False, xl=False):
     Qint.values = Qint.values.flatten()
     Qint.values = Qint.values[0:days_sim*24]
 
-    Toutdoor = PowerSource("T_outdoor")
+    Toutdoor = SourceTerm("T_outdoor")
     Toutdoor.values = df_nen.loc[:, 'temperatuur'].values
     Toutdoor.values = Toutdoor.values.flatten()
     Toutdoor.values = Toutdoor.values[0:days_sim * 24]
 
-    SP = PowerSource("SetPoint")
+    SP = SourceTerm("SetPoint")
     SP.values = simple_thermostat(8, 23, 20, 17)
     SP.values = SP.values[0:days_sim * 24].flatten()
 

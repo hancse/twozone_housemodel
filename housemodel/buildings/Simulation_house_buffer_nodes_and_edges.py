@@ -25,7 +25,7 @@ from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
 from housemodel.buildings.building import Building
 from housemodel.sourcesink.buffervessels.stratified import StratifiedBufferNew
 from housemodel.sourcesink.radiators.linear_radiator import LinearRadiator
-from housemodel.basics.powersource import PowerSource
+from housemodel.basics.source_term import SourceTerm
 
 from housemodel.basics.flows import Flow
 from housemodel.basics.totalsystem import TotalSystem
@@ -147,7 +147,7 @@ def main(show=False, xl=False):
     # Timestep is in minutes
     control_interval = param["timing"]["Timestep"] * 60
 
-    Qsolar = PowerSource("Solar")
+    Qsolar = SourceTerm("Solar")
     Qsolar.connected_to = param['solar_irradiation']['distribution']
     Qsolar.values = (df_irr.total_E * param['solar_irradiation']['E'] +
                      df_irr.total_SE * param['solar_irradiation']['SE'] +
@@ -166,7 +166,7 @@ def main(show=False, xl=False):
     #                         Q_night=param['internal']['Q_day'] - param['internal']['delta_Q'])
     # Qinternal_sim = q_int[0:days_sim*24]
 
-    Qint = PowerSource("Q_internal")
+    Qint = SourceTerm("Q_internal")
     Qint.connected_to = param['internal']['distribution']
     Qint.values = internal_heat_gain(param['internal']['Q_day'],
                                      param['internal']['delta_Q'],
@@ -175,12 +175,12 @@ def main(show=False, xl=False):
     Qint.values = Qint.values.flatten()
     Qint.values = Qint.values[0:days_sim * 24]
 
-    Toutdoor = PowerSource("T_outdoor")
+    Toutdoor = SourceTerm("T_outdoor")
     Toutdoor.values = df_nen.loc[:, 'temperatuur'].values
     Toutdoor.values = Toutdoor.values.flatten()
     Toutdoor.values = Toutdoor.values[0:days_sim*24]
 
-    SP = PowerSource("SetPoint")
+    SP = SourceTerm("SetPoint")
     SP.values = simple_thermostat(8, 23, 20, 17)
     SP.values = SP.values[0:days_sim*24].flatten()
 
@@ -203,12 +203,12 @@ def main(show=False, xl=False):
     Toutdoor.interpolate_power(time_sim, control_interval)
     SP.interpolate_power(time_sim, control_interval)
 
-    glob = PowerSource("Global")
+    glob = SourceTerm("Global")
     glob.values= df_nen['globale_zonnestraling'].values
     glob.values = glob.values[0:days_sim * 24].flatten()
     glob.interpolate_power(time_sim, control_interval)
 
-    cloud = PowerSource('cloud')
+    cloud = SourceTerm('cloud')
     cloud.values = df_nen['bewolkingsgraad'].values
     cloud.values = cloud.values[0:days_sim * 24].flatten()
     cloud.interpolate_power(time_sim, control_interval)
