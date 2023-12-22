@@ -9,7 +9,7 @@ from housemodel.sourcesink.heatpumps.NTA8800_Q.defrost8800 import frost_factor_8
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import (calc_WP_general,
                                                             plot_plane, plot_lines)
 
-from housemodel.sourcesink.boilers.boilers_without_PID import GasBoiler
+from housemodel.sourcesink.boilers.boilers import SimpleGasBoiler
 from housemodel.tools.new_configurator import load_config
 from housemodel.basics.flows import Flow
 import logging
@@ -196,7 +196,7 @@ if __name__ == "__main__":
     nta = HeatpumpNTANew()
     nta.set_cal_val([4.0, 3.0, 2.5], [6.0, 2.0, 3.0])
 
-    g = GasBoiler(P_max=10000, P_min=1500)
+    g = SimpleGasBoiler(P_max=10000, P_min=1500)
     nta.T_evap = 7.0
     nta.T_cond = 35.0
     nta.update()

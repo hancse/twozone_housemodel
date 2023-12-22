@@ -1,5 +1,5 @@
 from housemodel.sourcesink.heatpumps.Heatpump_HM import Heatpump_NTA
-from housemodel.sourcesink.boilers.boilers_without_PID import GasBoiler
+from housemodel.sourcesink.boilers.boilers import SimpleGasBoiler
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
 
 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     nta.p_coeff = calc_WP_general(nta.cal_T_evap, nta.cal_T_cond,
                                   nta.cal_Pmax_val, order=1)
 
-    g = GasBoiler(P_max=10000, P_min=1500)
+    g = SimpleGasBoiler(P_max=10000, P_min=1500)
     c, p = nta.update(7, 35)
     myhybridHP = HybridHP(g, nta)
     hp_power, boilerpower, cop = myhybridHP.update(7500, 7, 35)

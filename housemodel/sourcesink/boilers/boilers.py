@@ -15,6 +15,45 @@ import matplotlib.pyplot as plt
 # from Temperature_SP import simple_thermostat
 
 
+class SimpleGasBoiler:
+    """class for modelling simple gas boiler without internal controller.
+
+    Attributes:
+        kp (float):          proportional PID gain [W/C]
+        ki (float):          integral PID parameter
+        kd (float):          derivative PID parameter
+        T_setpoint (float):  setpoint (SP) temperature
+        T_node (float):      process value (PV) temperature
+        T_amb (float):       outdoor temperature used for outdoor
+        dead_band (float):   dead band in [C]
+        P_max (float):       maximum power of boiler [W]
+        P_min (float):       minimum power of boiler [W]
+    """
+
+    def __init__(self, P_max, P_min):
+        self.P_max = P_max
+        self.P_min = P_min
+
+    def update(self, requested_power):
+        """updates heating power after checking limits.
+
+        implementation can be improved.
+
+        Args:
+            requested_power (float): heating power.
+
+        Returns:
+            self.P_max (can be changed)
+        """
+        if requested_power < self.P_min:
+            return 0
+        if requested_power < self.P_min:
+            return self.P_min
+        if (self.P_min < requested_power and requested_power < self.P_max):
+            return requested_power
+        return self.P_max
+
+
 class GasBoiler(PID):
     """class for modelling PID-controlled gas boiler.
 
@@ -30,7 +69,7 @@ class GasBoiler(PID):
         P_min (float):       minimum power of boiler [W]
 
     """
-    
+
     def __init__(self, kp, ki, kd, T_setpoint,
                  T_node, T_amb, dead_band, P_max, P_min):
         super().__init__(kp, ki, kd, T_setpoint)
@@ -97,6 +136,13 @@ class GasBoiler(PID):
 
 
 if __name__ == "__main__":
+    # SimpleGasBoiler
+    g = SimpleGasBoiler(P_max=10000, P_min=1500)
+    print(g.update(5000))
+    print(g.update(1000))
+    print(g.update(15000))
+
+    # GasBoiler with PID
     g = GasBoiler(kp=1000, ki=0, kd=0,
                   T_setpoint=20, T_node=15, T_amb=10,
                   dead_band=2, P_max=10000, P_min=1500)

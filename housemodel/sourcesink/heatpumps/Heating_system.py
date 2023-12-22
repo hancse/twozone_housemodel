@@ -1,4 +1,4 @@
-from housemodel.sourcesink.boilers.boilers_without_PID import GasBoiler
+from housemodel.sourcesink.boilers.boilers import SimpleGasBoiler
 from housemodel.controls.ivPID.PID import PID
 from housemodel.sourcesink.heatpumps.Hybrid_HP import HybridHP
 from housemodel.sourcesink.heatpumps.Heatpump_HM import Heatpump_NTA, calc_WP_general
@@ -37,7 +37,7 @@ class HeatingSystem:
         return self.controller.output, self.heat_source.update(self.controller.output, Te, Tc)
 
 if __name__ == "__main__":
-    myboiler = GasBoiler(10000, 1500)
+    myboiler = SimpleGasBoiler(10000, 1500)
     myPID = PID(2000, 0, 0)
     hs = HeatingSystem(myboiler, myPID)
     print(hs.compute_boiler_power())

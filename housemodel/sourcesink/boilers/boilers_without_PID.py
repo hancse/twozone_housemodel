@@ -1,5 +1,6 @@
+
 class GasBoiler:
-    """class for modelling PID-controlled gas boiler.
+    """class for modelling simple gas boiler without internal controller.
 
     Attributes:
         kp (float):          proportional PID gain [W/C]
