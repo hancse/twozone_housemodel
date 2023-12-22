@@ -2,11 +2,12 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.integrate import solve_ivp  # ODE solver
 from housemodel.tools.new_configurator import (add_chain_to_k, make_c_inv_matrix)
-from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun
+from housemodel.sourcesink.NEN5060 import run_qsun
+from housemodel.weather_solar.weatherdata import read_nen_weather_from_xl, NENdatehour2datetime
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
 from housemodel.controls.Temperature_SP import simple_thermostat
 
-from housemodel.constants import *
+from constants import *
 
 import logging
 
@@ -79,7 +80,12 @@ class Simulation:
         # Interval in seconds the control algorithm
         control_interval = house_param["Timescale"] * 60
 
-        df_nen = nen5060_to_dataframe()
+        # read NEN5060 data from spreadsheet NEN5060-2018.xlsx into pandas DataFrame
+        df_nen = read_nen_weather_from_xl()
+        # generate and insert timezone-aware UTC and local timestamps (with DST)
+        df_nen = NENdatehour2datetime(df_nen)
+
+        # df_nen = nen5060_to_dataframe()
         df_irr = run_qsun(df_nen)
         print(df_irr.head())
         time_sim = df_irr.iloc[0:days_sim * 24, 0].values
@@ -113,7 +119,7 @@ class Simulation:
         Qint = Qint.flatten()
         Qinternal_sim = Qint[0:days_sim * 24]
 
-        Toutdoor = df_nen.loc[:, 'temperatuur'].values / 10.0
+        Toutdoor = df_nen.loc[:, 'temperatuur'].values  # division by 10 already done in read_nen_weather_from_xl()
         Toutdoor = Toutdoor.flatten()  # temperature
         T_outdoor_sim = Toutdoor[0:days_sim * 24]
 

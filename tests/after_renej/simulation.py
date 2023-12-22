@@ -7,7 +7,7 @@ from housemodel.weather_solar.weatherdata import read_nen_weather_from_xl, NENda
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
 from housemodel.controls.Temperature_SP import simple_thermostat
 
-from housemodel.constants import *
+from constants import *
 
 import logging
 

@@ -1,4 +1,4 @@
-from housemodel.simulation import Solver
+from simulation import Solver
 
 import numpy as np
 from housemodel.controls.ivPID.PID import PID

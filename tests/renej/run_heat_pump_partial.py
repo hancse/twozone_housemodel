@@ -2,10 +2,10 @@ import pandas as pd
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
-from housemodel.simulation import Simulation
-from housemodel.heat_pump_solver import SolverHeatPumpNTA8800PartLoad
+from simulation import Simulation
+from heat_pump_solver import SolverHeatPumpNTA8800PartLoad
 
-from housemodel.constants import *
+from constants import *
 
 
 # show function should be in separate file(s)/module(s)

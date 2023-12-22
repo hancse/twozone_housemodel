@@ -3,10 +3,10 @@ import numpy as np
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
-from housemodel.simulation import Simulation
-from housemodel.for_companies_solver import SolverForCompanies
+from simulation import Simulation
+from for_companies_solver import SolverForCompanies
 
-from housemodel.constants import *
+from constants import *
 
 from housemodel.controls.Temperature_SP import simple_thermostat
 

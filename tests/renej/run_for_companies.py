@@ -3,10 +3,10 @@ import numpy as np
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
-from housemodel.simulation import Simulation
-from housemodel.for_companies_solver import SolverForCompanies
+from simulation import Simulation
+from for_companies_solver import SolverForCompanies
 
-from housemodel.constants import *
+from constants import *
 
 from housemodel.controls.Temperature_SP import simple_thermostat
 
@@ -33,8 +33,8 @@ def show(sim):
 
 
 def export_xl(sim):
-    from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun
-    from scipy.interpolate import interp1d
+    # from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun
+    # from scipy.interpolate import interp1d
 
     control_interval = sim.control_interval
 

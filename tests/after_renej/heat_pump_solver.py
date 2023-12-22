@@ -1,6 +1,6 @@
 import numpy as np
 
-from housemodel.simulation import Solver
+from simulation import Solver
 
 from housemodel.controls.ivPID.PID import PID
 from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
