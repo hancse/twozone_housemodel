@@ -75,11 +75,8 @@ class GasBoiler(PID):
         super().__init__(kp, ki, kd, T_setpoint)
         self.P_max = P_max
         self.P_min = P_min
-        """str: Docstring *after* attribute, with type specified."""
         self.T_amb = T_amb
-        """str: Docstring *after* attribute, with type specified."""
         self.T_node = T_node
-        """str: Docstring *after* attribute, with type specified."""
         self.setpoint = T_setpoint
         # self.dead_band = dead_band
 
