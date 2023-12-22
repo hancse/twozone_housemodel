@@ -19,38 +19,6 @@ Subpackages
 Submodules
 ----------
 
-housemodel.constants module
----------------------------
-
-.. automodule:: housemodel.constants
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-housemodel.for\_companies\_solver module
-----------------------------------------
-
-.. automodule:: housemodel.for_companies_solver
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-housemodel.heat\_pump\_solver module
-------------------------------------
-
-.. automodule:: housemodel.heat_pump_solver
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-housemodel.simulation module
-----------------------------
-
-.. automodule:: housemodel.simulation
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
