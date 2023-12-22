@@ -4,12 +4,14 @@ Created on Tue Nov 10 12:05:19 2020
 
 @author: TrungNguyen, PvK, MvdB
 """
-from housemodel.solvers.house_model_with_HeatingSystemClass import house_radiator_m  # exposed function "house" in house module
+from house_model_with_HeatingSystemClass import house_radiator_m  # exposed function "house" in house module
 # function "model" in module house is private
 
 from housemodel.tools.new_configurator import (load_config,
                                                add_chain_to_k, make_c_inv_matrix)
-from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun
+from housemodel.sourcesink.NEN5060 import run_qsun
+# from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe
+from housemodel.weather_solar.weatherdata import read_nen_weather_from_xl
 
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
 from housemodel.controls.Temperature_SP import simple_thermostat
@@ -56,7 +58,9 @@ def main(show=False, xl=False):
     UAradiator = house_param["chains"][0]["links"][2]["Conductance"]
     Crad =  house_param["chains"][0]["links"][2]["Capacity"]
 
-    df_nen = nen5060_to_dataframe()
+    # df_nen = nen5060_to_dataframe()
+    df_nen = read_nen_weather_from_xl()
+
     df_irr = run_qsun(df_nen)
     print(df_irr.head())
 
