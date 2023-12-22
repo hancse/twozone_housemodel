@@ -4,7 +4,7 @@ Created on Tue Nov 10 12:05:19 2020
 
 @author: TrungNguyen, PvK, MvdB
 """
-from housemodel.solvers.Office_model_WHATAS import house_radiator_m  # exposed function "house" in house module
+from Office_model_WHATAS import house_radiator_m  # exposed function "house" in house module
 # function "model" in module house is private
 
 from housemodel.tools.new_configurator import (load_config,

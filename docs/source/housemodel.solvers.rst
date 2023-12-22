@@ -4,30 +4,6 @@ housemodel.solvers package
 Submodules
 ----------
 
-housemodel.solvers.Apartment\_model\_WHATAS module
---------------------------------------------------
-
-.. automodule:: housemodel.solvers.Apartment_model_WHATAS
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-housemodel.solvers.Apartment\_model\_WHATAS\_scenario2 module
--------------------------------------------------------------
-
-.. automodule:: housemodel.solvers.Apartment_model_WHATAS_scenario2
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-housemodel.solvers.Office\_model\_WHATAS module
------------------------------------------------
-
-.. automodule:: housemodel.solvers.Office_model_WHATAS
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 housemodel.solvers.house\_model\_for\_companies module
 ------------------------------------------------------
 
@@ -72,14 +48,6 @@ housemodel.solvers.house\_model\_heat\_pump\_NTA8800\_with\_buffervessel module
 -------------------------------------------------------------------------------
 
 .. automodule:: housemodel.solvers.house_model_heat_pump_NTA8800_with_buffervessel
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-housemodel.solvers.house\_model\_with\_HeatingSystemClass module
-----------------------------------------------------------------
-
-.. automodule:: housemodel.solvers.house_model_with_HeatingSystemClass
    :members:
    :undoc-members:
    :show-inheritance:
