@@ -1,0 +1,36 @@
+name: ff311
+channels:
+  - conda-forge
+  - defaults
+  - pytorch
+  - nvidia
+  - intel
+dependencies:
+  - python=3.11
+  - pytorch::pytorch
+  - pytorch::pytorch-cuda
+  - intel::dpcpp-cpp-rt
+  - intel::scikit-learn-intelex
+  - pvlib
+  - matplotlib
+  - scipy
+  - pandas
+  - openpyxl
+  - pyyaml
+  - holidays
+  - pytest
+  - colored-traceback
+  - networkx
+  - requests
+  - tqdm
+  - simple-pid
+  - jupyter
+  - sphinx
+  - build
+  - twine
+  - myst-parser
+  - pip
+  - coolprop
+  - pip:
+    - solarenergy
+    - sphinx-rtd-theme

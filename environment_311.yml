@@ -2,17 +2,19 @@ name: housemodel
 channels:
   - conda-forge
   - defaults
+  - pytorch
 dependencies:
-  - python=3.10
-  - pvlib::pvlib
+  - python=3.11
+  - pytorch::pytorch
+  - scikit-learn-intelex
+  - pvlib
   - matplotlib
   - scipy
   - pandas
   - openpyxl
   - pyyaml
+  - ruamel.yaml
   - holidays
-  - scikit-learn-intelex
-  - pytorch::pytorch
   - pytest
   - colored-traceback
   - networkx

@@ -3,7 +3,18 @@ requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["housemodel"]
+packages = ["housemodel", 
+            "housemodel.basics", 
+			"housemodel.buildings",
+			"housemodel.controls",
+			"housemodel.sourcesink",
+			"housemodel.sourcesink.boilers",
+			"housemodel.sourcesink.buffervessels",
+			"housemodel.sourcesink.heatpumps",
+			"housemodel.sourcesink.radiators",
+			"housemodel.tools",
+			"housemodel.weather_solar",
+]
 
 [project]
 name = "housemodel"
@@ -13,15 +24,22 @@ authors = [
 ]
 description = "HAN Open Source House Model"
 readme = "README.rst"
+license = {file = "LICENSE"}
+keywords = ["mud", "sedimentation", "TUDelft"]
 
-requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
 	"License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
 	"Operating System :: OS Independent",
 ]
 
-[project.urls]
-"Homepage" = "https://github.com/hancse/twozone_housemodel"
+requires-python = ">=3.10"
+# dependencies = [
+#    "docutils",
+#    "BazSpam == 1.1",
+#]
 
+[project.urls]
+Homepage = "https://github.com/hancse/twozone_housemodel"
+Documentation = "https://housemodel.readthedocs.io/en/latest/"
 

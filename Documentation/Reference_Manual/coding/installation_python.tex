@@ -178,7 +178,10 @@ After creation of the \textsf{conda} environment with the right selection of Pyt
 \subsubsection{Configuration}
 
 \begin{itemize}
-	\item To work with your Python code in PyCharm, you need to configure a Python interpreter. Assign the Python interpreter from your (existing!) \textsf{conda} environment created following the guidelines in Appendix \ref{appendix:environments} to the open project. See: \url{https://www.jetbrains.com/help/pycharm/configuring-python-interpreter.html}.
+	\item To work with your Python code in PyCharm, you need to configure a Python interpreter. Assign the Python interpreter from your (existing!) \textsf{conda} environment created following the guidelines in Appendix \ref{appendix:environments} to the open project. In PyCharm,under File | Settings | Project | Project interpreter , the use of a dedicated project environment as default Python interpreter can be registered. This information is stored in the \textsf{.idea} hidden folder in the project root directory.
+	
+	See: \url{https://www.jetbrains.com/help/pycharm/configuring-python-interpreter.html}.
+	
 	\item After configuring the interpreter, the IDE needs some time to load all the packages from your environment. A progress bar is visible on the bottom of the IDE window.
 \end{itemize}
 
@@ -199,11 +202,41 @@ After creation of the \textsf{conda} environment with the right selection of Pyt
 	\label{fig:pycharm_config}
 \end{figure}
 
+\subsubsection{.gitignore}
+
+Every Git repository has at least one \textsf{.gitignore} file in the repository root folder. This file contains a list of the files, folders and file-types which are NOT committed and pushed.
+
+In the \textsf{.gitignore} file the following files/folders/file types are listed:
+
+\begin{itemize}
+	\item \textsf{.gitignore} itself. \textsf{.gitignore} is a LOCAL file which is not committed and pushed.
+	\item The \textsf{.idea} folder. This is the local bookkeeping of PyCharm.
+	\item The \_\_pycache\_\_ folders. Here, Python compiles code for local use. This causes your program to run faster after the first run.
+\end{itemize}
+
+Generally, using Python, only \textsf{*.py} or \textsf{*.ipynb} files are committed en pushed, plus some essential data and documentation.
+
 \subsubsection{Running and debugging Python scripts}
+
+The structure of a Python file (*.py-file, module) is as follows:
+
+\begin{itemize}
+	\item \textsf{import} statements
+	\item executable code organized in functions (\textsf{def}) or classes (\textsf{class})
+	\item the \textsf{\text{if \_\_name\_\_ == "\_\_main\_\_":}} clause. After this follows a validation of the functions / classes in the module.
+\end{itemize}
+
+This code pattern is essential for re-using the functions/classes in other Python modules. The pattern is recommended by Guido van Rossum, the inventor of the Python language.
+
+\lstinputlisting[label=basic_py,caption={Basic structure of a Python module}, language=Python, linerange={1-100}]{./Listings/example.py}
 
 \begin{itemize}
 	\item Selecting a Python script in the Project tab can be done with a left-click. Right-clicking on a Python (*.py) module opens the context menu of Fig.~\ref{fig:pycharm_run}. Clicking the green arrow in the context menu starts executing the selected script.
 	\item Double-clicking a *.py module in the Project tab opens the module in the editor window of the IDE. Right-clicking on the canvas of the editor window also opens the context menu of Fig.~\ref{fig:pycharm_run}.
 \end{itemize}
+
+\subsubsection{Python documentation}
+
+Every function or class method contains a "docstring" directly after the def or class definition line. A docstring starts with """ en ends with """. It may consist of several lines of documentation. In PyCharm a docstring is automatically generated on typing """ at the appropriate location in the code.
 
 \newpage
