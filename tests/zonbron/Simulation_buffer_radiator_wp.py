@@ -128,6 +128,29 @@ def main(show=False, xl=False):
     # Timestep is in minutes
     control_interval = param["timing"]["Timestep"] * 60
 
+    Qsolar = SourceTerm("Solar")
+    Qsolar.connected_to = param['solar_irradiation']['distribution']
+    Qsolar.values = (df_irr.total_E * param['solar_irradiation']['E'] +
+                     df_irr.total_SE * param['solar_irradiation']['SE'] +
+                     df_irr.total_S * param['solar_irradiation']['S'] +
+                     df_irr.total_SW * param['solar_irradiation']['SW'] +
+                     df_irr.total_W * param['solar_irradiation']['W'] +
+                     df_irr.total_NW * param['solar_irradiation']['NW'] +
+                     df_irr.total_N * param['solar_irradiation']['N'] +
+                     df_irr.total_NE * param['solar_irradiation']['NE']).values
+    Qsolar.values *= param['solar_irradiation']['g_value']
+    #Qsolar.values = Qsolar.values[0:days_sim * 24]
+    Qsolar.values.flatten()
+
+    Qint = SourceTerm("Q_internal")
+    Qint.connected_to = param['internal']['distribution']
+    Qint.values = internal_heat_gain(param['internal']['Q_day'],
+                                     param['internal']['delta_Q'],
+                                     param['internal']['t1'],
+                                     param['internal']['t2'])
+    Qint.values = Qint.values.flatten()
+    #Qint.values = Qint.values[0:days_sim * 24]
+
     # skip additional source terms from solar irradiation and human presence
     Toutdoor = SourceTerm("T_outdoor")
     Toutdoor.values = df_nen.loc[:, 'temperatuur'].values
@@ -141,6 +164,8 @@ def main(show=False, xl=False):
     # Interpolation of data
     Toutdoor.interpolate_power(time_sim, control_interval)
     SP.interpolate_power(time_sim, control_interval)
+    Qsolar.interpolate_power(time_sim, control_interval)
+    Qint.interpolate_power(time_sim, control_interval)
 
     # interpolate time_sim itself (after all arrays are interpolated)
     time_sim = np.arange(0, time_sim[-1] + (6 * 600), control_interval)
@@ -241,7 +266,7 @@ def main(show=False, xl=False):
     # Therefore, set "first_step" equal or smaller than the spacing of "t".
     # https://github.com/scipy/scipy/issues/9198
 
-    source_list = []
+    source_list = [Qsolar, Qint]
     for i in tqdm(range(len(t) - 1)):
 
         # first reset and update total.q_vec
@@ -266,7 +291,7 @@ def main(show=False, xl=False):
         # p_hp = 0
         # determine new setting for COP and heat pump power
 
-        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 1.4, 19)  # stooklijn klopt niet helemaal!
+        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 1.7, 20)  # stooklijn klopt niet helemaal!
         water_temp[i] = nta.T_cond_out
         nta.T_evap = Toutdoor.values[i]
         nta.T_cond_in = TBuffervessel7[i]
@@ -276,16 +301,18 @@ def main(show=False, xl=False):
         nta.flow.set_flow_rate(150.0e-6)
         P_expected = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)/1000
         if (P_expected > nta.Pmin_kW) & (SP.values[i]>16.5):
-            r.flow.set_flow_rate(150.0e-6)
             nta.flow.set_flow_rate(150.0e-6)
             P_supply[i] = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)
             cop_hp[i] = nta.COP
         else:
-            r.flow.set_flow_rate(0)
             nta.flow.set_flow_rate(0)
             P_supply[i] = 0
             cop_hp[i] = 0
         # update q_vector: add heat source for Buffer vessel
+        if Tair[i] < 20:
+            r.flow.set_flow_rate(150.0e-6)
+        else:
+            r.flow.set_flow_rate(0)
 
 
         r.T_supply = TBuffervessel0[i]
