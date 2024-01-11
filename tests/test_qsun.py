@@ -12,13 +12,16 @@ logging.basicConfig()
 logger = logging.getLogger('test_qsun')
 logger.setLevel(logging.INFO)
 
-from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun, run_qsun_new
+# from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun, run_qsun_new
+from housemodel.sourcesink.NEN5060 import run_qsun, run_qsun_new
+from housemodel.weather_solar.weatherdata import read_nen_weather_from_xl
 
 def my_assert(condition, fail_str, suc_str):
     assert condition, fail_str
     print( suc_str )
 
-df_nen = nen5060_to_dataframe()
+# df_nen = nen5060_to_dataframe()
+df_nen = read_nen_weather_from_xl()
 
 Qsolar = np.zeros((8760, 1))  # 8760 rows x 2 cols
 az = 0
