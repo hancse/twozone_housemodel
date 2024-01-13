@@ -16,15 +16,14 @@ WEATHERFILEDIR = Path(__file__).absolute().parent
 # The directory where the weather data files are located is the same
 # as where this Python file sits
 NEN5060DIR = Path(__file__).absolute().parent.parent.parent / 'NEN_data'
-
-
 # The directory where the NEN 5060 data files are located is two levels higher
 # than where this Python file sits
 
+
 def area(self, x=None, y=None):
-    if x is not None and y != None:
+    if x is not None and y is not None:
         return x * y
-    elif x != None:
+    elif x is not None:
         return x * x
     else:
         return 0
@@ -116,6 +115,7 @@ def get_hourly_knmi_weather_from_api(stations: str = '260', vars_to_get: str = '
     """
 
     # url knmi hourly data
+    # See : https://www.knmi.nl/kennis-en-datacentrum/achtergrond/data-ophalen-vanuit-een-script
     URL = "https://www.daggegevens.knmi.nl/klimatologie/uurgegevens"
 
     # defining a params dict for the parameters to be sent to the API

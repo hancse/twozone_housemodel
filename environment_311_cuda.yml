@@ -1,4 +1,4 @@
-name: ff311
+name: ff311cuda
 channels:
   - conda-forge
   - defaults
