@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 # import solarenergy as se
-from solarenergy.radiation import *
+from solarenergy import *
 from pvlib.location import Location
 from pvlib.solarposition import get_solarposition
 from pvlib.atmosphere import get_relative_airmass, alt2pres, get_absolute_airmass
@@ -39,14 +39,13 @@ geoLat = 52.0 * d2r  # Geographic latitude  (>0 for northern hemisphere; ° -> r
 times2020_dt = times2020.to_pydatetime()
 # Compute Sun position (uses SolTrack behind the scenes):
 sunAz, sunAlt, sunDist = sun_position_from_datetime(geoLon, geoLat, times2020_dt)
-airmass(sunAlt)
 am_se = airmass(sunAlt)  # Air mass for this Sun altitude
 extFac = extinction_factor(am_se)  # Extinction factor at sea level for this air mass
 I_ext = sol_const / sunDist ** 2  # Extraterrestrial radiation = Solar constant, scaled with distance
 DNI_cs = I_ext / extFac  # DNI for a clear sky
 
 # plot
-fig, ax = plt.subplots(3, figsize=(15, 8), sharex='all')
+fig1, ax = plt.subplots(3, figsize=(15, 8), sharex='all')
 ax[0].set_ylabel('Airmass')
 ax[0].plot(times2020, am_pv, '.-r', label='PVLIB')
 ax[0].plot(times2020, am_se, '.g', label='SE')
@@ -86,20 +85,24 @@ ax.set_ylabel('Irradiance $W/m^2$')
 plt.title('Ineichen, climatological turbidity')
 plt.show()
 
+# calculate differences
+diff_az = (sunAz * r2d + 180.0) - solpos['azimuth']
+diff_elev = sunAlt * r2d - solpos['apparent_elevation']
+
 # plot
-fig, ax = plt.subplots(3, figsize=(15, 8), sharex='all')
+fig2, ax = plt.subplots(3, figsize=(15, 8), sharex='all')
 ax[0].set_ylabel('Azimuth [$\degree$]')
-ax[0].plot(times2020, pos2['azimuth'], '--r', label='PVLIB basic')
+ax[0].plot(times2020, solpos['azimuth'], '--r', label='PVLIB basic')
 ax[0].plot(times2020, sunAz * r2d + 180.0, '-g', label='SE')
 
 ax[1].set_ylabel('Altitude/elevation [$\degree$]')
-ax[1].plot(times2020, pos2['apparent_elevation'], '--r')
+ax[1].plot(times2020, solpos['apparent_elevation'], '--r')
 ax[1].plot(times2020, sunAlt * r2d, '-g')
 
 # ax[2].plot(times2020, pos1['equation_of_time'])
 ax[2].set_ylabel('Difference')
-ax[2].plot(times2020_dt, diff_az1, '-g', label='diff azimuth')
-ax[2].plot(times2020_dt, diff_elev1, '--m', label='diff alt')
+ax[2].plot(times2020_dt, diff_az, '-g', label='diff azimuth')
+ax[2].plot(times2020_dt, diff_elev, '--m', label='diff alt')
 
 ax[0].legend()
 ax[2].legend()

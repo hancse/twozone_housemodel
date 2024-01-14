@@ -10,7 +10,7 @@ colored_traceback.add_hook()
 
 from solarenergy import *
 # from getweather import get_api_weather
-from timing.weatherdata import read_knmi_weather
+from housemodel.weather_solar.weatherdata import read_hourly_knmi_weather_from_csv
 
 import numpy as np
 import astrotool as at
@@ -43,7 +43,7 @@ def insolation_on_surface_from_daterange(start_date, end_date, geo_lon, geo_lat,
     # df_insol = get_api_weather(station_DeBilt, vars_from_station, start_date, end_date)
 
     # Read weather data from KNMI file:
-    df_insol = read_knmi_weather("uurgeg_260_2011-2020_Bilt.csv", start_date, end_date)
+    df_insol = read_hourly_knmi_weather_from_csv("uurgeg_260_2011-2020_Bilt.csv", start_date, end_date)
 
     # Compute the positions of the Sun for the dates and time in df_insol:
     myDatetime = df_insol['datetime'].values  # Get the datetimes to compute the Sun position for from the df

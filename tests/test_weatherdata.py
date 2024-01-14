@@ -103,4 +103,4 @@ def test_insolation_on_surface_from_daterange():
 
 if __name__ == "__main__":
     test_read_knmi_weather()
-    # test_insolation_on_surface_from_daterange()
+    test_insolation_on_surface_from_daterange()

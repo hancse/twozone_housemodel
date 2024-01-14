@@ -8,7 +8,7 @@ import pandas as pd
 from pytz import timezone
 import numpy as np
 
-import solarenergy as se
+from solarenergy import *
 from pvlib.solarposition import get_solarposition, nrel_earthsun_distance
 from pvlib.atmosphere import get_relative_airmass, alt2pres, get_absolute_airmass
 from pvlib.irradiance import get_extra_radiation
@@ -16,6 +16,7 @@ from pvlib.irradiance import get_extra_radiation
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Qt5Agg")
+
 
 def test_positions():
     # read NEN5060 data from spreadsheet NEN5060-2018.xlsx "as is" into pandas DataFrame
@@ -28,19 +29,19 @@ def test_positions():
     # Location of my solar panels:
     lon_deg = 5.0
     lat_deg = 52.0
-    lon_rad = 5.0 * se.d2r  # Geographic longitude (>0 for eastern hemisphere; ° -> rad)
-    lat_rad = 52.0 * se.d2r  # Geographic latitude  (>0 for northern hemisphere; ° -> rad)
+    lon_rad = 5.0 * d2r  # Geographic longitude (>0 for eastern hemisphere; ° -> rad)
+    lat_rad = 52.0 * d2r  # Geographic latitude  (>0 for northern hemisphere; ° -> rad)
 
     # VALIDATION of solar position calculations in PVLIB and solarenergy
     pos_pv = get_solarposition(times5060, lat_deg, lon_deg, method='nrel_numpy')
 
     # solarenergy
-    #times2020_dt = times5060.to_pydatetime()
-    sunAz, sunAlt, sunDist = se.sun_position_from_datetime(lon_rad, lat_rad, times5060)
+    # times2020_dt = times5060.to_pydatetime()
+    sunAz, sunAlt, sunDist = sun_position_from_datetime(lon_rad, lat_rad, times5060)
 
     # calculate differences
-    diff_az = (sunAz*se.r2d + 180.0) - pos_pv['azimuth']
-    diff_elev = sunAlt*se.r2d - pos_pv['apparent_elevation']
+    diff_az = (sunAz*r2d + 180.0) - pos_pv['azimuth']
+    diff_elev = sunAlt*r2d - pos_pv['apparent_elevation']
     index = range(len(sunDist))
 
     # plot
@@ -53,11 +54,11 @@ def test_positions():
                     markerfacecolor='r', markeredgecolor='r', markersize=3)
     ax[0].set_ylabel('Azimuth [$\degree$]')
     ax[0].plot(index, pos_pv['azimuth'], ',r', label='PVLIB basic', **pv_style)
-    ax[0].plot(index, sunAz*se.r2d+180.0, label='SE', **se_style)
+    ax[0].plot(index, sunAz*r2d+180.0, label='SE', **se_style)
 
     ax[1].set_ylabel('Altitude/apparent elevation [$\degree$]')
     ax[1].plot(index, pos_pv['apparent_elevation'], **pv_style)
-    ax[1].plot(index, sunAlt*se.r2d, **se_style)
+    ax[1].plot(index, sunAlt*r2d, **se_style)
 
     # ax[2].plot(times2020, pos1['equation_of_time'])
     ax[2].set_ylabel('Difference [$\degree$]')

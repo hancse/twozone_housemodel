@@ -1,6 +1,5 @@
 
 import matplotlib
-matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -15,6 +14,9 @@ logger.setLevel(logging.INFO)
 # from housemodel.sourcesink.NEN5060 import nen5060_to_dataframe, run_qsun, run_qsun_new
 from housemodel.sourcesink.NEN5060 import run_qsun, run_qsun_new
 from housemodel.weather_solar.weatherdata import read_nen_weather_from_xl
+
+matplotlib.use("Qt5Agg")
+
 
 def my_assert(condition, fail_str, suc_str):
     assert condition, fail_str

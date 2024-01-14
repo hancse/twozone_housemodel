@@ -8,7 +8,7 @@ import pandas as pd
 from pytz import timezone
 import numpy as np
 
-import solarenergy as se
+from solarenergy import *
 from pvlib.solarposition import get_solarposition, nrel_earthsun_distance
 from pvlib.atmosphere import get_relative_airmass, alt2pres, get_absolute_airmass
 from pvlib.irradiance import get_extra_radiation
@@ -32,13 +32,13 @@ def test_5060_yield():
     # Location of solar panels:
     lon_deg = 5.0
     lat_deg = 52.0
-    lon_rad = np.deg2rad(5.0)   # Geographic longitude (>0 for eastern hemisphere; ° -> rad)
-    lat_rad = np.deg2rad(52.0)  # Geographic latitude  (>0 for northern hemisphere; ° -> rad)
+    lon_rad = 5.0 * d2r   # Geographic longitude (>0 for eastern hemisphere; ° -> rad)
+    lat_rad = 52.0 * d2r  # Geographic latitude  (>0 for northern hemisphere; ° -> rad)
 
     # orientation of solar panels
-    spAz = -2 * se.d2r  # Azimuth ('wind direction') of my panels are facing.
+    spAz = -2 * d2r  # Azimuth ('wind direction') of my panels are facing.
     # Note: South=0, W=90° (pi/2 rad) in the northern hemisphere!  (rad)
-    spIncl = 28 * se.d2r  # Inclination of my panels w.r.t. the horizontal  (rad)
+    spIncl = 28 * d2r  # Inclination of my panels w.r.t. the horizontal  (rad)
 
     # PVLIB
     pos_pv = get_solarposition(times5060, lat_deg, lon_deg, method='nrel_numpy')
@@ -48,10 +48,10 @@ def test_5060_yield():
 
 
     # solarenergy
-    sunAz, sunAlt, sunDist = se.sun_position_from_datetime(lon_rad, lat_rad, times5060)
-    am_se = se.airmass(sunAlt)                 # Air mass for this Sun altitude
-    extFac = se.extinction_factor(am_se)       # Extinction factor at sea level for this air mass
-    I_extra_se = se.sol_const / sunDist ** 2   # Extraterrestrial radiation = Solar constant, scaled with distance
+    sunAz, sunAlt, sunDist = sun_position_from_datetime(lon_rad, lat_rad, times5060)
+    am_se = airmass(sunAlt)                 # Air mass for this Sun altitude
+    extFac = extinction_factor(am_se)       # Extinction factor at sea level for this air mass
+    I_extra_se = sol_const / sunDist ** 2   # Extraterrestrial radiation = Solar constant, scaled with distance
     DNI_se = I_extra_se / extFac               # DNI for a clear sky
 
     ghi = df_xl['globale_zonnestraling']  # global horizontal irradiance (pyranometer)
@@ -59,13 +59,13 @@ def test_5060_yield():
     bhi = df_xl['directe_zonnestraling']  # beam horizontal irradiance (calculated)
     bni = df_xl['directe_normale_zonnestraling'] # beam normal irradiance aka. "DNI" (calculated)
 
-    cosTheta  = se.cosAngleSunPanels(spAz, spIncl, sunAz,sunAlt)  # cos of the angle with which Sun hits my panels
+    cosTheta  =  cos_angle_sun_panels(spAz, spIncl, sunAz,sunAlt)  # cos of the angle with which Sun hits my panels
     theta     = np.arccos(cosTheta)
 
     # direct irradiance on inclined surface
     I_direct = bni * cosTheta
     # diffuse radiation on inclined surface
-    I_diffuse = se.diffuse_radiation_projection_perez87(doy, sunAlt, spIncl,
+    I_diffuse = diffuse_radiation_projection_perez87(doy, sunAlt, spIncl,
                                                         theta, bni, dhi)
     albedo = 0.2
     I_reflected = ghi* albedo
@@ -74,7 +74,7 @@ def test_5060_yield():
 
     index = df_xl.index
 
-    fig, ax = plt.subplots(3, figsize=(15, 8), sharex=True)
+    fig, ax = plt.subplots(2, figsize=(15, 8), sharex=True)
     se_style = dict(linestyle='none', marker='o',
                     markerfacecolor='none', markeredgecolor='g', markersize=5)
     pv_style = dict(linestyle='none', marker='.',
