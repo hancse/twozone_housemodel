@@ -34,11 +34,18 @@ Among the packages available for solar irradiation calculations, we find:
 
 The location of a building or installation needs to be given in \emph{latitude} and \emph{longitude}, in units of degrees with a decimal point. Division in arcminutes and arcseconds is less common nowadays, since the introduction of GPS. Latitude is positive for the northern hemisphere, negative to the south of the equator. The equator itself is zero latitude. Longitude is positive to the east of the Royal Observatory in Greenwich, London, UK, negative to the west of London. The Meridian of Greenwich runs from the North pole to the South Pole through London and has zero longitude. At the poles, latitude is $\pm 90$ degrees and longitude is undefined.
 
-For \textbf{Arnhem}, NL, a \textbf{latitude of 52.0 degrees} and a \textbf{longitude of 6.0 degrees} may be used as an approximation to the geolocation. In reality this geolocation is found in a field between Velp and Rheden, NL.
+For \textbf{Arnhem}, NL, a \textbf{latitude of 52.0 degrees} and a \textbf{longitude of 6.0 degrees} may be used as an approximation to the geolocation. In reality, this geolocation is found in a field between Velp and Rheden, NL.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{Figures/52.0N6.0E.png}
+	\caption{Geolocation 52.000N, 6.000E on the map of Arnhem, NL and surroundings}
+	\label{fig:52N6E}
+\end{figure}
 
 \begin{itemize}
 	\item \textsf{PV\_LIB Toolbox} has a  module \textsf{location.py}. In this module, a class \textsf{Location} is defined, with attributes  \emph{latitude} and \emph{longitude}. These attributes are in \emph{decimal degrees} \textit{i.e.} 52.0 and 6.0. 
-	\item \textsf{solarenergy} has a module \textsf{radiation.py} with  a function \textsf{sun\_position\_from\_date\_and\_time}. Input parameters to this function are \emph{longitude} and \emph{latitude} in \emph{radians}. The \textsf{solarenergy} has a conversion constant \textsf{d2r} to convert from decimal degrees to radians. 
+	\item \textsf{solarenergy} has a module \textsf{radiation.py} with  a function \textsf{sun\_position\_from\_date\_and\_time} and \\ \textsf{sun\_position\_from\_datetime}. Input parameters to this functions are \emph{longitude} and \emph{latitude} in \emph{radians}. The \textsf{solarenergy} package has a conversion constant \textsf{d2r} to convert from decimal degrees to radians. 
 	\item \textsf{qsun}: longitude and latitude are not input parameters. They are fixed: the chosen location is for De Bilt, NL (52.1 N, 5.1 E).
 \end{itemize}
 
@@ -54,21 +61,32 @@ In many programming languages, a \textsf{datetime} object exists. The basic func
 
 \subsubsection{Time formats and conventions}
 
-Many conventions are currently in use. The most "universal" is the UNIX Timestamp. Its \emph{epoch}, the "zero" time is 1 January 1970, 00:00:00 (UTC). The time is represented by an \emph{integer} which counts the \emph{seconds} elapsed since the epoch. Originally, the representation was an \textsf{int32}, which would mean that the computer time is up in the year 2038. Backwards, the beginning of computer time would be in 1901.
+Many conventions are currently in use. The most "universal" in computer science is the \href{https://en.wikipedia.org/wiki/Unix_time}{UNIX} timestamp. Its \emph{epoch}, the "zero" time, is 1 January 1970, 00:00:00 (UTC). "UTC" (\href{https://en.wikipedia.org/wiki/Coordinated_Universal_Time}{Coordinated Universal Time}) is the time valid for zero longitude. \textit{UTC is never corrected or affected by daylight savings}. It serves as a primary standard time. All local times from different \textit{timezones} in the world can be unambiguously expressed in UTC. As such, UTC is the successor of the old standard GMT (Greenwich Mean Time).  Local times and time zones are indicated relative to UTC. The local time in the UK is \href{https://en.wikipedia.org/wiki/UTC%2B00:00}{UTC+00:00}, Western Europe has local time UTC+01:00. In summer, the local time in all countries that apply  \href{https://en.wikipedia.org/wiki/Daylight_saving_time}{daylight savings} advances one hour.
+
+On computers, Unix time is represented by an \emph{integer} which counts the \emph{seconds} elapsed since the epoch. Originally, the representation was an \textsf{int32}, which would mean that the computer time is up in the year 2038. Backwards, the beginning of computer time would be in 1901.
 Fortunately, 64-bit computer registers now also use an \textsf{int64} for UNIX timestamp representation, which alleviates this shortcoming for all practical situations.
 
-The \textsf{int64} representation stretches so far into the future and past, that it makes room for improvement. Microsoft Windows maintains a FILETIME
-structure, built from two DWORD (uint32) entries, which taken together to a 64-bit value represent the number of 100-ns intervals since January 1, 1601 00:00:00.0000000 (UTC).
+The \textsf{int64} representation stretches so far into the future and past, that it makes room for improvement of the one-second resolution of Unix time. Microsoft Windows maintains a \href{https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime}{FILETIME} structure, built from two DWORD (uint32) entries, which taken together to a 64-bit value represent the number of 100-ns intervals since January 1, 1601 00:00:00.0000000 (UTC).
 
-typedef struct \_FILETIME \{ \\
-	DWORD dwLowDateTime; \\
-	DWORD dwHighDateTime; \\
-\} FILETIME, *PFILETIME, *LPFILETIME;
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\textwidth]{Figures/filetime.png}
+	\caption{Windows FILETIME structure}
+	\label{fig:filetime}
+\end{figure}
 
-In Python, the original \textsf{datetime} package contains a \textsf{datetime} class which has its epoch at 1 January 1970, just like the UNIX timestamp.
-The \textsf{datetime} class has members: \textsf{year} (1-9999), \textsf{month} (1-12), \textsf{day} (1- \# of days in month), \textsf{hour} (0-23), \textsf{minute} (0-59), \textsf{second} (0-59) and \textsf{microsecond} (0-999999). Moreover, it has an attribute \textsf{tzinfo}, which handles timezone info and an attribute \textsf{fold} (0, 1) to handle the occurrence of two identical wall times when daylight savings time is reset in autumn.
+In Python, UNIX time is used, with the epoch at 1-1-1970. However, three ways of keeping time are implemented:
+\begin{itemize}
+	\item the standard interpreter offers a \href{https://docs.python.org/3.11/library/time.html}{time} module. The command \textsf{time.time()} returns the number of seconds since the epoch, as a float. The module contains a number of functions to convert from this representation to a \textsf{struct\_time} representation, or to formatted string. The \textsf{time module} has limited functionality, and derives from the system settings of the computer. The timestamps generated are thus useful for registration of measurement instants, but do not work for comparisons of historic timing data. Timezone information is also derived from the computer settings, and can be manually changed. See also: \href{https://stackoverflow.com/questions/7479777/difference-between-python-datetime-vs-time-modules}{SOF1}, \href{https://stackoverflow.com/questions/13890935/does-pythons-time-time-return-the-local-or-utc-timestamp/20035913#20035913}{SOF2}.
+	
+	\item the standard  \href{https://docs.python.org/3.11/library/datetime.html}{\textsf{datetime}} module contains a \textsf{datetime} class with members: \textsf{year} (1-9999), \textsf{month} (1-12), \textsf{day} (1- \# of days in month), \textsf{hour} (0-23), \textsf{minute} (0-59), \textsf{second} (0-59) and \textsf{microsecond} (0-999999). Moreover, it has an attribute \textsf{tzinfo}, which handles timezone info and an attribute \textsf{fold} (0, 1) to handle the occurrence of two identical wall times when daylight savings time is reset in autumn.
+	
+	\item the Python package \textsf{pandas} has an alternative \href{https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html}{\textsf{Timestamp}} class, which uses a \textsf{int64}, representing the number of 1-ns intervals since 1 January 1970. This makes it compatible with UNIX timestamps (divide by 1e9) and with classical Python datetime objects. The type is given as \textsf{datetime64[ns, Europe/Amsterdam]}. This reveals that, apart from the timestamp in UTC, a timezone may be stored. This is done with the helper package \textsf{pytz}, which is installed as a dependency of \textsf{pandas}. It is strongly recommended to always use timezone-aware timestamps, even if UTC is meant. The pytz package also handles daylight savings times smoothly in timezone-aware timestamps.
+	
+\end{itemize}
 
-However, the Python package \textsf{pandas} has an alternative \textsf{Timestamp} class, which uses a \textsf{int64}, representing the number of 1-ns intervals since 1 January 1970. This makes it compatible with UNIX timestamps (divide by 1e9) and with classical Python datetime objects. The type is given as \textsf{datetime64[ns, Europe/Amsterdam]}. This reveals that, apart from the timestamp in UTC, a timezone may be stored. This is done with the helper package \textsf{pytz}, which is installed as a dependency of \textsf{pandas}. It is strongly recommended to always use timezone-aware timestamps, even if UTC is meant. The pytz package also handles daylight savings times smoothly in timezone-aware timestamps.
+
+
 
 \subsubsection{Examples in Python}
 
