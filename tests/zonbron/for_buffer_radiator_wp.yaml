@@ -1,6 +1,6 @@
 timing:
   Timestep:  10   # [in minutes] default timestep in time integration
-  Duration:  8760 # [in hours]
+  Duration:  2400 # [in hours]
 # 24*365 = 8760 is a year
 
 Building:
@@ -42,6 +42,10 @@ Radiator:
 Heatpump:
   name: "HPNTA"
 
+PVT:
+  name: "PVT panel"
+  area: 16 # m^2
+
 edges:
   # - [0, 1, 2024.0]        # W/K : 1/R1
   #- [3, 4, 201.9611831 ]  # W/K : 1/R1
@@ -75,7 +79,7 @@ boundaries:
     label: outdoor
     T_ini: 20.0
     connected_to:
-      - [ 0, 300.9611831 ]  # W/K
+      - [ 0, 200.9611831 ]  # W/K
 #      - [ 1, 0.11 ]
   -
     label: return

@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from housemodel.tools.new_configurator import load_config
 
-from housemodel.sourcesink.NEN5060 import run_qsun
+from housemodel.sourcesink.NEN5060 import run_qsun, run_qsun_new
 from housemodel.sourcesink.internal_heat_gain import internal_heat_gain
 from housemodel.controls.Temperature_SP import simple_thermostat
 from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
@@ -139,7 +139,7 @@ def main(show=False, xl=False):
                      df_irr.total_N * param['solar_irradiation']['N'] +
                      df_irr.total_NE * param['solar_irradiation']['NE']).values
     Qsolar.values *= param['solar_irradiation']['g_value']
-    #Qsolar.values = Qsolar.values[0:days_sim * 24]
+    Qsolar.values = Qsolar.values[0:days_sim * 24]
     Qsolar.values.flatten()
 
     Qint = SourceTerm("Q_internal")
@@ -149,7 +149,13 @@ def main(show=False, xl=False):
                                      param['internal']['t1'],
                                      param['internal']['t2'])
     Qint.values = Qint.values.flatten()
-    #Qint.values = Qint.values[0:days_sim * 24]
+    Qint.values = Qint.values[0:days_sim * 24]
+
+    Q_PVT = SourceTerm("PVT Solar irradiation")
+    df_irr_PVT = run_qsun_new(df_nen, 0, 36)
+    Q_PVT.values = df_irr_PVT.total_irr * param["PVT"]["area"]
+    Q_PVT.values = Q_PVT.values[0:days_sim * 24]
+    Q_PVT.values.flatten()
 
     # skip additional source terms from solar irradiation and human presence
     Toutdoor = SourceTerm("T_outdoor")
@@ -166,6 +172,7 @@ def main(show=False, xl=False):
     SP.interpolate_power(time_sim, control_interval)
     Qsolar.interpolate_power(time_sim, control_interval)
     Qint.interpolate_power(time_sim, control_interval)
+    Q_PVT.interpolate_power(time_sim, control_interval)
 
     # interpolate time_sim itself (after all arrays are interpolated)
     time_sim = np.arange(0, time_sim[-1] + (6 * 600), control_interval)
