@@ -3,7 +3,8 @@ import context
 
 from housemodel.weather_solar.weatherdata import (read_nen_weather_from_xl,
                                                   NENdatehour2datetime,
-                                                  get_hourly_knmi_weather_from_api)
+                                                  get_hourly_knmi_weather_from_api,
+                                                  KNMIdatehour2datetime)
 import pandas as pd
 from pytz import timezone
 import numpy as np
@@ -69,7 +70,7 @@ def test_positions():
     ax[2].legend()
     ax[2].set_ylim(-1, 1)
     ax[2].set_xlabel('Time')
-    plt.suptitle('Validation of NEN5060 positions for SE.sun_position_from_datetime vs. PVLIB.get_solarposition (apparent_elevation)')
+    plt.suptitle('Validation of NEN5060 positions for SE.sun_position_from_datetime \n vs. PVLIB.get_solarposition (apparent_elevation)')
     plt.show()
 
 

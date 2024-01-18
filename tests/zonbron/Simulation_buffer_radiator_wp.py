@@ -34,6 +34,7 @@ from housemodel.sourcesink.heatpumps.NTA8800_Q.HPQ9 import calc_WP_general
 import housemodel.tools.radiator_performance.ReturnTemperature as Tr
 # import housemodel.tools.ReturnTemperature as Tr
 from housemodel.sourcesink.radiators.radiators import Radiator
+from housemodel.panels.pvt_panel import PVTPanel
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -94,6 +95,8 @@ def main(show=False, xl=False):
     b.fill_c_inv()
     b.make_k_ext_and_add_ambient()
 
+    pvt = PVTPanel.from_yaml(str(CONFIGDIR / "for_buffer_radiator_wp.yaml"))
+
     total = TotalSystem("HouseBufferRadWP", [h, b])
     total.sort_parts()
     # compose c-1-matrix from parts and merge tag_lists
@@ -152,8 +155,8 @@ def main(show=False, xl=False):
     Qint.values = Qint.values[0:days_sim * 24]
 
     Q_PVT = SourceTerm("PVT Solar irradiation")
-    df_irr_PVT = run_qsun_new(df_nen, 0, 36)
-    Q_PVT.values = df_irr_PVT.total_irr * param["PVT"]["area"]
+    df_irr_PVT = run_qsun_new(df_nen, param["PVT"]["az_deg"], param["PVT"]["incl_deg"])
+    Q_PVT.values = (df_irr_PVT.total_irr * param["PVT"]["area"]).values
     Q_PVT.values = Q_PVT.values[0:days_sim * 24]
     Q_PVT.values.flatten()
 
@@ -321,6 +324,9 @@ def main(show=False, xl=False):
         else:
             r.flow.set_flow_rate(0)
 
+        P_hp_electric = P_supply[i] / cop_hp
+        P_PVT_thermal = P_hp_electric * (cop_hp - 1)
+        P_PVT_thermal += Q_PVT.values[i]
 
         r.T_supply = TBuffervessel0[i]
         r.T_amb = Tair[i]
