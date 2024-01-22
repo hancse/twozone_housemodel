@@ -1,4 +1,3 @@
-
 import numpy as np
 import CoolProp.CoolProp as CP
 from scipy import optimize
@@ -14,6 +13,8 @@ class FrostModel:
         self.A_u = A_u  # Evaporator surface area in square meters
         self.fin_separation = fin_separation  # Fin separation in mm
         self.T_0 = T_outside - 20  # Initial guess for T_0 based on outside temperature
+        self.P = 101325  # air pressure in  Pascal
+        self.Total_frost = 0
 
     def calculate_humidity_ratio(self, T_outside, RV, P):
         """
@@ -97,7 +98,7 @@ class FrostModel:
             delta_h1 = h_ai - h_0
             delta_h2 = h_ao - h_0
             # Calculate the logarithmic mean enthalpy difference
-            lnH = (delta_h1 - delta_h2) / math.log(delta_h1/ delta_h2)
+            lnH = (delta_h1 - delta_h2) / math.log(delta_h1 / delta_h2)
         except Exception as e:
             print(f"An error occurred: {e}")
             raise
@@ -133,7 +134,8 @@ class FrostModel:
             return estimate
 
         initial_guess = self.T_0
-        result = optimize.newton(objective_function, initial_guess)
+        result = optimize.newton(objective_function, initial_guess, fprime=None)
+        asdf = optimize.fsolve(objective_function, [-5+273])
         humidity_ratio_at_surface = FM.calculate_humidity_ratio(self.T_0, 1, P)
         P_sat = CP.PropsSI('P', 'T', self.T_0, 'Q', 0, 'Water')
         enthalpy_at_surface = 0.001 * CP.HAPropsSI("H", "T", self.T_0, "P", P_sat, "W",
@@ -176,7 +178,7 @@ class FrostModel:
                 self.T_0 = self.T_0 + 0.001
         return self.T_0, Q_estimated
 
-    def calculate_x_air_leaving(self, P, h_ao,  RV, T_outside):
+    def calculate_x_air_leaving(self, P, h_ao, RV, T_outside):
         """
 
         Args:
@@ -195,7 +197,7 @@ class FrostModel:
         enthalpy_at_surface = 0.001 * CP.HAPropsSI("H", "T", self.T_0, "P", P_sat, "W", x_at_surface)
         enthalpy_air_now = self.calculate_enthalpy_moist_air(T_outside, P, x_now)
         return x_at_surface + (h_ao - enthalpy_at_surface) * (
-                    (x_now - x_at_surface) / (enthalpy_air_now - enthalpy_at_surface))
+                (x_now - x_at_surface) / (enthalpy_air_now - enthalpy_at_surface))
 
     def calculate_mrijp(self, x_now, x_air_leaving, mdotair, timeinterval):
         return ((x_now - x_air_leaving) * mdotair * timeinterval)
@@ -205,29 +207,67 @@ class FrostModel:
 
     # Calculate dew point
     def calculate_dew_point(self, T_outside, pressure, relative_humidity):
-       return  CP.HAPropsSI('D', 'T', T_outside, 'P', pressure, 'R', relative_humidity)
+        return CP.HAPropsSI('D', 'T', T_outside, 'P', pressure, 'R', relative_humidity)
 
     def calculate_dew_point_quick(self, T_outside, relative_humidity):
-       return  T_outside-((1-relative_humidity)*100/5)
+        return T_outside - ((1 - relative_humidity) * 100 / 5)
 
     def calculate_rho_rijp(self, T_dew):
-        return 260 - (15 * (T_dew - (self.T_0-273.15)))
+        return 260 - (15 * (T_dew - (self.T_0 - 273.15)))
+
+    def update(self, T_outside, RV, evaporator_power, massflow_air):
+        if evaporator_power>0:
+            # First, the enthalpy of the air entering the evaporator (outside air), and the enthalpy leaving the evaporator need to be determined
+            humidity_ratio_outside = self.calculate_humidity_ratio(T_outside, RV, self.P)
+            enthalpy_air_outside = self.calculate_enthalpy_moist_air(T_outside, self.P, humidity_ratio_outside)
+            extracted_enthalpy = self.calculate_enthalpy_change(evaporator_power, massflow_air)
+            enthalpy_air_leaving = enthalpy_air_outside - extracted_enthalpy
+
+            # First a guess is made for the evaporator surface temperature, and from that the enthalpy can be calculated
+            humidity_ratio_at_surface = self.calculate_humidity_ratio(self.T_0, 1, self.P)
+            P_sat = CP.PropsSI('P', 'T', T_outside, 'Q', 0, 'Water')
+            enthalpy_at_surface = 0.001 * CP.HAPropsSI("H", "T", self.T_0, "P", P_sat, "W", humidity_ratio_at_surface)
+
+            # Using the derived enthalpies, the logarithmic mean difference can be calculated
+            ln_enthalpy_difference = self.calculate_log_mean_enthalpy_matlab(enthalpy_air_outside, enthalpy_air_leaving,
+                                                                             enthalpy_at_surface)
+
+            # By obtaining the average specific heat capacity if the ioutside air and at the surface, the amount of power extracted can be estimated
+            average_cp = self.calculate_average_cp(enthalpy_air_outside, enthalpy_at_surface, T_outside)
+            # first_guess_power = self.calculate_power(ln_enthalpy_difference, average_cp)
+
+            # Since this first guess is too high, a loop is used to estimate the evaporator temperature
+            [estimated_evaporator_temperature, estimated_power] = self.find_evaporator_temperature_matlab(evaporator_power,
+                                                                                                          enthalpy_air_outside,
+                                                                                                          enthalpy_air_leaving)
+            print(f'Estimated Power: {estimated_power} kW')
+            print(f'Estimated evaporator temperature: {estimated_evaporator_temperature - 273.15} C')
+
+            x_air_leaving = self.calculate_x_air_leaving(self.P, enthalpy_air_leaving, RV, T_outside)
+            mass_rijp = self.calculate_mrijp(humidity_ratio_outside, x_air_leaving, massflow_air, time_interval)
+            self.Total_frost += mass_rijp
+            print(f'Kg rijp: {mass_rijp} kg')
+            dewpoint = self.calculate_dew_point_quick(T_outside - 273.15, RV)
+            rho_rijp = self.calculate_rho_rijp(dewpoint)
+            print(f'Rho rijp: {rho_rijp} Kg/m^3')
+
 
 
 if __name__ == "__main__":
     # Inputs to the frost model
     P = 101325
-    T_outside = 5 + 273.15
-    RV = 0.7
+    T_outside = 1 + 273.15
+    RV = 0.9
     K = 44
     A_u = 16.0
     fin_separation = 4
-    evaporator_power = 4.2
-    massflow_air = 1928/3600
+    evaporator_power = 1
+    massflow_air = 1928 / 3600
     time_interval = 600
 
     FM = FrostModel(K, A_u, fin_separation)
-
+    FM.update(T_outside, RV, evaporator_power, massflow_air)
+    """
     # First, the enthalpy of the air entering the evaporator (outside air), and the enthalpy leaving the evaporator need to be determined
     humidity_ratio_outside = FM.calculate_humidity_ratio(T_outside, RV, P)
     enthalpy_air_outside = FM.calculate_enthalpy_moist_air(T_outside, P, humidity_ratio_outside)
@@ -248,16 +288,19 @@ if __name__ == "__main__":
     first_guess_power = FM.calculate_power(ln_enthalpy_difference, average_cp)
 
     # Since this first guess is too high, a loop is used to estimate the evaporator temperature
-    [estimated_evaporator_temperature, estimated_power] = FM.find_evaporator_temperature_matlab(evaporator_power, enthalpy_air_outside, enthalpy_air_leaving)
+    [estimated_evaporator_temperature, estimated_power] = FM.find_evaporator_temperature_matlab(evaporator_power,
+                                                                                                enthalpy_air_outside,
+                                                                                                enthalpy_air_leaving)
     print(f'Estimated Power: {estimated_power} kW')
-    print(f'Estimated evaporator temperature: {estimated_evaporator_temperature-273.15} C')
-    #Comparing it to the Newton-Rhapson method
-    FM.T_0 = T_outside - 20
-    [estimated_evaporator_temperature_optimze, estimated_power_optimize] = FM.find_evaporator_temperature(evaporator_power,
-                                                                              enthalpy_air_outside,
-                                                                              enthalpy_air_leaving)
-    print(f'Estimated Power with optimize function: {estimated_power_optimize} kW')
-    print(f'Estimated evaporator temperature with optimize: {estimated_evaporator_temperature_optimze-273.15} C')
+    print(f'Estimated evaporator temperature: {estimated_evaporator_temperature - 273.15} C')
+    # Comparing it to the Newton-Rhapson method
+    #FM.T_0 = T_outside - 20
+    #[estimated_evaporator_temperature_optimze, estimated_power_optimize] = FM.find_evaporator_temperature(
+    #    evaporator_power,
+    #    enthalpy_air_outside,
+    #    enthalpy_air_leaving)
+    #print(f'Estimated Power with optimize function: {estimated_power_optimize} kW')
+    #print(f'Estimated evaporator temperature with optimize: {estimated_evaporator_temperature_optimze - 273.15} C')
 
     # NOw that the evaporator temperature is known, the amount of moisture taken from the air can be calculated
     x_air_leaving = FM.calculate_x_air_leaving(P, enthalpy_air_leaving, RV, T_outside)
@@ -266,5 +309,4 @@ if __name__ == "__main__":
     dewpoint = FM.calculate_dew_point_quick(T_outside - 273.15, RV)
     rho_rijp = FM.calculate_rho_rijp(dewpoint)
     print(f'Rho rijp: {rho_rijp} Kg/m^3')
-
-
+    """

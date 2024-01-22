@@ -82,7 +82,7 @@ boundaries:
     label: outdoor
     T_ini: 20.0
     connected_to:
-      - [ 0, 200.9611831 ]  # W/K
+      - [ 0, 300.9611831 ]  # W/K
 #      - [ 1, 0.11 ]
   -
     label: return
