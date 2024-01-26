@@ -11,15 +11,12 @@ E(3)= total solar irradiation on an inclined surface
 E(4)= total solar irradiation on a horizontal surface
 
 INPUT:
-
-
 east:gamma = -90, west:gamma = 90
 south:gamma = 0, north:gamma = 180
 
 horizontal: beta=0, vertical: beta=90
 default geographical position: De Bilt
 
- 
 EXAMPLE: E=irrad(800,200,201,12,0,45)
 ANSWER: E=1.0e+003 *
 0.8569 0.1907 1.0759 0.9684
@@ -59,7 +56,8 @@ def solar_check(tclim):
     # LON = Local Longitude [graden] oost is positief
     LON = 5.1
     # LSM = Local Standard time Meridian [graden] oost is positief
-    LSM = 15 * 2
+    LSM = 15 * 1  # ???????????????????
+    # LSM = 15 * 2  # ???????????????????
     r = np.pi / 180
     L = L * r  # conversion degrees-> radians
     theta = 2 * np.pi * (iday - 1) / 365.25

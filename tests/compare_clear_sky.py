@@ -20,12 +20,16 @@ matplotlib.use("Qt5Agg")
 loc = Location(52.0, 5.0, tz='Europe/Amsterdam', altitude=10, name='Nieuwegein')  # PVLIB Location object in degrees
 times2020 = pd.date_range(start='2019-01-01 00:00:00', end='2019-12-31 23:00:00',
                           freq='H', tz='Europe/Amsterdam')  # range of Pandas Timestamps
+# times2020 is a DateTimeIndex
+times2020array = times2020.to_series().values
+
 solpos = get_solarposition(times2020, loc.latitude, loc.longitude, loc.altitude,
                            method='nrel_numpy')  # basic PVLIB function
 apparent_zenith = solpos['apparent_zenith']
 am_pv = get_relative_airmass(apparent_zenith, model='young1994')
 cs = bird(apparent_zenith, am_pv, ozone=0.34, precipitable_water=1.42, aod500=0.2661, aod380=0.3538)
 linke_turbidity = lookup_linke_turbidity(times2020, loc.latitude, loc.longitude)
+
 
 dni_extra = get_extra_radiation(times2020, solar_constant=1361.5,
                                 epoch_year=2020, method='asce')

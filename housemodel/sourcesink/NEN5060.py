@@ -5,7 +5,7 @@ from pathlib import Path
 from housemodel.sourcesink.qsun import qsun
 
 
-def run_qsun(df5060: pd.DataFrame):
+def run_qsun(df5060: pd.DataFrame, verbose=False):
     """
 
     Args:
@@ -24,7 +24,8 @@ def run_qsun(df5060: pd.DataFrame):
     t_s = df5060.index.values * 3600
     iday = 1 + np.floor(t_s / (24 * 3600))
     LST = np.floor((t_s / 3600) % 24)
-    print(type(qdiff_hor))
+    if verbose:
+        print(type(qdiff_hor))
 
     # dfout = pd.DataFrame(t, columns = list('t'))
     # dfout['iday'] = 1 + np.floor(t / (24 * 3600))
@@ -85,11 +86,12 @@ def run_qsun(df5060: pd.DataFrame):
     dfout['total_NE'] = E[2, :, 7]
     dfout['total_hor'] = E[2, :, 8]
 
-    print(dfout.columns)
+    if verbose:
+        print(dfout.columns)
     return dfout
 
 
-def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt, north_is_zero=False):
+def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt, north_is_zero=False, verbose=False):
     """
 
     Args:
@@ -113,7 +115,8 @@ def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt, north_is_zero=False):
     t_s = df5060.index.values * 3600
     iday = 1 + np.floor(t_s / (24 * 3600))
     LST = np.floor((t_s / 3600) % 24)
-    print(type(qdiff_hor))
+    if verbose:
+        print(type(qdiff_hor))
 
     # dfout = pd.DataFrame(t, columns = list('t'))
     # dfout['iday'] = 1 + np.floor(t / (24 * 3600))
@@ -151,8 +154,9 @@ def run_qsun_new(df5060: pd.DataFrame, azimuth, tilt, north_is_zero=False):
     dfout['iday'] = 1 + np.floor(t_s / (24 * 3600))
     dfout['LST'] = np.floor((t_s / 3600) % 24)
     dfout['total_irr'] = E[:, 2]
-    # print(dfout.columns)
 
+    if verbose:
+        print(dfout.columns)
     return dfout
 
 
