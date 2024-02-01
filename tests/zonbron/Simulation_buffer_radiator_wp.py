@@ -155,8 +155,8 @@ def main(show=False, xl=False):
     Qint.values = Qint.values[0:days_sim * 24]
 
     Q_PVT = SourceTerm("PVT Solar irradiation")
-    df_irr_PVT = run_qsun_new(df_nen, param["PVT"]["az_deg"], param["PVT"]["incl_deg"])
-    Q_PVT.values = (df_irr_PVT.total_irr * param["PVT"]["area"]).values
+    df_irr_PVT = run_qsun_new(df_nen, pvt.azimuth, pvt.inclination)
+    Q_PVT.values = (df_irr_PVT.total_irr * pvt.area).values
     Q_PVT.values = Q_PVT.values[0:days_sim * 24]
     Q_PVT.values.flatten()
 
@@ -165,6 +165,12 @@ def main(show=False, xl=False):
     Toutdoor.values = df_nen.loc[:, 'temperatuur'].values
     Toutdoor.values = Toutdoor.values.flatten()
     Toutdoor.values = Toutdoor.values[0:days_sim * 24]
+
+    # skip additional source terms from solar irradiation and human presence
+    RH = SourceTerm("Relative Humidity")
+    RH.values = df_nen.loc[:, 'relatieve_vochtigheid'].values * 0.01
+    RH.values = RH.values.flatten()
+    RH.values = RH.values[0:days_sim * 24]
 
     SP = SourceTerm("SetPoint")
     SP.values = simple_thermostat(8, 23, 20, 17)
@@ -176,6 +182,7 @@ def main(show=False, xl=False):
     Qsolar.interpolate_power(time_sim, control_interval)
     Qint.interpolate_power(time_sim, control_interval)
     Q_PVT.interpolate_power(time_sim, control_interval)
+    RH.interpolate_power(time_sim, control_interval)
 
     # interpolate time_sim itself (after all arrays are interpolated)
     time_sim = np.arange(0, time_sim[-1] + (6 * 600), control_interval)
@@ -253,7 +260,7 @@ def main(show=False, xl=False):
     r.T_supply = TBuffervessel0[0]
     r.T_amb = Tair[0]
     r.T_return = (r.T_supply + r.T_amb) / 2.0  # crude quess
-    r.set_qzero(10000)
+    r.set_qzero(8000)
 
     r.set_flow(total.flows[0])
     print(f"Heat rate: {r.flow.heat_rate} [W/K] \n")
@@ -301,7 +308,7 @@ def main(show=False, xl=False):
         # p_hp = 0
         # determine new setting for COP and heat pump power
 
-        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 1.7, 20)  # stooklijn klopt niet helemaal!
+        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 1.8, 20)  # stooklijn klopt niet helemaal!
         water_temp[i] = nta.T_cond_out
         nta.T_evap = Toutdoor.values[i]
         nta.T_cond_in = TBuffervessel7[i]
@@ -324,9 +331,12 @@ def main(show=False, xl=False):
         else:
             r.flow.set_flow_rate(0)
 
-        P_hp_electric = P_supply[i] / cop_hp
-        P_PVT_thermal = P_hp_electric * (cop_hp - 1)
-        P_PVT_thermal += Q_PVT.values[i]
+        P_hp_electric = P_supply[i] / cop_hp[i]
+        P_PVT_thermal = P_hp_electric * (cop_hp[i] - 1)
+        P_PVT_thermal += float(Q_PVT.values[i])
+        P_PVT_thermal_kW = P_PVT_thermal/1000
+
+        pvt.model.update(Toutdoor.values[i]+273.15, RH.values[i], P_PVT_thermal_kW, 0.500)
 
         r.T_supply = TBuffervessel0[i]
         r.T_amb = Tair[i]
