@@ -4,7 +4,7 @@ from housemodel.tools.new_configurator import load_config
 class PVTPanel():
     def __init__(self, model=FrostModel):
         self.name = None
-        self.model = model(K=44, A_u=16, fin_separation=1, T_0= 5+273)
+        self.model = model(K=20, A_u=90, fin_separation=1, T_0= 5+273)
         self.area  = None
         self.inclination = None
         self.azimuth = None

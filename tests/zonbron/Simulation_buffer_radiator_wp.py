@@ -211,6 +211,9 @@ def main(show=False, xl=False):
     Power_gb = np.zeros(len(t))
     Power_hp = np.zeros(len(t))
     P_supply = np.zeros(len(t))
+    Frost_evaporator = np.zeros(len(t))
+    Power_evaporator = np.zeros(len(t))
+    Tevaporator = np.zeros(len(t))
 
     TBuffervessel0 = np.ones(len(t)) * y0[2]
     TBuffervessel1 = np.ones(len(t)) * y0[3]
@@ -331,12 +334,19 @@ def main(show=False, xl=False):
         else:
             r.flow.set_flow_rate(0)
 
-        P_hp_electric = P_supply[i] / cop_hp[i]
-        P_PVT_thermal = P_hp_electric * (cop_hp[i] - 1)
-        P_PVT_thermal += float(Q_PVT.values[i])
-        P_PVT_thermal_kW = P_PVT_thermal/1000
+        if(cop_hp[i] < 1):
+            P_hp_electric = 0
+            P_PVT_thermal = 0
+            cop_hp[i] = 1
+        else:
+            P_hp_electric = P_supply[i] / cop_hp[i]
+            P_PVT_thermal = P_hp_electric * (cop_hp[i] - 1)
 
-        pvt.model.update(Toutdoor.values[i]+273.15, RH.values[i], P_PVT_thermal_kW, 0.500)
+        P_PVT_thermal -= max(0.0, min(100000.0, float(Q_PVT.values[i])))
+        P_PVT_thermal_kW = P_PVT_thermal/1000
+        #P_PVT_thermal_kW = max(-10.0, min(10.0, P_PVT_thermal_kW))
+
+        pvt.model.update(Toutdoor.values[i]+273.15, RH.values[i], P_PVT_thermal_kW, 0.5)
 
         r.T_supply = TBuffervessel0[i]
         r.T_amb = Tair[i]
@@ -371,6 +381,9 @@ def main(show=False, xl=False):
         Treturn[i] = r.T_return
         Power_gb[i] = Qinst
         Power_hp[i] = nta.P_HP_W
+        Power_evaporator[i] = P_PVT_thermal_kW * 1000
+        Frost_evaporator[i] = pvt.model.Total_frost
+        Tevaporator[i] = pvt.model.T_0 - 273.15
 
         TBuffervessel0[i + 1] = result.y[2, -1]
         TBuffervessel1[i + 1] = result.y[3, -1]
@@ -387,7 +400,8 @@ def main(show=False, xl=False):
         # return t, Tair, Twall, Treturn, Power, water_temp, cop_hp, TBuffervessel1, TBuffervessel2, TBuffervessel3, TBuffervessel4, TBuffervessel5, TBuffervessel6, TBuffervessel7, TBuffervessel8
         data = (t, Tair, Twall, Treturn, Power_gb, Power_hp, water_temp, cop_hp,
                 TBuffervessel0, TBuffervessel1, TBuffervessel2, TBuffervessel3,
-                TBuffervessel4, TBuffervessel5, TBuffervessel6, TBuffervessel7)
+                TBuffervessel4, TBuffervessel5, TBuffervessel6, TBuffervessel7,
+                Frost_evaporator, Power_evaporator, Tevaporator)
 
     # if show=True, plot the results
     if show:
@@ -409,7 +423,8 @@ def main(show=False, xl=False):
         fig, ax = plt.subplots(3, 2, sharex='all')
         ax[0, 0].plot(time_d, data[1], label='Tair')
         ax[0, 0].plot(time_d, data[2], label='Twall')
-        ax[0, 0].plot(time_sim / (3600 * 24), SP.values, label='SP_Temperature')
+        ax[0, 0].plot(time_d, data[18], label='Tevaporator')
+        #ax[0, 0].plot(time_sim / (3600 * 24), SP.values, label='SP_Temperature')
         ax[0, 0].plot(time_sim / (3600 * 24), Toutdoor.values, label='Toutdoor')
         ax[0, 0].legend(loc='upper right')
         ax[0, 0].set_title('Nodal Temperatures')
@@ -417,6 +432,7 @@ def main(show=False, xl=False):
         ax[0, 0].set_ylabel(('Temperature (°C)'))
 
         ax[0, 1].plot(time_d, data[7], label='COP', color='r')
+        ax[0, 1].plot(time_d, data[16], label='Frost', color='b')
         ax[0, 1].legend(loc='upper right')
         ax[0, 1].set_title('COP')
         ax[0, 1].set_xlabel(('Time (s)'))
@@ -436,6 +452,7 @@ def main(show=False, xl=False):
 
         # ax[2, 0].plot(time_d, data[5], label='Power HP', color = 'r')
         ax[2, 0].plot(time_d, P_supply, label='Power HP', color='r')
+        ax[2, 0].plot(time_d, Power_evaporator, label='Power evaporator', color='b')
         ax[2, 0].legend(loc='upper right')
         ax[2, 0].set_title('Power_hp')
         ax[2, 0].set_xlabel(('Time (s)'))
