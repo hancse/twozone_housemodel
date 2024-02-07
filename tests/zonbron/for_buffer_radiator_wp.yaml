@@ -1,6 +1,6 @@
 timing:
   Timestep:  10   # [in minutes] default timestep in time integration
-  Duration:  480 # [in hours]
+  Duration:  720 # [in hours]
 # 24*365 = 8760 is a year
 
 Building:

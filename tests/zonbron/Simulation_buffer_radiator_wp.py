@@ -250,6 +250,8 @@ def main(show=False, xl=False):
 
     water_temp = np.zeros(len(t))
     cop_hp = np.zeros(len(t))
+    cop_carnot = np.zeros(len(t))
+
 
     nta.set_flow(total.flows[1])
     print(f"Heat rate: {nta.flow.heat_rate} [W/K] \n")
@@ -311,7 +313,7 @@ def main(show=False, xl=False):
         # p_hp = 0
         # determine new setting for COP and heat pump power
 
-        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 1.8, 20)  # stooklijn klopt niet helemaal!
+        nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 2, 20)  # stooklijn klopt niet helemaal!
         water_temp[i] = nta.T_cond_out
         nta.T_evap = Toutdoor.values[i]
         nta.T_cond_in = TBuffervessel7[i]
@@ -324,6 +326,8 @@ def main(show=False, xl=False):
             nta.flow.set_flow_rate(150.0e-6)
             P_supply[i] = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)
             cop_hp[i] = nta.COP
+            cop_carnot[i] = ((outdoor_reset(Toutdoor.values[i], 2, 20) + 273.15) / (
+                        (outdoor_reset(Toutdoor.values[i], 2, 20) + 273.15) - (Toutdoor.values[i] + 273.15))) * 0.45
         else:
             nta.flow.set_flow_rate(0)
             P_supply[i] = 0
@@ -334,13 +338,12 @@ def main(show=False, xl=False):
         else:
             r.flow.set_flow_rate(0)
 
-        if(cop_hp[i] < 1):
+        if(P_supply[i] == 0):
             P_hp_electric = 0
             P_PVT_thermal = 0
-            cop_hp[i] = 1
         else:
-            P_hp_electric = P_supply[i] / cop_hp[i]
-            P_PVT_thermal = P_hp_electric * (cop_hp[i] - 1)
+            P_hp_electric = P_supply[i] / cop_carnot[i]
+            P_PVT_thermal = P_hp_electric * float(cop_carnot[i] - 1.0)
 
         P_PVT_thermal -= max(0.0, min(100000.0, float(Q_PVT.values[i])))
         P_PVT_thermal_kW = P_PVT_thermal/1000
@@ -433,6 +436,8 @@ def main(show=False, xl=False):
 
         ax[0, 1].plot(time_d, data[7], label='COP', color='r')
         ax[0, 1].plot(time_d, data[16], label='Frost', color='b')
+        ax[0, 1].plot(time_d, cop_carnot, label='Frost', color='g')
+
         ax[0, 1].legend(loc='upper right')
         ax[0, 1].set_title('COP')
         ax[0, 1].set_xlabel(('Time (s)'))
