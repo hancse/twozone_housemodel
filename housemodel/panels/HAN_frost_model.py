@@ -161,26 +161,37 @@ class FrostModel:
             Evaporator temperature in K
 
         """
-        while True:
-            enthalpy_air = h_ai
-            enthalpy_air_out = h_ao
-            humidity_ratio_at_surface = self.calculate_humidity_ratio(self.T_0, 1, self.P)
+        enthalpy_air = h_ai
+        enthalpy_air_out = h_ao
+
+        # Loop control variables
+        tolerance = 0.1
+        step_size = 0.001
+        max_iterations = 10000  # Prevent infinite loop
+        iteration = 0
+
+        while iteration < max_iterations:
             P_sat = CP.PropsSI('P', 'T', self.T_0, 'Q', 0, 'Water')
+            humidity_ratio_at_surface = self.calculate_humidity_ratio(self.T_0, 1, self.P)
             enthalpy_at_surface = 0.001 * CP.HAPropsSI("H", "T", self.T_0, "P", P_sat, "W",
                                                        humidity_ratio_at_surface)
             average_cp = self.calculate_average_cp(enthalpy_air, enthalpy_at_surface, T_outside)
-
             ln_enthalpy_difference = self.calculate_log_mean_enthalpy_matlab(enthalpy_air, enthalpy_air_out,
-                                                                           enthalpy_at_surface)
-            Q_estimated = ((self.K * self.A_u * ln_enthalpy_difference) / average_cp)/1000
+                                                                             enthalpy_at_surface)
+            Q_estimated = ((self.K * self.A_u * ln_enthalpy_difference) / average_cp) / 1000
 
-            if (Q_r - 0.1) <= Q_estimated <= (Q_r + 0.1):
+            if (Q_r - tolerance) <= Q_estimated <= (Q_r + tolerance):
                 break
 
-            if Q_r > Q_estimated:
-                self.T_0 = self.T_0 - 0.001
-            else:
-                self.T_0 = self.T_0 + 0.001
+            # Adjust T_0 with a certain step size
+            direction = -1 if Q_r > Q_estimated else 1
+            self.T_0 += direction * step_size
+
+            iteration += 1
+
+        if iteration >= max_iterations:
+            print("Max iterations reached, solution may not be accurate")
+
         return self.T_0, Q_estimated
 
     def calculate_x_air_leaving(self, P, h_ao, RV, T_outside):
