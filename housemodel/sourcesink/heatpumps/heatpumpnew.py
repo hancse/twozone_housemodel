@@ -47,6 +47,7 @@ class HeatpumpNTANew:
         self.P_HP_W = None
         self.COP = None
         self.Pmin_kW = None
+        self.T_max_cond_out = None
 
         self.flow = None  # Flow object, initialized as None
         logging.info(f" HeatPumpNew object {self.name} created")

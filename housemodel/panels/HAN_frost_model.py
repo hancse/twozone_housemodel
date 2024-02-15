@@ -190,7 +190,7 @@ class FrostModel:
             iteration += 1
 
         if iteration >= max_iterations:
-            print("Max iterations reached, solution may not be accurate")
+            print("Max iterations reached, solution may not be accurate. Expected value = %.3f, calculated value is %.3f" % (Q_r, Q_estimated))
 
         return self.T_0, Q_estimated
 
