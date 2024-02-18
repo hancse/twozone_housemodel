@@ -244,13 +244,14 @@ def main(show=False, xl=False):
     # Location: Documentation\Literature\References_Zon_als_Bron\Nibe_warmtepomp_referentie
     nta.cal_T_evap = np.array([-7, 7, 7])
     nta.cal_T_cond = np.array([35, 35, 45])
-    nta.set_cal_val([2.65, 5.21, 3.91], [7.23, 3.67, 3.35])
+    nta.set_cal_val([2.65, 5.21, 3.91], [8, 10, 10])
     nta.Pmax_kW = 10  # in kW
     nta.Pmin_kW = 0
     nta.T_max_cond_out = 50
     nta.T_evap = Toutdoor.values[0]
     nta.T_cond_or = 45.0    #initial value
     nta.T_cond_out = nta.T_cond_or
+    nta.frost_power_correction = False
     nta.update()
 
     water_temp = np.zeros(len(t))
@@ -319,11 +320,10 @@ def main(show=False, xl=False):
         # determine new setting for COP and heat pump power
 
 
-        heating_curve_temp = outdoor_reset(Toutdoor.values[i], 2, 20)
-        heating_curve_temp_t[i] = heating_curve_temp
+        heating_curve_temp = outdoor_reset(Toutdoor.values[i], 1.3, 20)
 
         if(heating_curve_temp < nta.T_max_cond_out):
-            nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 2, 20)
+            nta.T_cond_or = heating_curve_temp
         else:
             nta.T_cond_or = nta.T_max_cond_out
 
@@ -335,22 +335,18 @@ def main(show=False, xl=False):
         # Calcuate the expected het flow if the heating is running
         nta.flow.set_flow_rate(150.0e-6)
         P_expected = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)/1000
-        if (P_expected > nta.Pmin_kW) & (SP.values[i]>16.5):
+        if (P_expected > nta.Pmin_kW) & (SP.values[i]>16.5) :
             nta.flow.set_flow_rate(150.0e-6)
             P_supply[i] = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)
             cop_hp[i] = nta.COP
-            cop_carnot[i] = ((outdoor_reset(Toutdoor.values[i], 2, 20) + 273.15) / (
+            cop_carnot[i] = ((outdoor_reset(Toutdoor.values[i], 1.6, 20) + 273.15) / (
                         (outdoor_reset(Toutdoor.values[i], 2, 20) + 273.15) - (Toutdoor.values[i] + 273.15))) * 0.45
-            if (heating_curve_temp < nta.T_max_cond_out):
-                P_electric_element_t[i] = 0
-            else:
-                P_electric_element_t[i] = (heating_curve_temp - nta.T_max_cond_out) * nta.flow.heat_rate
         else:
             nta.flow.set_flow_rate(0)
             P_supply[i] = 0
             cop_hp[i] = 0
-        # update q_vector: add heat source for Buffer vessel
-        if Tair[i] < 20:
+
+        if Tair[i] <19:
             r.flow.set_flow_rate(150.0e-6)
         else:
             r.flow.set_flow_rate(0)
@@ -373,7 +369,7 @@ def main(show=False, xl=False):
         r.T_return = (r.T_supply + r.T_amb) / 2.0  # crude quess
         r.update(r.func_rad_lmtd)
 
-        total.q_vec[upper_layer] += nta.flow.heat_rate * heating_curve_temp
+        total.q_vec[upper_layer] += nta.flow.heat_rate * nta.T_cond_out
         total.f_mat[upper_layer, upper_layer] += nta.flow.heat_rate
         total.q_vec[bottom_layer] += r.flow.heat_rate * r.T_return
         total.f_mat[bottom_layer, bottom_layer] += r.flow.heat_rate
@@ -405,6 +401,7 @@ def main(show=False, xl=False):
         Frost_evaporator[i] = pvt.model.Total_frost
         Frost_volume_evaporator[i] = pvt.model.total_volume_frost
         Tevaporator[i] = pvt.model.T_0 - 273.15
+        heating_curve_temp_t[i] = heating_curve_temp
 
         TBuffervessel0[i + 1] = result.y[2, -1]
         TBuffervessel1[i + 1] = result.y[3, -1]

@@ -5,6 +5,7 @@ from housemodel.tools.radiator_performance.TemperatureDifference import LMTD
 import math
 import numpy as np
 
+
 CP.set_config_bool(CP.DONT_CHECK_PROPERTY_LIMITS, True)
 
 
@@ -236,8 +237,8 @@ class FrostModel:
         return 260 - (15 * (T_dew - (self.T_0 - 273.15)))
 
     def update(self, T_outside, RV, evaporator_power, massflow_air):
-        if evaporator_power>0.5:
-            if T_outside < 273.15 + 7:
+        if evaporator_power > 1:
+            if T_outside < 273.15 + 10:
                 # First, the enthalpy of the air entering the evaporator (outside air), and the enthalpy leaving the evaporator need to be determined
                 humidity_ratio_outside = self.calculate_humidity_ratio(T_outside, RV, self.P)
                 enthalpy_air_outside = self.calculate_enthalpy_moist_air(T_outside, self.P, humidity_ratio_outside)
@@ -261,6 +262,9 @@ class FrostModel:
             else:
                 self.T_0 = T_outside
                 self.Total_frost_t.append(self.Total_frost)
+        elif evaporator_power > 0:
+            self.T_0 = T_outside
+            self.Total_frost_t.append(self.Total_frost)
 
         else:
             if(self.Total_frost > 0):

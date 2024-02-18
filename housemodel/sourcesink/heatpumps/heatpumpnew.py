@@ -48,6 +48,7 @@ class HeatpumpNTANew:
         self.COP = None
         self.Pmin_kW = None
         self.T_max_cond_out = None
+        self.frost_power_correction = True
 
         self.flow = None  # Flow object, initialized as None
         logging.info(f" HeatPumpNew object {self.name} created")
@@ -101,7 +102,8 @@ class HeatpumpNTANew:
         # COP defrost correction
         frost_f = frost_factor_8800([self.T_evap])  # input = list or 1-dim array
         self.COP *= frost_f
-        self.P_HP_kW *= frost_f
+        if(self.frost_power_correction == True):
+            self.P_HP_kW *= frost_f
         self.P_HP_kW = np.clip(self.P_HP_kW, 0, self.Pmax_kW)
         self.P_HP_W = 1000.0 * self.P_HP_kW.item()
 
