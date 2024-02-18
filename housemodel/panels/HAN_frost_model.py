@@ -257,7 +257,7 @@ class FrostModel:
                     volume_frost = mass_rijp / rho_rijp
                     self.total_volume_frost += volume_frost
                     self.cumulative_density_frost += rho_rijp
-                    self.average_density_frost = self.total_volume_frost / self.timesteps_frost_buildup
+                    self.average_density_frost = self.cumulative_density_frost / self.timesteps_frost_buildup
 
             else:
                 self.T_0 = T_outside
@@ -278,6 +278,7 @@ class FrostModel:
                 if(self.Total_frost<0):
                     self.Total_frost = 0
                 self.Total_frost_t.append(self.Total_frost)
+                self.total_volume_frost = self.Total_frost / self.average_density_frost
 
 
 
