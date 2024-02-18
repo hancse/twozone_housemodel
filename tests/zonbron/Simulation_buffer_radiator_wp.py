@@ -38,6 +38,7 @@ from housemodel.panels.pvt_panel import PVTPanel
 
 import matplotlib
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from pathlib import Path
 
@@ -217,6 +218,9 @@ def main(show=False, xl=False):
     P_electric_element_t = np.zeros(len(t))
     heating_curve_temp_t = np.zeros(len(t))
     Frost_volume_evaporator = np.zeros(len(t))
+    P_PVT_thermal_solo_t = np.zeros(len(t))
+    P_PVT_thermal_solar = np.zeros(len(t))
+    P_PVT_thermal_air = np.zeros(len(t))
 
 
     TBuffervessel0 = np.ones(len(t)) * y0[2]
@@ -247,7 +251,7 @@ def main(show=False, xl=False):
     nta.set_cal_val([2.65, 5.21, 3.91], [8, 10, 10])
     nta.Pmax_kW = 10  # in kW
     nta.Pmin_kW = 0
-    nta.T_max_cond_out = 50
+    nta.T_max_cond_out = 55
     nta.T_evap = Toutdoor.values[0]
     nta.T_cond_or = 45.0    #initial value
     nta.T_cond_out = nta.T_cond_or
@@ -320,7 +324,7 @@ def main(show=False, xl=False):
         # determine new setting for COP and heat pump power
 
 
-        heating_curve_temp = outdoor_reset(Toutdoor.values[i], 1.3, 20)
+        heating_curve_temp = outdoor_reset(Toutdoor.values[i], 1.7, 20)
 
         if(heating_curve_temp < nta.T_max_cond_out):
             nta.T_cond_or = heating_curve_temp
@@ -339,14 +343,14 @@ def main(show=False, xl=False):
             nta.flow.set_flow_rate(150.0e-6)
             P_supply[i] = nta.flow.heat_rate * (nta.T_cond_out - nta.T_cond_in)
             cop_hp[i] = nta.COP
-            cop_carnot[i] = ((outdoor_reset(Toutdoor.values[i], 1.6, 20) + 273.15) / (
-                        (outdoor_reset(Toutdoor.values[i], 2, 20) + 273.15) - (Toutdoor.values[i] + 273.15))) * 0.45
+            cop_carnot[i] = ((nta.T_cond_out + 273.15) / (
+                        (nta.T_cond_out + 273.15) - (Toutdoor.values[i] + 273.15))) * 0.45
         else:
             nta.flow.set_flow_rate(0)
             P_supply[i] = 0
             cop_hp[i] = 0
 
-        if Tair[i] <19:
+        if Tair[i] <20:
             r.flow.set_flow_rate(150.0e-6)
         else:
             r.flow.set_flow_rate(0)
@@ -357,12 +361,16 @@ def main(show=False, xl=False):
         else:
             P_hp_electric = P_supply[i] / cop_carnot[i]
             P_PVT_thermal = P_hp_electric * float(cop_carnot[i] - 1.0)
+            P_PVT_thermal_solo = P_hp_electric * float(cop_carnot[i] - 1.0)
+
+        P_PVT_thermal_solar[i] = min(float(Q_PVT.values[i]), P_PVT_thermal_solo)
+        P_PVT_thermal_air[i] = P_PVT_thermal_solo - P_PVT_thermal_solar[i]
 
         P_PVT_thermal -= max(0.0, min(100000.0, float(Q_PVT.values[i])))
         P_PVT_thermal_kW = P_PVT_thermal/1000
         #P_PVT_thermal_kW = max(-10.0, min(10.0, P_PVT_thermal_kW))
 
-        pvt.model.update(Toutdoor.values[i]+273.15, RH.values[i], P_PVT_thermal_kW, 0.2)
+        pvt.model.update(Toutdoor.values[i]+273.15, RH.values[i], P_PVT_thermal_kW, 0.3)
 
         r.T_supply = TBuffervessel0[i]
         r.T_amb = Tair[i]
@@ -402,6 +410,7 @@ def main(show=False, xl=False):
         Frost_volume_evaporator[i] = pvt.model.total_volume_frost
         Tevaporator[i] = pvt.model.T_0 - 273.15
         heating_curve_temp_t[i] = heating_curve_temp
+        P_PVT_thermal_solo_t[i] = P_PVT_thermal_solo
 
         TBuffervessel0[i + 1] = result.y[2, -1]
         TBuffervessel1[i + 1] = result.y[3, -1]
@@ -497,6 +506,32 @@ def main(show=False, xl=False):
         plt.tight_layout()
         plt.suptitle(Path(__file__).stem)
         plt.show()
+
+        # Example data
+        x_data = Toutdoor.values
+        y_data = RH.values
+        z_data = P_PVT_thermal_solo_t
+
+        # Creating the plot
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Scatter plot
+        ax.scatter(x_data, y_data, z_data)
+        ax.scatter(x_data, y_data, P_PVT_thermal_air, label='Thermal power from air')
+        ax.scatter(x_data, y_data, P_PVT_thermal_solar, label='Thermal power from solar')
+
+        # Labels
+        ax.set_xlabel('T outdoor')
+        ax.set_ylabel('Relative humidity')
+        ax.set_zlabel('PVT thermal power')
+
+        # Title
+        ax.set_title('3D Scatter Plot')
+
+        # Show the plot
+        plt.show()
+
 
     if xl:
         xlname = 'tst_8800_buffer.xlsx'
