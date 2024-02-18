@@ -214,6 +214,10 @@ def main(show=False, xl=False):
     Frost_evaporator = np.zeros(len(t))
     Power_evaporator = np.zeros(len(t))
     Tevaporator = np.zeros(len(t))
+    P_electric_element_t = np.zeros(len(t))
+    heating_curve_temp_t = np.zeros(len(t))
+    Frost_volume_evaporator = np.zeros(len(t))
+
 
     TBuffervessel0 = np.ones(len(t)) * y0[2]
     TBuffervessel1 = np.ones(len(t)) * y0[3]
@@ -242,7 +246,7 @@ def main(show=False, xl=False):
     nta.cal_T_cond = np.array([35, 35, 45])
     nta.set_cal_val([2.65, 5.21, 3.91], [7.23, 3.67, 3.35])
     nta.Pmax_kW = 10  # in kW
-    nta.Pmin_kW = 2
+    nta.Pmin_kW = 0
     nta.T_max_cond_out = 50
     nta.T_evap = Toutdoor.values[0]
     nta.T_cond_or = 45.0    #initial value
@@ -316,19 +320,17 @@ def main(show=False, xl=False):
 
 
         heating_curve_temp = outdoor_reset(Toutdoor.values[i], 2, 20)
+        heating_curve_temp_t[i] = heating_curve_temp
 
         if(heating_curve_temp < nta.T_max_cond_out):
             nta.T_cond_or = outdoor_reset(Toutdoor.values[i], 2, 20)
-            water_temp[i] = nta.T_cond_out
-            nta.T_evap = Toutdoor.values[i]
-            nta.T_cond_in = TBuffervessel7[i]
-            nta.adjust()
         else:
             nta.T_cond_or = nta.T_max_cond_out
-            water_temp[i] = nta.T_cond_out
-            nta.T_evap = Toutdoor.values[i]
-            nta.T_cond_in = TBuffervessel7[i]
-            nta.adjust()
+
+        water_temp[i] = nta.T_cond_out
+        nta.T_evap = Toutdoor.values[i]
+        nta.T_cond_in = TBuffervessel7[i]
+        nta.adjust()
 
         # Calcuate the expected het flow if the heating is running
         nta.flow.set_flow_rate(150.0e-6)
@@ -339,6 +341,10 @@ def main(show=False, xl=False):
             cop_hp[i] = nta.COP
             cop_carnot[i] = ((outdoor_reset(Toutdoor.values[i], 2, 20) + 273.15) / (
                         (outdoor_reset(Toutdoor.values[i], 2, 20) + 273.15) - (Toutdoor.values[i] + 273.15))) * 0.45
+            if (heating_curve_temp < nta.T_max_cond_out):
+                P_electric_element_t[i] = 0
+            else:
+                P_electric_element_t[i] = (heating_curve_temp - nta.T_max_cond_out) * nta.flow.heat_rate
         else:
             nta.flow.set_flow_rate(0)
             P_supply[i] = 0
@@ -367,7 +373,7 @@ def main(show=False, xl=False):
         r.T_return = (r.T_supply + r.T_amb) / 2.0  # crude quess
         r.update(r.func_rad_lmtd)
 
-        total.q_vec[upper_layer] += nta.flow.heat_rate * nta.T_cond_out
+        total.q_vec[upper_layer] += nta.flow.heat_rate * heating_curve_temp
         total.f_mat[upper_layer, upper_layer] += nta.flow.heat_rate
         total.q_vec[bottom_layer] += r.flow.heat_rate * r.T_return
         total.f_mat[bottom_layer, bottom_layer] += r.flow.heat_rate
@@ -397,6 +403,7 @@ def main(show=False, xl=False):
         Power_hp[i] = nta.P_HP_W
         Power_evaporator[i] = P_PVT_thermal_kW * 1000
         Frost_evaporator[i] = pvt.model.Total_frost
+        Frost_volume_evaporator[i] = pvt.model.total_volume_frost
         Tevaporator[i] = pvt.model.T_0 - 273.15
 
         TBuffervessel0[i + 1] = result.y[2, -1]
@@ -415,7 +422,7 @@ def main(show=False, xl=False):
         data = (t, Tair, Twall, Treturn, Power_gb, Power_hp, water_temp, cop_hp,
                 TBuffervessel0, TBuffervessel1, TBuffervessel2, TBuffervessel3,
                 TBuffervessel4, TBuffervessel5, TBuffervessel6, TBuffervessel7,
-                Frost_evaporator, Power_evaporator, Tevaporator)
+                Frost_evaporator, Power_evaporator, Tevaporator, P_electric_element_t, Frost_volume_evaporator)
 
     # if show=True, plot the results
     if show:
@@ -434,7 +441,8 @@ def main(show=False, xl=False):
         plt.show()
         """
         time_d = data[0] / (3600 * 24)
-        fig, ax = plt.subplots(3, 2, sharex='all')
+        fig, ax = plt.subplots(3, 2,  sharex='all')
+        #ax[0, 0].hlines(y=19, linewidth=0.5, linestyles='--', xmin=0, xmax=len(time_d))
         ax[0, 0].plot(time_d, data[1], label='Tair')
         ax[0, 0].plot(time_d, data[2], label='Twall')
         ax[0, 0].plot(time_d, data[18], label='Tevaporator')
@@ -454,21 +462,23 @@ def main(show=False, xl=False):
         ax[0, 1].set_xlabel(('Time (s)'))
         ax[0, 1].set_ylabel(('COP'))
 
-        ax[1, 0].plot(time_d, data[6], label='Condensor temp', color='c')
+        ax[1, 0].plot(time_d, data[6], label='Condensor temp heat pump', color='c')
+        ax[1, 0].plot(time_d, heating_curve_temp_t, label='Water temp to buffervessel', color='r')
         ax[1, 0].legend(loc='upper right')
         ax[1, 0].set_title('Condensor Temperature')
         ax[1, 0].set_xlabel(('Time (s)'))
         ax[1, 0].set_ylabel(('T (°C)'))
 
-        ax[1, 1].plot(time_d, data[3], label='Return temp', color='b')
+        ax[1, 1].plot(time_d, data[20], label='Frost volume evaporator', color='b')
         ax[1, 1].legend(loc='upper right')
-        ax[1, 1].set_title('Return Temperature')
+        ax[1, 1].set_title('Frost volume')
         ax[1, 1].set_xlabel(('Time (s)'))
-        ax[1, 1].set_ylabel(('Temperature (°C)'))
+        ax[1, 1].set_ylabel(('Volume (kg/m^3)'))
 
         # ax[2, 0].plot(time_d, data[5], label='Power HP', color = 'r')
         ax[2, 0].plot(time_d, P_supply, label='Power HP', color='r')
         ax[2, 0].plot(time_d, Power_evaporator, label='Power evaporator', color='b')
+        ax[2, 0].plot(time_d, P_electric_element_t, label='Power electric element', color='g')
         ax[2, 0].legend(loc='upper right')
         ax[2, 0].set_title('Power_hp')
         ax[2, 0].set_xlabel(('Time (s)'))
