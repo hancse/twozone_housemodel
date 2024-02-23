@@ -46,7 +46,7 @@ PVT:
   name: "PVT panel"
   area: 16 # m^2
   incl_deg: 36.0  # angle with horizontal
-  az_deg: 0.0   # convention: south = 0
+  az_deg: 270.0   # convention: south = 0
 
 
 edges:

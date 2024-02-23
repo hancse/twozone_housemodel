@@ -18,6 +18,7 @@ class FrostModel:
         self.P = 101325  # air pressure in  Pascal
         self.Total_frost = 0 # Total frost at current time instance
         self.Total_frost_t = []
+        self.mass_per_step = []
         self.timesteps_frost_buildup = 0
         self.total_volume_frost = 0
         self.cumulative_density_frost = 0
@@ -237,7 +238,7 @@ class FrostModel:
         return 260 - (15 * (T_dew - (self.T_0 - 273.15)))
 
     def update(self, T_outside, RV, evaporator_power, massflow_air):
-        if evaporator_power > 1:
+        if evaporator_power > .5:
             if T_outside < 273.15 + 10:
                 # First, the enthalpy of the air entering the evaporator (outside air), and the enthalpy leaving the evaporator need to be determined
                 humidity_ratio_outside = self.calculate_humidity_ratio(T_outside, RV, self.P)
@@ -252,19 +253,36 @@ class FrostModel:
                     mass_rijp = self.calculate_mrijp(humidity_ratio_outside, x_air_leaving, massflow_air, 600)
                     self.Total_frost += mass_rijp
                     self.Total_frost_t.append(self.Total_frost)
+                    self.mass_per_step.append(mass_rijp)
                     dewpoint = self.calculate_dew_point_quick(T_outside - 273.15, RV)
                     rho_rijp = self.calculate_rho_rijp(dewpoint)
                     volume_frost = mass_rijp / rho_rijp
                     self.total_volume_frost += volume_frost
                     self.cumulative_density_frost += rho_rijp
                     self.average_density_frost = self.cumulative_density_frost / self.timesteps_frost_buildup
+                else:
+                    if (self.Total_frost > 0):
+                        energy_ice = self.Total_frost * 334  # kJ
+                        energy_from_solar = -evaporator_power * 600
+                        energy_from_air = 0
+                        if (T_outside > self.T_0):
+                            energy_from_air = (44 * self.A_u * (T_outside - self.T_0) * 600) / 1000
+                        energy_ice_new = energy_ice - energy_from_solar - energy_from_air
+                        self.Total_frost = energy_ice_new / 334
+                        if (self.Total_frost < 0):
+                            self.Total_frost = 0
+                        self.Total_frost_t.append(self.Total_frost)
+                        self.mass_per_step.append(0)
+                        self.total_volume_frost = self.Total_frost / self.average_density_frost
 
             else:
                 self.T_0 = T_outside
                 self.Total_frost_t.append(self.Total_frost)
+                self.mass_per_step.append(0)
         elif evaporator_power > 0:
-            self.T_0 = T_outside
+            self.T_0 = T_outside - 5
             self.Total_frost_t.append(self.Total_frost)
+            self.mass_per_step.append(0)
 
         else:
             if(self.Total_frost > 0):
@@ -278,6 +296,7 @@ class FrostModel:
                 if(self.Total_frost<0):
                     self.Total_frost = 0
                 self.Total_frost_t.append(self.Total_frost)
+                self.mass_per_step.append(0)
                 self.total_volume_frost = self.Total_frost / self.average_density_frost
 
 

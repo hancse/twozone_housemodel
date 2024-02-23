@@ -158,7 +158,7 @@ def main(show=False, xl=False):
     Q_PVT = SourceTerm("PVT Solar irradiation")
     df_irr_PVT = run_qsun_new(df_nen, pvt.azimuth, pvt.inclination)
     Q_PVT.values = (df_irr_PVT.total_irr * pvt.area).values
-    Q_PVT.values = Q_PVT.values[0:days_sim * 24]
+    Q_PVT.values = Q_PVT.values[0:days_sim * 24] * 0.6
     Q_PVT.values.flatten()
 
     # skip additional source terms from solar irradiation and human presence
@@ -221,6 +221,7 @@ def main(show=False, xl=False):
     P_PVT_thermal_solo_t = np.zeros(len(t))
     P_PVT_thermal_solar = np.zeros(len(t))
     P_PVT_thermal_air = np.zeros(len(t))
+    P_PVT_thermal_from_air_percentage = np.zeros(len(t))
 
 
     TBuffervessel0 = np.ones(len(t)) * y0[2]
@@ -324,7 +325,7 @@ def main(show=False, xl=False):
         # determine new setting for COP and heat pump power
 
 
-        heating_curve_temp = outdoor_reset(Toutdoor.values[i], 1.7, 20)
+        heating_curve_temp = outdoor_reset(Toutdoor.values[i], 1.65, 20)
 
         if(heating_curve_temp < nta.T_max_cond_out):
             nta.T_cond_or = heating_curve_temp
@@ -350,7 +351,7 @@ def main(show=False, xl=False):
             P_supply[i] = 0
             cop_hp[i] = 0
 
-        if Tair[i] <20:
+        if Tair[i] < 20:
             r.flow.set_flow_rate(150.0e-6)
         else:
             r.flow.set_flow_rate(0)
@@ -365,6 +366,8 @@ def main(show=False, xl=False):
 
         P_PVT_thermal_solar[i] = min(float(Q_PVT.values[i]), P_PVT_thermal_solo)
         P_PVT_thermal_air[i] = P_PVT_thermal_solo - P_PVT_thermal_solar[i]
+
+        P_PVT_thermal_from_air_percentage[i] = (P_PVT_thermal_air[i] / (P_PVT_thermal_air[i] + P_PVT_thermal_solar[i])) * 100
 
         P_PVT_thermal -= max(0.0, min(100000.0, float(Q_PVT.values[i])))
         P_PVT_thermal_kW = P_PVT_thermal/1000
@@ -449,89 +452,90 @@ def main(show=False, xl=False):
         time_d = data[0] / (3600 * 24)
         fig, ax = plt.subplots(3, 2,  sharex='all')
         #ax[0, 0].hlines(y=19, linewidth=0.5, linestyles='--', xmin=0, xmax=len(time_d))
-        ax[0, 0].plot(time_d, data[1], label='Tair')
-        ax[0, 0].plot(time_d, data[2], label='Twall')
-        ax[0, 0].plot(time_d, data[18], label='Tevaporator')
+        ax[0, 0].plot(time_d, data[1], label='T air')
+        ax[0, 0].plot(time_d, data[2], label='T wall')
+        ax[0, 0].plot(time_d, data[18], label='T PVT')
         #ax[0, 0].plot(time_sim / (3600 * 24), SP.values, label='SP_Temperature')
-        ax[0, 0].plot(time_sim / (3600 * 24), Toutdoor.values, label='Toutdoor')
+        ax[0, 0].plot(time_sim / (3600 * 24), Toutdoor.values, label='T outdoor')
         ax[0, 0].legend(loc='upper right')
-        ax[0, 0].set_title('Nodal Temperatures')
-        ax[0, 0].set_xlabel(('Time (s)'))
-        ax[0, 0].set_ylabel(('Temperature (°C)'))
+        ax[0, 0].set_title('Temperatures')
+        ax[0, 0].set_xlabel(('Time (Days)'))
+        ax[0, 0].set_ylabel('Temperature (°C)')
 
-        ax[0, 1].plot(time_d, data[7], label='COP', color='r')
-        ax[0, 1].plot(time_d, data[16], label='Frost', color='b')
-        ax[0, 1].plot(time_d, cop_carnot, label='Frost', color='g')
-
+        ax[0, 1].plot(time_d, data[7], label='COP NTA8800', color='r')
+        ax[0, 1].plot(time_d, cop_carnot, label='COP carnot', color='g')
         ax[0, 1].legend(loc='upper right')
         ax[0, 1].set_title('COP')
-        ax[0, 1].set_xlabel(('Time (s)'))
-        ax[0, 1].set_ylabel(('COP'))
+        ax[0, 1].set_xlabel('Time (Days)')
+        ax[0, 1].set_ylabel('COP')
 
-        ax[1, 0].plot(time_d, data[6], label='Condensor temp heat pump', color='c')
-        ax[1, 0].plot(time_d, heating_curve_temp_t, label='Water temp to buffervessel', color='r')
+        ax[1, 0].plot(time_d, data[6], label='T condenser heat pump', color='c')
+        ax[1, 0].plot(time_d, heating_curve_temp_t, label='T Water to buffervessel', color='r')
         ax[1, 0].legend(loc='upper right')
-        ax[1, 0].set_title('Condensor Temperature')
-        ax[1, 0].set_xlabel(('Time (s)'))
-        ax[1, 0].set_ylabel(('T (°C)'))
+        ax[1, 0].set_title('Condenser Temperature')
+        ax[1, 0].set_xlabel(('Time (Days)'))
+        ax[1, 0].set_ylabel(('Temperature (°C)'))
 
         ax[1, 1].plot(time_d, data[20], label='Frost volume evaporator', color='b')
         ax[1, 1].legend(loc='upper right')
         ax[1, 1].set_title('Frost volume')
-        ax[1, 1].set_xlabel(('Time (s)'))
-        ax[1, 1].set_ylabel(('Volume (kg/m^3)'))
+        ax[1, 1].set_xlabel('Time (Days)')
+        ax[1, 1].set_ylabel('Volume (m^3)')
 
         # ax[2, 0].plot(time_d, data[5], label='Power HP', color = 'r')
         ax[2, 0].plot(time_d, P_supply, label='Power HP', color='r')
         ax[2, 0].plot(time_d, Power_evaporator, label='Power evaporator', color='b')
         ax[2, 0].plot(time_d, P_electric_element_t, label='Power electric element', color='g')
         ax[2, 0].legend(loc='upper right')
-        ax[2, 0].set_title('Power_hp')
-        ax[2, 0].set_xlabel(('Time (s)'))
+        ax[2, 0].set_title('Power hp and evaporator')
+        ax[2, 0].set_xlabel(('Time (Days)'))
         ax[2, 0].set_ylabel(('Power (W)'))
 
-        ax[2, 1].plot(time_d, data[8], label='Top')
-        # ax[2, 1].plot(time_d, data[8], label='T1')
-        ax[2, 1].plot(time_d, data[10], label='T2')
-        # ax[2, 1].plot(time_d, data[10], label='T3')
-        ax[2, 1].plot(time_d, data[12], label='T4')
-        # ax[2, 1].plot(time_d, data[12], label='T5')
-        # ax[2, 1].plot(time_d, data[13], label='T6')
-        ax[2, 1].plot(time_d, data[15], label='Bottom')
+        ax[2, 1].plot(time_d, data[16], label='Frost mass evaporator', color='r')
+        ax[2, 1].plot(time_d, RH.values * 100, label='Relative humidity', color='b')
         ax[2, 1].legend(loc='upper right')
-        ax[2, 1].set_title('Buffervessel')
-        ax[2, 1].set_xlabel(('Time (s)'))
-        ax[2, 1].set_ylabel(('Temperature (°C)'))
+        ax[2, 1].set_title('Frost mass')
+        ax[2, 1].set_xlabel(('Time (Days)'))
+        ax[2, 1].set_ylabel(('Mass (kg)'))
 
         plt.tight_layout()
         plt.suptitle(Path(__file__).stem)
+        plt.show(block=False)
+
+
+        # Creating a scatter plot
+        fig2, ax2 = plt.subplots(1, 2,  sharex='all')
+        ax2[0].scatter(Toutdoor.values, P_PVT_thermal_air, label='Thermal power from air')
+        ax2[1].scatter(Toutdoor.values, P_PVT_thermal_solar, label='Thermal power from solar')
+        ax2[0].legend(loc='upper right')
+        ax2[0].set_ylim([0, 3500])
+        ax2[1].set_ylim([0, 3500])
+        ax2[0].set_title('Thermal Energy from air vs outside temperature')
+        ax2[0].set_xlabel('Temperature (°C)')
+        ax2[0].set_ylabel('Thermal energy [W]')
+        ax2[0].grid(True)
+        ax2[1].set_title('Thermal Energy from sun vs outside temperature')
+        ax2[1].set_xlabel('Temperature (°C)')
+        ax2[1].set_ylabel('Thermal energy [W]')
+        ax2[1].grid(True)
+        plt.legend()
         plt.show()
 
-        # Example data
-        x_data = Toutdoor.values
-        y_data = RH.values
-        z_data = P_PVT_thermal_solo_t
-
-        # Creating the plot
+        # Create a figure and a 3D Axes
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        # Scatter plot
-        ax.scatter(x_data, y_data, z_data)
-        ax.scatter(x_data, y_data, P_PVT_thermal_air, label='Thermal power from air')
-        ax.scatter(x_data, y_data, P_PVT_thermal_solar, label='Thermal power from solar')
+        # Make a scatter plot
+        ax.scatter(Toutdoor.values, RH.values, pvt.model.mass_per_step)
 
-        # Labels
-        ax.set_xlabel('T outdoor')
-        ax.set_ylabel('Relative humidity')
-        ax.set_zlabel('PVT thermal power')
-
-        # Title
+        # Labeling
+        ax.set_xlabel('X Label')
+        ax.set_ylabel('Y Label')
+        ax.set_zlabel('Z Label')
         ax.set_title('3D Scatter Plot')
 
         # Show the plot
         plt.show()
-
 
     if xl:
         xlname = 'tst_8800_buffer.xlsx'
