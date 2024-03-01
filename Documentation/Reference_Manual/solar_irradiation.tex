@@ -83,6 +83,21 @@ In Python, UNIX time is used, with the epoch at 1-1-1970. However, three ways of
 	
 	\item the Python package \textsf{pandas} has an alternative \href{https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Timestamp.html}{\textsf{Timestamp}} class, which uses a \textsf{int64}, representing the number of 1-ns intervals since 1 January 1970. This makes it compatible with UNIX timestamps (divide by 1e9) and with classical Python datetime objects. The type is given as \textsf{datetime64[ns, Europe/Amsterdam]}. This reveals that, apart from the timestamp in UTC, a timezone may be stored. This is done with the helper package \textsf{pytz}, which is installed as a dependency of \textsf{pandas}. It is strongly recommended to always use timezone-aware timestamps, even if UTC is meant. The pytz package also handles daylight savings times smoothly in timezone-aware timestamps.
 	
+	\item the \textsf{int64} representation is also used in the \textsf{numpy} library. Here it represents a \textsf{datetime64} object. This datatype obeys the UNIX epoch of 1-1-1970.
+	NumPy offers two types for timekeeping: \href{https://numpy.org/doc/stable/reference/arrays.datetime.html}{datetime64 and timedelta64}
+	both are represented by a 64-bit signed integer (int64)
+	for the \href{https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.datetime64}{datetime64} type, the constructor has TWO arguments:
+	the first argument is an INT or a STR
+	the second argument is a STR from the Date Units: ['Y', 'M', 'W', 'D'] or
+	the Time units: ['h', 'm', 's', 'ms', 'us', 'ns', 'ps', 'fs', 'as']
+	The Epoch is 1-1-1970 00:00:00 UTC
+	The datetime64 type is a NAIVE type, UNAWARE of timezone and DST information
+	it is only useful for UTC-related timekeeping.
+	for the \href{https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.timedelta64}{timedelta64} type, the constructor has TWO arguments:
+	the first argument is an INT
+	the second argument is a STR from the Date Units: ['Y', 'M', 'W', 'D'] or
+	the Time units: ['h', 'm', 's', 'ms', 'us', 'ns', 'ps', 'fs', 'as']
+	
 \end{itemize}
 
 

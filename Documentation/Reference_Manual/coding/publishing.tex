@@ -1,0 +1,474 @@
+\section{Publishing a Python package and Docs}
+\label{appendix:third}
+
+% definition of boxes
+\definecolor{main}{HTML}{5989cf}    % setting main color to be used
+\definecolor{sub}{HTML}{cde4ff}     % setting sub color to be used
+
+%\tcbset{
+%	sharp corners,
+%	colback = white,
+%	before skip = 0.2cm,    % add extra space before the box
+%	after skip = 0.5cm      % add extra space after the box
+%}                           % setting global options for tcolorbox
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=t,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+
+\lstdefinestyle{DOS}
+{
+	backgroundcolor=\color{black},
+	basicstyle=\footnotesize\color{white}\ttfamily
+	identifierstyle=\color{white}
+	commentstyle=\color{white},
+	keywordstyle=\color{white},
+	stringstyle=\color{white},
+	frame=lines,
+	keepspaces=true,
+	numbers=none,
+	aboveskip=0\baselineskip
+}
+
+\subsection{Converting Python code into Python packages}
+
+Once your code exceeds the complexity of writing simple Python \emph{scripts} or \emph{notebooks} that perform a calculation and present the results, it is time to think about code structure. Python code can be divided in \emph{modules} (\textbf{*.py} files). Each module may contain a number of \emph{functions} that belong together. Data structures and dedicated data manipulation functions can be organized in \emph{classes} (objects). A class usually has its own Python module. The programming style then evolves to \emph{object-oriented programming} (OOP). Classes and helper functions that operate together may form a larger framework: a Python \emph{package}.
+
+The advantage of casting your code in the form of a Python package is, that it can be \emph{re-used} by yourself, team members, colleagues or any other interested programmer. Once the package code enters a stable state of development, it can be documented, published and installed. Thus it becomes a reliable building block for new software, reducing complexity in a new application.
+
+In order to achieve a good starting point for \emph{packaging}, the Python code has to be organized in a structured manner. The most recent insights for organizing your code recommend to follow the directory tree structure presented below: \\
+
+\dirtree{%
+	.1 \textit{<repo\_root>(-git)}.
+	.2 \textbf{docs}.
+	.2 \textbf{src}.
+	.3 \textit{<package>}.
+	.4 \_\_init\_\_.py.
+	.4 \textit{<package\_modules>}.py.
+	.4 ....
+	.4 \textit{<subpackage>}.
+	.5 \_\_init\_\_.py.
+	.5 \textit{<subpackage\_modules}.py.
+	.4 ....
+	.2 \textbf{tests}.
+	.3 \_\_init\_\_.py.
+	.3 test*.py.
+	.3 ....
+	.2 (.gitignore).
+	.2 .readthedocs.yaml.
+	.2 environment.yml.
+	.2 LICENSE.
+	.2 pyproject.toml.
+	.2 README.md or README.rst.
+	.2 setup.py.
+}
+
+\textbf{Notes:} 
+\begin{itemize}
+	\item Previous recommendations included having the \textit{\textless package\textgreater} folder directly under the \textit{\textless repo\_root\textgreater} folder \textit{i.e.} excluding the \textsf{src} subfolder. This works for smaller packages. See: \url{https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/} and 
+	\item every \textit{\textless package\textgreater} and \textit{\textless subpackage\textgreater} folder as well as the \textsf{tests} folder need an \textsf{\_\_init\_\_.py} file. This file can be empty.
+	\item some sources recommend having a \textsf{tests} folder under the \textit{\textless package\textgreater} folder. The website \url{https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html} summarizes the options that work.
+\end{itemize}
+
+\subsection{The \textsf{conda} environment}
+
+During the development of the code for your package, you have used \textsf{import} statements for common dependencies in most Python modules. These dependencies have been installed in a dedicated \textsf{conda} environment with the commands \textsf{conda install} and \textsf{pip install}. For keeping track of how the environment is built, there are two approaches:
+
+\begin{itemize}
+	\item record every \textsf{conda} command needed for building the environment in a text file \textsf{environment.txt}, located in the \textit{\textless repo\_root\textgreater}. For regenerating the environment, use the console commands:
+\begin{lstlisting}[style=DOS]
+	cd <repo_root>
+	source environment.txt
+\end{lstlisting}
+    \item generate a YAML-file \textsf{environment.yml} in the \textit{\textless repo\_root\textgreater} which can be executed by the command
+\begin{lstlisting}[style=DOS]
+    cd <repo_root>
+    conda env create -f environment.yml
+\end{lstlisting}
+
+    For details about the format of the \textsf{environment.yml} configuration file, consult \url{https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file}. An alternative manual can be found at \url{https://medium.com/@balance1150/how-to-build-a-conda-environment-through-a-yaml-file-db185acf5d22}
+\end{itemize}
+
+Publishing your package involves documenting your code, so that future users can consult a manual after installing your software. The publishing process starts with activating your (development) environment in the Anaconda Prompt (Windows) or in a Bash shell (Linux):
+
+\begin{lstlisting}[style=DOS]
+	activate <your-development-environment>
+\end{lstlisting}
+
+\textbf{Note:} The documentation generator \textsf{sphinx} has to operate from the development environment of the package to be published, because it reads import statements in the modules. If sphinx is run from a different environment it may issue annoying warnings about not being able to find imported (standard) packages like numpy, scipy, yaml etc.
+
+\subsection{Documenting a Python package with Sphinx}
+
+\subsubsection{Getting started}
+
+In the \textsf{conda} environment that was created for the development of the package, install the \textsf{sphinx} package and check the installation of \textsf{sphinx-build}. Navigate to the \textit{\textless repo\_root\textgreater} folder of your Python code. From this folder, run \textsf{sphinx-quickstart}, with "docs" as argument. This will create a "\textsf{docs}" subfolder (as customary) and initialize the \textsf{Sphinx} documentation:
+
+\begin{lstlisting}[style=DOS]
+	conda install sphinx
+	sphinx-build --version
+	
+	cd <repo_root>
+	sphinx-quickstart docs	
+\end{lstlisting}
+
+\textsf{sphinx-quickstart} will present to you a series of questions required to create the basic directory and configuration layout for your project inside the \textsf{docs} folder. To proceed, answer each question as follows:
+\begin{itemize}
+	\item Separate source and build directories (y/n) [n]: \textbf{y}
+	\item Project name: enter package name of your code.
+    \item Author name(s): enter your name.
+	\item Project release [ ]: enter 0.0.1 or any real version number.
+	\item Project language [en]: press Enter, unless you really want to document your code in an other language.
+\end{itemize}
+
+After the last question, you will see the new docs directory with the following content. \\
+
+\dirtree{%
+	.1 docs.
+	.2 build.
+	.2 make.bat.
+	.2 Makefile.
+	.2 source.
+	.3 conf.py.
+	.3 index.rst.
+	.3 \_static.
+	.3 \_templates.
+}\label{tree:src} 
+
+The purpose of each of these files is:
+
+\begin{itemize}
+	\item \textsf{build/}: An empty directory (for now) that will hold the rendered documentation.
+	\item \textsf{make.bat} and\textsf{ Makefile}: Convenience scripts to simplify some common Sphinx operations, such as rendering the content.
+	\item \textsf{source/conf.py}: A Python script holding the configuration of the Sphinx project. It contains the project name and release you specified to sphinx-quickstart, as well as some extra configuration keys.
+	\item \textsf{source/index.rst}: The root document of the project, which serves as welcome page and contains the root of the “table of contents tree” (or toctree).
+	
+\end{itemize}
+
+Generate your first documentation website using the commands:
+\begin{lstlisting}[style=DOS]
+	cd docs
+	make html
+\end{lstlisting}
+
+Open \textsf{docs/build/html/index.html} in your browser by double clicking. You should see a basic version of your documentation webpage.
+For a summary, see \url{https://www.sphinx-doc.org/en/master/tutorial/getting-started.html}.
+
+\subsubsection{Customization}
+
+To make the documentation look nicer and to include the docstrings in your Python code, a few extra steps have to be taken. Have a look at the website \url{https://sphinx-tutorial.readthedocs.io/start/} under \textbf{Custom Theme}. This website uses the theme \textsf{sphinx\_rtd\_theme}.
+
+\begin{lstlisting}[style=DOS]
+	pip install sphinx-rtd-theme
+\end{lstlisting}
+
+\textbf{Note}: The package \textsf{sphinx-rtd-theme} is installed with \textsf{pip} since the \textsf{conda package manager} forces a downgrade of the \textsf{sphinx} package.
+
+\subsubsection{Editing conf.py}
+
+Further customization of the documentation can be achieved by fine-tuning the contents of the configuration file \textsf{conf.py}. After running \textsf{sphinx-quickstart} the default \textsf{conf.py} looks like this:
+
+\lstinputlisting[label=pub:conf,caption=Sphinx configuration file conf.py, language=Python, linerange={1-50}]{../../docs/source/conf.py}
+
+First, the documentation generator should be able to find the \emph{package} in the repository. A \emph{relative} path from the directory where \textsf{conf.py} is located should be provided. Before the section \textsf{Project information} insert a section \textsf{Path setup} as follows:
+
+\begin{lstlisting}[style=DOS]
+	# -- Path setup --------------------------------------------------------------
+	
+	# If extensions (or modules to document with autodoc) are in another directory,
+	# add these directories to sys.path here. If the directory is relative to the
+	# documentation root, use os.path.abspath to make it absolute, like shown here.
+	#
+	import os
+	import sys
+	# sys.path.insert(0, os.path.abspath('../../src')) # conf.py in docs\source and <package> in src
+	# sys.path.insert(0, os.path.abspath('../../'))    # conf.py in docs\source and <package> in repo_root
+	# sys.path.insert(0, os.path.abspath('../src'))     # conf.py in docs and <package> in src
+    # sys.path.insert(0, os.path.abspath('../'))      # conf.py in docs and <package> in repo_root
+\end{lstlisting}
+
+In some versions of \textsf{sphinx-quickstart} this section is already present as a template. In this case, uncomment and change the line starting with \textsf{sys.path.insert...} according to the guidelines above.
+
+Next, in the section \textsf{General configuration} add the necessary extensions:
+
+\begin{lstlisting}[style=DOS]
+    # Add any Sphinx extension module names here, as strings. They can be
+    # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
+    # ones.
+    extensions = [
+        'sphinx.ext.autodoc',
+        'sphinx.ext.mathjax',
+        'sphinx.ext.viewcode',
+        'sphinx.ext.napoleon',
+    ]
+    
+    napoleon_google_docstring = True
+    napoleon_use_param = False
+\end{lstlisting}
+
+Consult: 
+\url{https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html} \\
+https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
+
+The \textsf{sphinx.ext.napoleon} extension is necessary for reading and converting Google-style docstrings from your code in \textsf{Sphinx}. The two parameters shown have to be set for a straightforward result.
+
+After the line "templates\_path = ['\_templates']" insert:
+\begin{lstlisting}[style=DOS]
+    # The suffix(es) of source filenames.
+    # You can specify multiple suffix as a list of string:
+    #
+    # source_suffix = ['.rst', '.md']
+    source_suffix = '.rst'
+\end{lstlisting}
+
+This enables the option to include only the (official) \textsf{sphinx} file format \textsf{*.rst} or to also parse \textsf{*.md} (markdown) files.
+
+After that, insert the exclusion patterns. If you did not choose separate source and build directories, exclusion of \textsf{\_build} is mandatory. Thumbnail files and MacOS bookkeeping files can be excluded, for portability:
+
+\begin{lstlisting}[style=DOS]
+	# List of patterns, relative to source directory, that match files and
+	# directories to ignore when looking for source files.
+	# These patterns also affect html_static_path and html_extra_path
+	exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+\end{lstlisting}
+
+Replace the section \textsf{Options for HTML output} by the following snippet. You can choose the \textsf{html\_theme} by uncommenting the required option. For many applications, the standard 'alabaster' theme is replaced by the 'sphinx\_rtd\_theme', which is familiar from the 'ReadTheDocs' websites \url{https://readthedocs.org/}.
+
+\begin{lstlisting}[style=DOS]
+	# The theme to use for HTML and HTML Help pages.  See the documentation for
+	# a list of builtin themes.
+	# html_theme = 'alabaster'
+	html_theme = 'sphinx_rtd_theme'
+	
+	# Add any paths that contain custom static files (such as style sheets) here,
+	# relative to this directory. They are copied after the builtin static files,
+	# so a file named "default.css" will overwrite the builtin "default.css".
+	html_static_path = ['_static']
+\end{lstlisting}
+
+\subsubsection{Including docstrings in Sphinx documentation}
+
+Automatic inclusion of the docstrings in your code is initialized by running the program \textsf{sphinx-autodoc}. This program is included in the \textsf{Sphinx} package. The command is run from the \textsf{docs} directory. The output files \textsf{\textless package\textgreater.rst} and \textsf{modules.rst} are added to the \textsf{docs/source} directory. The second argument points to the (input) \textless package\textgreater folder. Choose one of the options, dependent on where the \textless package\textgreater folder is located.
+
+\begin{lstlisting}[style=DOS]
+    cd docs/
+    sphinx-apidoc -o source/ ../<package>
+    sphinx-apidoc -o source/ ../src/<package>
+\end{lstlisting}
+
+\textsf{sphinx-apidoc} has a few extra options. See: \url{https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html} and \url{https://github.com/sphinx-contrib/apidoc}. \\
+
+\subsubsection{Making a ReadTheDocs site}
+Finally, make a website with source code documentation in ReadTheDocs format:
+
+\begin{lstlisting}[style=DOS]
+	cd docs
+	make html
+\end{lstlisting}
+
+Alternatively, automate the website generation with \textsf{sphinx-autobuild}:
+
+\begin{lstlisting}[style=DOS]
+	conda install sphinx-autobuild
+	cd ..              # to repo root
+	sphinx-autobuild docs docs/build/html  # repeat (from repo root)
+\end{lstlisting}
+
+The website is then automatically hosted on \url{ http://127.0.0.1:8000}. See \url{https://pypi.org/project/sphinx-autobuild/}. 
+
+\subsection{Packaging and Uploading to PyPi}
+
+Once the documentation is presentable, it will be possible to write a summary in a file \textsf{README.rst}. This file has to be located in the \textsf{<repo\_root>} folder. In some cases, this README.rst file is a page from the documentation. Some developers first make a README.rst, and then include it in the ReadTheDocs documentation.
+
+To make things a bit complicated, many packages contain a \textsf{README.md} in the root. This \textit{Markdown}-formatted file is the default format for uploading to PyPi. In such cases, a translation has to be made for Sphinx using the program \textsf{pandoc}. Fortunately, GitHub, BitBucket and PyPi nowadays can handle both *.rst and *.md formats.
+
+Note: You can have either README.rst or README.md in your root folder. Having both is not recommended. PyPi gives an error when uploading the package in such cases.
+
+The packaging process is described in \url{https://packaging.python.org/en/latest/tutorials/packaging-projects/}. The first step is building a \emph{distribution}. Install the package \textsf{build}:
+
+\begin{lstlisting}[style=DOS]
+    pip install --upgrade build
+      or
+    conda install build
+\end{lstlisting}
+
+As mentioned on the webpage, the \textsf{build} command needs a configuration file \textsf{pyproject.toml}. A minimal example is given there. If this file is present in the \textless repo\_root\textgreater, two distribution packages will be generated with the command:  
+
+\begin{lstlisting}[style=DOS]
+    python -m build	
+\end{lstlisting}
+
+The source distribution \textsf{*.tar.gz} and the built distribution \textsf{*.whl} will be created in the \textsf{dist} folder. A \textsf{dist} folder is created automatically if not present.
+
+\subsubsection{Uploading to TestPyPi}
+
+Uploading the distributions to PyPi is done with the command \textsf{twine}. Download the package with:
+
+\begin{lstlisting}[style=DOS]
+	pip install --upgrade twine
+	  or
+	conda install twine
+\end{lstlisting}
+
+Once installed, run Twine to upload all of the archives under dist:
+
+\begin{lstlisting}[style=DOS]
+    python -m twine upload --repository testpypi dist/*
+\end{lstlisting}
+
+Once uploaded, your package should be viewable on TestPyPI; for example: \\ 
+https://test.pypi.org/project/\textless package\textgreater.
+
+Note: the program \textsf{twine} asks for an accountname and password. There, it exhibits peculiar behaviour:
+\begin{itemize}
+	\item copying a password with ctrl-C after the prompt results in an error message.
+	\item pasting a password using the command menu from the Windows Command Prompt works.
+	\item by the end of 2023, (Test)PyPi requires users to login with 2-factor authorization (2FA). It seems that, if you activate 2FA, uploading code is ONLY possible with username "\_\_token\_\_" and an "API token" as password. The personal username/password is only valid for logging in to the (Test)PyPi site. Once logged in you can generate an API token.  See: \href{https://pypi.org/help/#apitoken}{PyPi API token}.
+\end{itemize} 
+
+TestPyPi does not allow updating a package. For each subsequent upload of the distribution files the version number in \textsf{pyproject.toml} has to be changed (increased). This means that your local \textsf{dist} folder becomes crowded with different versions (version pairs) of the distribution files. Every next time you upload the distribution, you either have to:
+\begin{itemize}
+	\item delete the previous versions manually.
+	\item upload only the most recent version of the distribution files. The command is:
+\end{itemize} 
+
+\begin{lstlisting}[style=DOS]
+	twine upload --repository testpypi --skip-existing dist/*
+\end{lstlisting}
+
+\subsubsection{Uploading to PyPi}
+
+Uploading "\emph{for real}" to Pypi is done in a similar way as uploading to the testsite:
+
+Run \textsf{twine} to upload all of the archives under dist:
+
+\begin{lstlisting}[style=DOS]
+	python -m twine upload --repository pypi dist/*
+\end{lstlisting}
+
+Once uploaded, your package should be viewable on PyPI: it is out in the open now! \\
+Example: \\ 
+https://test.pypi.org/project/\textless package\textgreater.
+
+
+PyPi allows updating a particular version of a package. However, this should only be done in case of a clear mishap or mistake. In general, any significant change should at least update the minor version number or build number. Remember to make these changes manually in \textsf{pyproject.toml}. If your local \textsf{dist} folder becomes crowded with different versions (version pairs) of the distribution files, either perform:
+\begin{itemize}
+	\item delete the previous versions manually.
+	\item upload only the most recent version of the distribution files. The command is:
+\end{itemize} 
+
+\begin{lstlisting}[style=DOS]
+	twine upload --repository pypi --skip-existing dist/*
+\end{lstlisting}
+
+\subsubsection{Uploading to Anaconda}
+
+\subsection{Remarks}
+
+\subsubsection{"flat" layout or "src" layout}
+
+The proposed structure for the repository is shown in \ref{tree:src}. The package itself is "encapsulated" in a \textsf{src} folder.
+This has become the "src" layout for a package repository. Previously, the "flat" layout, with the package located directly under the \textless repo\_root\textgreater, was more common.
+
+The underlying philosophy is discussed extensively. The main reasons for choosing the "src" layout is:
+\begin{itemize}
+	\item it is only possible to run tests (from the \textsf{tests} folder) against the \emph{installed package}, not against the package source. The package is not \emph{importable} from the \textless repo\_root\textgreater.
+	\item the installed package only contains the modules from the \textsf{src} folder. In the flat layout, commands like "\textsf{import setup.py}" are successful, which is not meant to be.
+\end{itemize}
+Also see: \\
+\url{https://packaging.python.org/en/latest/discussions/src-layout-vs-flat-layout/} \\
+\url{https://hynek.me/articles/testing-packaging/} \\
+\url{https://blog.ionelmc.ro/2014/05/25/python-packaging/} \\
+
+
+\begin{lstlisting}[style=DOS]
+	cd <repo\_root>
+	pip install -e .
+\end{lstlisting}
+
+
+\newpage
+
+\url{https://packaging.python.org/en/latest/tutorials/packaging-projects/} +++
+
+\url{https://stackoverflow.com/questions/72712965/does-the-src-folder-in-pypi-packaging-have-a-special-meaning-or-is-it-only-a-co}
+
+\url{https://stackoverflow.com/questions/49589082/use-pytest-within-a-python-project-using-the-src-layout}
+
+\url{https://medium.com/mlearning-ai/a-practical-guide-to-python-project-structure-and-packaging-90c7f7a04f95}
+
+\url{https://www.pyopensci.org/python-package-guide/package-structure-code/python-package-structure.html}
+
+\url{https://hynek.me/articles/testing-packaging/}
+
+\url{https://medium.com/analytics-vidhya/explicit-understanding-of-python-package-building-structuring-4ac7054c0749}
+
+\url{https://blog.ionelmc.ro/2014/05/25/python-packaging/}
+
+\url{https://github.com/pypa/sampleproject}
+
+\url{https://realpython.com/python-modules-packages/}
+
+\url{https://realpython.com/python-application-layouts/}
+
+\url{https://realpython.com/pypi-publish-python-package/}
+
+\url{https://py-pkgs.org/04-package-structure.html}
+
+\url{https://ianhopkinson.org.uk/2022/02/
+	understanding-setup-py-setup-cfg-and-pyproject-toml-in-python/}
+
+\url{http://ivory.idyll.org/blog/2021-transition-to-pyproject.toml-example.html}
+
+\url{https://snarky.ca/clarifying-pep-518/}
+
+\url{https://godatadriven.com/blog/a-practical-guide-to-setuptools-and-pyproject-toml/}
+
+\url{https://docs.python-guide.org/writing/structure/}
+
+\url{https://python.land/project-structure/python-packages}
+
+\url{https://docs.python.org/3/tutorial/modules.html}
+
+\url{https://packaging.python.org/en/latest/overview/}
+
+\url{https://packaging.python.org/en/latest/guides/using-testpypi/}
+
+\url{https://www.sphinx-doc.org/en/master/usage/configuration.html}
+
+\url{https://www.sphinx-doc.org/en/master/usage/quickstart.html}
+
+\url{https://towardsdatascience.com/documenting-python-code-with-sphinx-554e1d6c4f6d}
+
+\url{https://github.com/readthedocs-examples/example-sphinx-basic/blob/main/docs/conf.py}
+\url{https://example-sphinx-basic.readthedocs.io/en/latest/index.html}
+
+\url{https://pythonhosted.org/an_example_pypi_project/sphinx.html} 005
+
+\url{https://stackoverflow.com/questions/8218039/how-to-add-extra-whitespace-between-section-header-and-a-paragraph}
+
+\url{https://www.devdungeon.com/content/restructuredtext-rst-tutorial-0}
+
+\url{https://stackoverflow.com/questions/29221551/can-sphinx-napoleon-document-function-returning-multiple-arguments/29343326#29343326}
+
+\newpage
+
