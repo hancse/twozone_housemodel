@@ -12,7 +12,7 @@ p = np.array(plist)
 
 
 # Clausius-Clapeyron
-def clausius(T, T_ref, p_ref):
+def clausius(T, T_ref=373.15, p_ref=101.325):
     """
 
      Args:
@@ -22,10 +22,8 @@ def clausius(T, T_ref, p_ref):
 
      Returns:
      """
-    DH = 40700  # latent heat in kJ/ mol
+    DH = 40657  # latent heat in kJ/ mol
     R = 8.314472  # J/kg /mol gas constant
-    T_ref = 373.15
-    p_ref = 101.325
     exponent = -(DH / R) * (np.reciprocal(T) - np.reciprocal(T_ref))
     pcc = p_ref * np.exp(exponent)
     return pcc
@@ -66,9 +64,16 @@ def tetens_below(Tc):
     ptet = 0.61078 * np.exp(exponent)
     return ptet
 
+
 p_cc = clausius(T_K, 373.15, 101.325)
 p_arm = arm(T_K - 273.15)
 p_tet = tetens_above(T_K - 273.15)
+
+critical_pressure_cc = clausius(647.0)
+critical_pressure_arm = arm(647.0 - 273.15)
+critical_pressure_tetens = tetens_above(647.0 - 273.15)
+print(f"Critical pressure: {critical_pressure_cc}   {critical_pressure_arm}   "
+      f"{critical_pressure_tetens} (22064) kPa")
 
 fig, ax = plt.subplots(2, 1, figsize=(8, 5), sharex=True)
 ax[0].plot(T_K, p, 'bo-', label="vapour pressure")
