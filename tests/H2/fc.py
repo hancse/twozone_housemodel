@@ -138,7 +138,7 @@ class FuelCell():
         ax[1].set_ylabel('Voltage [V]')
         plt.show()
 
-np.arcsinh()
+# np.arcsinh()
 
 if __name__ == "__main__":
     fc = FuelCell()
