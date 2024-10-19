@@ -20,16 +20,16 @@ def make_c_inv_matrix(capacity_list: list):
 
 
 def add_c_inv_block(first, second):
+    """add two matrices as block diagonals
+
+    Args:
+        first: 2d array with dimension N
+        second: 2d array with dimension M
+
+    Returns:
+        (array): diagonal 2d array with dimension N+M
+    """
     return block_diag(first, second)
-
-
-def add_k_block(first, second):
-    return block_diag(first, second)
-
-
-def stack_q(first, second):
-    return np.vstack((first, second))
-    # return np.concatenate(first, second)
 
 
 def make_edges(edge_list):
@@ -51,6 +51,17 @@ def make_edges(edge_list):
     K_matrix = -B + np.diag(np.array(row_sums), k=0)
     return K_matrix
 
+# obsolete functions
+"""
+def add_k_block(first, second):
+    return block_diag(first, second)
+"""
+
+"""
+def stack_q(first, second):
+    return np.vstack((first, second))
+    # return np.concatenate(first, second)
+"""
 
 if __name__ == "__main__":
     from pathlib import Path
